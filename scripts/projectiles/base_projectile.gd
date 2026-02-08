@@ -15,6 +15,8 @@ var crit_chance: float
 var crit_multiplier: float
 var on_hit_effects: Array[StatusEffectData]
 
+var source_tower: Node2D
+
 var _direction: Vector2
 var _has_target: bool = false
 var _timer: float = 0.0
@@ -83,6 +85,10 @@ func _apply_damage_to(enemy: Node2D) -> void:
 	var health := enemy.get_node_or_null("HealthComponent") as HealthComponent
 	if not health:
 		return
+
+	# Track kill attribution
+	if enemy is BaseEnemy and is_instance_valid(source_tower):
+		enemy.last_hit_by = source_tower
 
 	var resistance_comp := enemy.get_node_or_null("ResistanceComponent") as ResistanceComponent
 	var resists: Dictionary = resistance_comp.get_all() if resistance_comp else {}

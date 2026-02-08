@@ -4,6 +4,7 @@ extends Node
 var current_speed: Enums.GameSpeed = Enums.GameSpeed.NORMAL
 var lives: int = 20
 var is_game_over: bool = false
+var is_last_stand: bool = false
 
 var _speed_scales := {
 	Enums.GameSpeed.PAUSED: 0.0,
@@ -21,6 +22,7 @@ func _ready() -> void:
 func start_game() -> void:
 	lives = 20
 	is_game_over = false
+	is_last_stand = false
 	current_speed = Enums.GameSpeed.NORMAL
 	Engine.time_scale = 1.0
 	SignalBus.lives_changed.emit(lives)
@@ -47,6 +49,12 @@ func _on_enemy_reached_end(_enemy: Node2D, cost: int) -> void:
 		return
 	lives = max(lives - cost, 0)
 	SignalBus.lives_changed.emit(lives)
+
+	# Last Stand detection
+	if lives == 1 and not is_last_stand:
+		is_last_stand = true
+		SignalBus.last_stand_entered.emit()
+
 	if lives <= 0:
 		is_game_over = true
 		SignalBus.game_over.emit(false)

@@ -12,6 +12,12 @@ extends Node2D
 @onready var tower_placer: TowerPlacer = $TowerPlacer
 @onready var tower_menu: TowerMenu = $HUD/BottomUI/TowerMenu
 
+var _camera: Camera2D
+var _shake_intensity: float = 0.0
+var _shake_duration: float = 0.0
+var _shake_timer: float = 0.0
+var _camera_origin: Vector2
+
 
 func _ready() -> void:
 	# Set up groups for lookups
@@ -24,10 +30,11 @@ func _ready() -> void:
 
 	# Center camera on the map
 	var center_tile := Vector2i(MapBuilder.MAP_W / 2, MapBuilder.MAP_H / 2)
-	var camera := Camera2D.new()
-	camera.position = tile_map.map_to_local(center_tile)
-	camera.zoom = Vector2(1.0, 1.0)
-	add_child(camera)
+	_camera = Camera2D.new()
+	_camera.position = tile_map.map_to_local(center_tile)
+	_camera.zoom = Vector2(1.0, 1.0)
+	_camera_origin = _camera.position
+	add_child(_camera)
 
 	# Initialize pathfinding
 	PathfindingManager.initialize(tile_map, spawn_tiles, goal_tiles)
@@ -60,9 +67,35 @@ func _ready() -> void:
 	_apply_theme_shaders()
 	ThemeManager.theme_changed.connect(_apply_theme_shaders)
 
+	# Camera shake on enemy kills
+	SignalBus.enemy_killed.connect(_on_enemy_killed_shake)
+
 	# Start the game
 	GameManager.start_game()
 	WaveManager.start_waves()
+
+
+func _process(delta: float) -> void:
+	# Camera shake update
+	if _shake_timer > 0.0:
+		_shake_timer -= delta
+		var shake_amount := _shake_intensity * (_shake_timer / _shake_duration)
+		_camera.position = _camera_origin + Vector2(
+			randf_range(-shake_amount, shake_amount),
+			randf_range(-shake_amount, shake_amount),
+		)
+		if _shake_timer <= 0.0:
+			_camera.position = _camera_origin
+
+
+func _shake_camera(intensity: float, duration: float) -> void:
+	_shake_intensity = intensity
+	_shake_duration = duration
+	_shake_timer = duration
+
+
+func _on_enemy_killed_shake(_enemy: Node2D, _gold: int) -> void:
+	_shake_camera(2.0, 0.1)
 
 
 func _apply_theme_shaders() -> void:

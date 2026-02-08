@@ -33,6 +33,12 @@ signal game_speed_changed(speed: Enums.GameSpeed)
 # -- Pathfinding --
 signal path_blocked()
 
+# -- Engagement --
+signal streak_changed(count: int)
+signal near_miss(enemy: Node2D, hp_remaining: float)
+signal last_stand_entered()
+signal send_wave_bonus(gold_bonus: int)
+
 # -- UI --
 signal tower_selected(tower: Node2D)
 signal tower_deselected()

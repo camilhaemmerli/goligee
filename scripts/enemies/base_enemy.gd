@@ -23,6 +23,22 @@ var _spawn_index: int = -1
 var _distance_traveled: float = 0.0
 var _total_path_length: float = 0.0
 
+var last_hit_by: Node2D  ## Tower that last dealt damage (for kill attribution)
+
+# Damage type color map for floating numbers
+const DAMAGE_COLORS := {
+	Enums.DamageType.PHYSICAL: Color("#E0D0C8"),
+	Enums.DamageType.FIRE: Color("#E08040"),
+	Enums.DamageType.ICE: Color("#80C0E0"),
+	Enums.DamageType.LIGHTNING: Color("#E0E060"),
+	Enums.DamageType.POISON: Color("#80E060"),
+	Enums.DamageType.MAGIC: Color("#C080E0"),
+	Enums.DamageType.HOLY: Color("#F0F0A0"),
+	Enums.DamageType.DARK: Color("#9060A0"),
+}
+
+var _flash_material: ShaderMaterial
+
 
 func _ready() -> void:
 	if enemy_data:
@@ -31,6 +47,13 @@ func _ready() -> void:
 	# Fallback placeholder sprite when no texture is assigned
 	if not sprite.texture:
 		sprite.texture = PlaceholderSprites.create_diamond(16, Color("#D06070"))
+
+	# Set up damage flash shader material
+	var shader := load("res://assets/shaders/damage_flash.gdshader") as Shader
+	if shader:
+		_flash_material = ShaderMaterial.new()
+		_flash_material.shader = shader
+		sprite.material = _flash_material
 
 	health.died.connect(_on_died)
 	health.damage_taken.connect(_on_damage_taken)
@@ -165,7 +188,7 @@ func _on_path_updated(spawn_index: int) -> void:
 
 func _on_died() -> void:
 	SignalBus.enemy_killed.emit(self, loot.gold_reward)
-	# TODO: death animation and particle burst
+	_spawn_gold_coins()
 	queue_free()
 
 
@@ -176,12 +199,102 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 
 func _on_damage_taken(amount: float, damage_type: Enums.DamageType, is_crit: bool) -> void:
 	SignalBus.enemy_damaged.emit(self, amount, damage_type)
-	# TODO: damage flash shader + floating damage number
+	_spawn_damage_number(amount, damage_type, is_crit)
+	_flash_damage()
 
 
 func _reached_end() -> void:
+	# Near-miss detection: if enemy barely survived
+	var hp_ratio := health.current_hp / health.max_hp if health.max_hp > 0.0 else 1.0
+	if hp_ratio < 0.1 and hp_ratio > 0.0:
+		SignalBus.near_miss.emit(self, health.current_hp)
+		_spawn_near_miss_label()
+
 	SignalBus.enemy_reached_end.emit(self, loot.lives_cost)
 	queue_free()
+
+
+# -- Game Juice Effects --
+
+func _spawn_damage_number(amount: float, damage_type: Enums.DamageType, is_crit: bool) -> void:
+	var label := Label.new()
+	var text := str(int(amount))
+	if is_crit:
+		text += "!"
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+	var color: Color = DAMAGE_COLORS.get(damage_type, Color.WHITE)
+	label.add_theme_color_override("font_color", color)
+
+	if is_crit:
+		label.add_theme_font_size_override("font_size", 14)
+	else:
+		label.add_theme_font_size_override("font_size", 10)
+
+	label.global_position = global_position + Vector2(-12, -20)
+	label.z_index = 100
+
+	# Add to scene tree (world root so it doesn't move with us)
+	get_tree().current_scene.add_child(label)
+
+	# Animate: drift up and fade out
+	var tween := label.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position:y", label.position.y - 20.0, 0.8)
+	tween.tween_property(label, "modulate:a", 0.0, 0.8)
+	tween.chain().tween_callback(label.queue_free)
+
+
+func _flash_damage() -> void:
+	if not _flash_material:
+		return
+	_flash_material.set_shader_parameter("flash_amount", 1.0)
+	var tween := create_tween()
+	tween.tween_property(_flash_material, "shader_parameter/flash_amount", 0.0, 0.15)
+
+
+func _spawn_gold_coins() -> void:
+	var coin_count := clampi(loot.gold_reward / 5, 3, 5)
+	for i in coin_count:
+		var coin := ColorRect.new()
+		coin.size = Vector2(4, 4)
+		coin.color = Color("#E0C060")
+		coin.global_position = global_position + Vector2(-2, -2)
+		coin.z_index = 100
+
+		get_tree().current_scene.add_child(coin)
+
+		# Fly toward top-left HUD area with a random arc
+		var target_pos := Vector2(40, 12)
+		var arc_offset := Vector2(randf_range(-30, 30), randf_range(-40, -10))
+		var mid_point := coin.global_position + arc_offset
+
+		var tween := coin.create_tween()
+		var delay := i * 0.05
+		if delay > 0.0:
+			tween.tween_interval(delay)
+		tween.tween_property(coin, "global_position", mid_point, 0.2).set_ease(Tween.EASE_OUT)
+		tween.tween_property(coin, "global_position", target_pos, 0.3).set_ease(Tween.EASE_IN)
+		tween.tween_callback(coin.queue_free)
+
+
+func _spawn_near_miss_label() -> void:
+	var label := Label.new()
+	label.text = "Almost! " + str(int(health.current_hp)) + " HP left!"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_color_override("font_color", Color("#C87878"))
+	label.add_theme_font_size_override("font_size", 12)
+	label.global_position = global_position + Vector2(-30, -24)
+	label.z_index = 100
+
+	get_tree().current_scene.add_child(label)
+
+	var tween := label.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position:y", label.position.y - 24.0, 1.2)
+	tween.tween_property(label, "modulate:a", 0.0, 1.2)
+	tween.chain().tween_callback(label.queue_free)
 
 
 # -- Public API for targeting system --

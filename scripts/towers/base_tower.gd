@@ -14,6 +14,7 @@ extends Node2D
 @onready var attack_timer: Timer = $AttackTimer
 
 var _tile_pos: Vector2i
+var kill_count: int = 0
 
 
 func _ready() -> void:
@@ -28,6 +29,7 @@ func _ready() -> void:
 	range_area.area_exited.connect(_on_enemy_exited_range)
 	attack_timer.timeout.connect(_on_attack_timer)
 	upgrade.upgraded.connect(_on_upgraded)
+	SignalBus.enemy_killed.connect(_on_enemy_killed)
 
 
 func _init_from_data() -> void:
@@ -91,6 +93,8 @@ func _fire_at(target: Node2D) -> void:
 	if weapon.projectile_scene:
 		var proj: Node2D = weapon.projectile_scene.instantiate()
 		proj.global_position = global_position
+		if proj is BaseProjectile:
+			proj.source_tower = self
 		if proj.has_method("init"):
 			proj.init(
 				target,
@@ -145,6 +149,11 @@ func _on_upgraded(path_index: int, tier: int) -> void:
 
 func get_sell_value() -> int:
 	return int(upgrade.get_total_invested() * tower_data.sell_ratio)
+
+
+func _on_enemy_killed(enemy: Node2D, _gold: int) -> void:
+	if enemy is BaseEnemy and enemy.last_hit_by == self:
+		kill_count += 1
 
 
 func sell() -> void:

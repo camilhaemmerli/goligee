@@ -1,11 +1,11 @@
 class_name MapBuilder
 extends RefCounted
-## Programmatically builds a TileSet and paints a 14x10 isometric map at runtime.
+## Programmatically builds a TileSet and paints a 16x10 isometric map at runtime.
 ## Called from game.gd before PathfindingManager init.
 
 const TILE_W := 64
 const TILE_H := 32
-const MAP_W := 14
+const MAP_W := 16
 const MAP_H := 10
 
 # Atlas tile IDs (columns in the 3-tile atlas)
@@ -80,16 +80,16 @@ static func build_map(tile_map: TileMapLayer) -> Dictionary:
 	# 6. Paint the map (maze-style: all interior is buildable ground)
 	# Map legend:  W=wall  G=ground  S=spawn(path)  E=goal(path)
 	#
-	#  Row 0: W W W W W W W W W W W W W W
-	#  Row 1: W G G G G G G G G G G G G W
-	#  Row 2: W G G G G G G G G G G G G W
-	#  Row 3: W G G G G G G G G G G G G W
-	#  Row 4: S G G G G G G G G G G G G E
-	#  Row 5: W G G G G G G G G G G G G W
-	#  Row 6: W G G G G G G G G G G G G W
-	#  Row 7: W G G G G G G G G G G G G W
-	#  Row 8: W G G G G G G G G G G G G W
-	#  Row 9: W W W W W W W W W W W W W W
+	#  Row 0: W W W W W W W W W W W W W W W W
+	#  Row 1: W G G G G G G G G G G G G G G W
+	#  Row 2: W G G G G G G G G G G G G G G W
+	#  Row 3: W G G G G G G G G G G G G G G W
+	#  Row 4: S G G G G G G G G G G G G G G E
+	#  Row 5: W G G G G G G G G G G G G G G W
+	#  Row 6: W G G G G G G G G G G G G G G W
+	#  Row 7: W G G G G G G G G G G G G G G W
+	#  Row 8: W G G G G G G G G G G G G G G W
+	#  Row 9: W W W W W W W W W W W W W W W W
 
 	var spawn_tiles: Array[Vector2i] = []
 	var goal_tiles: Array[Vector2i] = []
