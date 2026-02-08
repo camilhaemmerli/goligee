@@ -42,6 +42,17 @@ func _init_from_data() -> void:
 
 	_update_range_shape(tower_data.base_range)
 	upgrade.init(tower_data)
+	_apply_theme_skin()
+
+
+func _apply_theme_skin() -> void:
+	if not tower_data or not tower_data.tower_id:
+		return
+	var skin = ThemeManager.get_tower_skin(tower_data.tower_id)
+	if skin and skin.sprite_sheet:
+		sprite.texture = skin.sprite_sheet
+	if skin and skin.icon:
+		tower_data.icon = skin.icon
 
 
 func _update_range_shape(range_val: float) -> void:
@@ -130,5 +141,6 @@ func get_sell_value() -> int:
 func sell() -> void:
 	var refund := get_sell_value()
 	EconomyManager.add_gold(refund)
+	PathfindingManager.remove_tower(_tile_pos)
 	SignalBus.tower_sold.emit(self, refund)
 	queue_free()

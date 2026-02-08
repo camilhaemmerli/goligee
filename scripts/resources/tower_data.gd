@@ -1,6 +1,7 @@
 class_name TowerData
 extends Resource
 
+@export var tower_id: String
 @export var tower_name: String
 @export var description: String
 @export var icon: Texture2D
@@ -24,3 +25,24 @@ extends Resource
 
 @export_group("Upgrades")
 @export var upgrade_paths: Array[UpgradePathData] = []
+
+
+func get_display_name() -> String:
+	var skin := ThemeManager.get_tower_skin(tower_id) if tower_id else null
+	if skin and skin.display_name:
+		return skin.display_name
+	return tower_name
+
+
+func get_icon() -> Texture2D:
+	var skin := ThemeManager.get_tower_skin(tower_id) if tower_id else null
+	if skin and skin.icon:
+		return skin.icon
+	return icon
+
+
+func get_description() -> String:
+	var skin := ThemeManager.get_tower_skin(tower_id) if tower_id else null
+	if skin and skin.description:
+		return skin.description
+	return description

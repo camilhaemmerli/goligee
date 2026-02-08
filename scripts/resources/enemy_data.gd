@@ -1,6 +1,7 @@
 class_name EnemyData
 extends Resource
 
+@export var enemy_id: String
 @export var enemy_name: String
 @export var description: String
 @export var scene: PackedScene
@@ -27,3 +28,17 @@ extends Resource
 @export var splits_on_death: bool = false
 @export var split_count: int = 0
 @export var split_enemy: EnemyData
+
+
+func get_display_name() -> String:
+	var skin := ThemeManager.get_enemy_skin(enemy_id) if enemy_id else null
+	if skin and skin.display_name:
+		return skin.display_name
+	return enemy_name
+
+
+func get_description() -> String:
+	var skin := ThemeManager.get_enemy_skin(enemy_id) if enemy_id else null
+	if skin and skin.description:
+		return skin.description
+	return description

@@ -70,6 +70,11 @@ func _try_place(world_pos: Vector2) -> void:
 		if tower is BaseTower and tower._tile_pos == tile_pos:
 			return
 
+	# Check pathfinding -- placement must not block all enemy paths
+	if not PathfindingManager.can_place_tower(tile_pos):
+		SignalBus.path_blocked.emit()
+		return
+
 	# Check cost
 	if not EconomyManager.spend_gold(_current_tower_data.build_cost):
 		return
@@ -85,5 +90,6 @@ func _try_place(world_pos: Vector2) -> void:
 	tower.global_position = tile_map.to_global(tile_map.map_to_local(tile_pos))
 	tower_container.add_child(tower)
 
+	PathfindingManager.place_tower(tile_pos)
 	SignalBus.tower_placed.emit(tower, tile_pos)
 	SignalBus.build_mode_exited.emit()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://base_tower"]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/towers/base_tower.gd" id="1_tower"]
 [ext_resource type="Script" path="res://scripts/components/weapon_component.gd" id="2_weapon"]

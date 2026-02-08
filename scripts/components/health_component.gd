@@ -47,7 +47,7 @@ func take_damage(
 
 	# Shield absorbs first
 	if current_shield > 0.0:
-		var absorbed := min(current_shield, dmg)
+		var absorbed: float = min(current_shield, dmg)
 		current_shield -= absorbed
 		dmg -= absorbed
 		shield_changed.emit(current_shield)

@@ -32,7 +32,7 @@ func _refresh() -> void:
 	if not _selected_tower or not _selected_tower.tower_data:
 		return
 
-	tower_name_label.text = _selected_tower.tower_data.tower_name
+	tower_name_label.text = _selected_tower.tower_data.get_display_name()
 	sell_button.text = "Sell (" + str(_selected_tower.get_sell_value()) + "g)"
 
 	# Clear old path buttons

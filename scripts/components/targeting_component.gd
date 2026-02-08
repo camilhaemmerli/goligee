@@ -24,9 +24,16 @@ func remove_enemy(enemy: Node2D) -> void:
 
 func update_target(tower_position: Vector2) -> Node2D:
 	# Clean up dead/freed references
-	enemies_in_range = enemies_in_range.filter(func(e): return is_instance_valid(e) and not e.is_queued_for_deletion())
+	var alive: Array[Node2D] = []
+	for e in enemies_in_range:
+		if is_instance_valid(e) and not e.is_queued_for_deletion():
+			alive.append(e)
+	enemies_in_range = alive
 
-	var valid := enemies_in_range.filter(_is_valid_target)
+	var valid: Array[Node2D] = []
+	for e in enemies_in_range:
+		if _is_valid_target(e):
+			valid.append(e)
 	if valid.is_empty():
 		current_target = null
 		return current_target

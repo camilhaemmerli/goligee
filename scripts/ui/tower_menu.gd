@@ -18,7 +18,7 @@ func _build_buttons() -> void:
 
 	for tower_data in tower_list:
 		var btn := Button.new()
-		btn.text = tower_data.tower_name + "\n" + str(tower_data.build_cost) + "g"
+		btn.text = tower_data.get_display_name() + "\n" + str(tower_data.build_cost) + "g"
 		btn.custom_minimum_size = Vector2(64, 48)
 		btn.pressed.connect(_on_tower_selected.bind(tower_data))
 		button_container.add_child(btn)

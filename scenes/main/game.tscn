@@ -1,11 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://game_main"]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/main/game.gd" id="1_game"]
 [ext_resource type="Script" path="res://scripts/towers/tower_placer.gd" id="2_placer"]
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="3_hud"]
 [ext_resource type="Script" path="res://scripts/ui/tower_menu.gd" id="4_tower_menu"]
 [ext_resource type="Script" path="res://scripts/ui/upgrade_panel.gd" id="5_upgrade_panel"]
-[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="6_fog_shader"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_game")
@@ -13,10 +12,6 @@ script = ExtResource("1_game")
 [node name="World" type="Node2D" parent="."]
 
 [node name="TileMapLayer" type="TileMapLayer" parent="World"]
-
-[node name="Paths" type="Node2D" parent="World"]
-
-[node name="Path1" type="Path2D" parent="World/Paths"]
 
 [node name="Towers" type="Node2D" parent="World"]
 

@@ -1,6 +1,6 @@
 class_name BaseEnemy
-extends PathFollow2D
-## Base class for all enemies. Follows a Path2D and takes damage.
+extends Node2D
+## Base class for all enemies. Follows waypoints from PathfindingManager.
 ## Composed of child components: HealthComponent, ResistanceComponent,
 ## StatusEffectManager, LootComponent.
 
@@ -16,6 +16,12 @@ var base_speed: float = 1.0
 var _movement_type: Enums.MovementType = Enums.MovementType.GROUND
 var _stealth: bool = false
 
+var _waypoints: PackedVector2Array = PackedVector2Array()
+var _waypoint_index: int = 0
+var _spawn_index: int = -1
+var _distance_traveled: float = 0.0
+var _total_path_length: float = 0.0
+
 
 func _ready() -> void:
 	if enemy_data:
@@ -23,6 +29,9 @@ func _ready() -> void:
 
 	health.died.connect(_on_died)
 	health.damage_taken.connect(_on_damage_taken)
+
+	if not is_flying():
+		PathfindingManager.path_updated.connect(_on_path_updated)
 
 
 func _init_from_data() -> void:
@@ -42,6 +51,32 @@ func _init_from_data() -> void:
 	loot.gold_reward = enemy_data.gold_reward
 	loot.lives_cost = enemy_data.lives_cost
 
+	_apply_theme_skin()
+
+
+func _apply_theme_skin() -> void:
+	if not enemy_data or not enemy_data.enemy_id:
+		return
+	var skin = ThemeManager.get_enemy_skin(enemy_data.enemy_id)
+	if skin and skin.sprite_sheet:
+		sprite.texture = skin.sprite_sheet
+	if skin and skin.tint != Color.WHITE:
+		sprite.modulate = skin.tint
+
+
+func setup_path(spawn_index: int) -> void:
+	_spawn_index = spawn_index
+	if is_flying():
+		_waypoints = PathfindingManager.get_flying_path(spawn_index)
+	else:
+		_waypoints = PathfindingManager.get_path_for_spawn(spawn_index)
+
+	if not _waypoints.is_empty():
+		global_position = _waypoints[0]
+		_waypoint_index = 1
+	_total_path_length = _calculate_path_length(_waypoints)
+	_distance_traveled = 0.0
+
 
 func apply_wave_modifiers(modifiers: Dictionary) -> void:
 	if modifiers.has("hp_multiplier"):
@@ -54,11 +89,28 @@ func apply_wave_modifiers(modifiers: Dictionary) -> void:
 
 
 func _process(delta: float) -> void:
-	# Move along path
+	# Move along waypoints
+	if _waypoints.is_empty() or _waypoint_index >= _waypoints.size():
+		return
+
 	var slow_factor := status_effects.get_slow_factor()
 	var current_speed := base_speed * slow_factor
-	# Convert tile speed to pixel speed (32px per tile)
-	progress += current_speed * 32.0 * delta
+	var move_budget := current_speed * 32.0 * delta
+
+	while move_budget > 0.0 and _waypoint_index < _waypoints.size():
+		var target_pos := _waypoints[_waypoint_index]
+		var to_target := target_pos - global_position
+		var dist_to_target := to_target.length()
+
+		if dist_to_target <= move_budget:
+			global_position = target_pos
+			move_budget -= dist_to_target
+			_distance_traveled += dist_to_target
+			_waypoint_index += 1
+		else:
+			global_position += to_target.normalized() * move_budget
+			_distance_traveled += move_budget
+			move_budget = 0.0
 
 	# Apply DoT
 	var dot_dmg := status_effects.get_dot_damage(delta)
@@ -71,8 +123,34 @@ func _process(delta: float) -> void:
 			health.died.emit()
 
 	# Check if reached end of path
-	if progress_ratio >= 1.0:
+	if _waypoint_index >= _waypoints.size():
 		_reached_end()
+
+
+func _on_path_updated(spawn_index: int) -> void:
+	if spawn_index != _spawn_index or is_flying():
+		return
+
+	var new_waypoints := PathfindingManager.get_path_for_spawn(spawn_index)
+	if new_waypoints.is_empty():
+		return
+
+	# Find closest waypoint on new path to reroute mid-walk
+	var closest_idx := 0
+	var closest_dist := INF
+	for i in new_waypoints.size():
+		var dist := global_position.distance_squared_to(new_waypoints[i])
+		if dist < closest_dist:
+			closest_dist = dist
+			closest_idx = i
+
+	_waypoints = new_waypoints
+	_waypoint_index = closest_idx
+	_total_path_length = _calculate_path_length(new_waypoints)
+	# Approximate distance traveled based on new path
+	_distance_traveled = 0.0
+	for i in range(1, closest_idx):
+		_distance_traveled += new_waypoints[i - 1].distance_to(new_waypoints[i])
 
 
 func _on_died() -> void:
@@ -94,7 +172,9 @@ func _reached_end() -> void:
 # -- Public API for targeting system --
 
 func get_path_progress() -> float:
-	return progress_ratio
+	if _total_path_length <= 0.0:
+		return 0.0
+	return _distance_traveled / _total_path_length
 
 
 func is_flying() -> bool:
@@ -107,3 +187,10 @@ func is_stealthed() -> bool:
 
 func get_vulnerability_modifier() -> float:
 	return status_effects.get_vulnerability_modifier()
+
+
+func _calculate_path_length(path: PackedVector2Array) -> float:
+	var length := 0.0
+	for i in range(1, path.size()):
+		length += path[i - 1].distance_to(path[i])
+	return length

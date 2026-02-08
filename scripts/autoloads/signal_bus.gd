@@ -30,6 +30,9 @@ signal game_paused()
 signal game_resumed()
 signal game_speed_changed(speed: Enums.GameSpeed)
 
+# -- Pathfinding --
+signal path_blocked()
+
 # -- UI --
 signal tower_selected(tower: Node2D)
 signal tower_deselected()
