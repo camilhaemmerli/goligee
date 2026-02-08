@@ -1,0 +1,34 @@
+[gd_scene load_steps=5 format=3 uid="uid://base_enemy"]
+
+[ext_resource type="Script" path="res://scripts/enemies/base_enemy.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2_health"]
+[ext_resource type="Script" path="res://scripts/components/resistance_component.gd" id="3_resistance"]
+[ext_resource type="Script" path="res://scripts/components/status_effect_manager.gd" id="4_status"]
+
+[node name="BaseEnemy" type="PathFollow2D"]
+script = ExtResource("1_enemy")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_health")
+
+[node name="ResistanceComponent" type="Node" parent="."]
+script = ExtResource("3_resistance")
+
+[node name="StatusEffectManager" type="Node" parent="."]
+script = ExtResource("4_status")
+
+[node name="LootComponent" type="Node" parent="."]
+script_path = "res://scripts/components/loot_component.gd"
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+offset_left = -12.0
+offset_top = -20.0
+offset_right = 12.0
+offset_bottom = -16.0
+max_value = 100.0
+value = 100.0
+show_percentage = false

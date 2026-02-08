@@ -1,0 +1,122 @@
+[gd_scene load_steps=7 format=3 uid="uid://game_main"]
+
+[ext_resource type="Script" path="res://scripts/main/game.gd" id="1_game"]
+[ext_resource type="Script" path="res://scripts/towers/tower_placer.gd" id="2_placer"]
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="3_hud"]
+[ext_resource type="Script" path="res://scripts/ui/tower_menu.gd" id="4_tower_menu"]
+[ext_resource type="Script" path="res://scripts/ui/upgrade_panel.gd" id="5_upgrade_panel"]
+[ext_resource type="Shader" path="res://assets/shaders/fog.gdshader" id="6_fog_shader"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_game")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="World"]
+
+[node name="Paths" type="Node2D" parent="World"]
+
+[node name="Path1" type="Path2D" parent="World/Paths"]
+
+[node name="Towers" type="Node2D" parent="World"]
+
+[node name="Enemies" type="Node2D" parent="World"]
+
+[node name="Projectiles" type="Node2D" parent="World"]
+
+[node name="Effects" type="Node2D" parent="World"]
+
+[node name="TowerPlacer" type="Node2D" parent="."]
+script = ExtResource("2_placer")
+
+[node name="FogLayer" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="FogRect" type="ColorRect" parent="FogLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("3_hud")
+
+[node name="TopBar" type="HBoxContainer" parent="HUD"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 24.0
+grow_horizontal = 2
+
+[node name="GoldIcon" type="Label" parent="HUD/TopBar"]
+text = "Gold:"
+
+[node name="GoldLabel" type="Label" parent="HUD/TopBar"]
+text = "200"
+
+[node name="Spacer1" type="Control" parent="HUD/TopBar"]
+custom_minimum_size = Vector2(16, 0)
+
+[node name="LivesIcon" type="Label" parent="HUD/TopBar"]
+text = "Lives:"
+
+[node name="LivesLabel" type="Label" parent="HUD/TopBar"]
+text = "20"
+
+[node name="Spacer2" type="Control" parent="HUD/TopBar"]
+custom_minimum_size = Vector2(16, 0)
+
+[node name="WaveLabel" type="Label" parent="HUD/TopBar"]
+text = "Wave 0"
+
+[node name="Spacer3" type="Control" parent="HUD/TopBar"]
+custom_minimum_size = Vector2(16, 0)
+
+[node name="EnemiesLabel" type="Label" parent="HUD/TopBar"]
+text = "0 remaining"
+
+[node name="Spacer4" type="Control" parent="HUD/TopBar"]
+size_flags_horizontal = 3
+
+[node name="SpeedLabel" type="Label" parent="HUD/TopBar"]
+text = "1x"
+
+[node name="BottomUI" type="VBoxContainer" parent="HUD"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -64.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="TowerMenu" type="PanelContainer" parent="HUD/BottomUI"]
+script = ExtResource("4_tower_menu")
+
+[node name="MarginContainer" type="MarginContainer" parent="HUD/BottomUI/TowerMenu"]
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HUD/BottomUI/TowerMenu/MarginContainer"]
+
+[node name="UpgradePanel" type="PanelContainer" parent="HUD"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -200.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("5_upgrade_panel")
+
+[node name="VBox" type="VBoxContainer" parent="HUD/UpgradePanel"]
+
+[node name="TowerNameLabel" type="Label" parent="HUD/UpgradePanel/VBox"]
+text = "Tower Name"
+
+[node name="PathContainer" type="VBoxContainer" parent="HUD/UpgradePanel/VBox"]
+
+[node name="SellButton" type="Button" parent="HUD/UpgradePanel/VBox"]
+text = "Sell"

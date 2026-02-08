@@ -1,0 +1,34 @@
+[gd_scene load_steps=5 format=3 uid="uid://base_tower"]
+
+[ext_resource type="Script" path="res://scripts/towers/base_tower.gd" id="1_tower"]
+[ext_resource type="Script" path="res://scripts/components/weapon_component.gd" id="2_weapon"]
+[ext_resource type="Script" path="res://scripts/components/targeting_component.gd" id="3_targeting"]
+[ext_resource type="Script" path="res://scripts/components/upgrade_component.gd" id="4_upgrade"]
+
+[node name="BaseTower" type="Node2D"]
+script = ExtResource("1_tower")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="RangeArea" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RangeArea"]
+
+[node name="AttackTimer" type="Timer" parent="."]
+wait_time = 1.0
+autostart = true
+
+[node name="WeaponComponent" type="Node" parent="."]
+script = ExtResource("2_weapon")
+
+[node name="TargetingComponent" type="Node" parent="."]
+script = ExtResource("3_targeting")
+
+[node name="UpgradeComponent" type="Node" parent="."]
+script = ExtResource("4_upgrade")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
