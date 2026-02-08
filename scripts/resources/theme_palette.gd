@@ -53,9 +53,15 @@ extends Resource
 @export_group("Fog / Atmosphere")
 @export var fog_near: Color = Color(0.29, 0.19, 0.31, 0.4)
 @export var fog_far: Color = Color(0.42, 0.29, 0.37, 0.6)
+@export var ground_smoke_color: Color = Color(0.28, 0.25, 0.25, 0.35)
 @export var atmosphere_tint: Color = Color("#4A3050")
 @export var clear_color: Color = Color(0.047, 0.039, 0.094, 1.0)
 @export var damage_flash: Color = Color("#E0B0B8")
+
+@export_group("Lighting")
+@export var canvas_modulate: Color = Color(0.45, 0.45, 0.5, 1.0)
+@export var floodlight_color: Color = Color("#D89050")
+@export var streetlight_color: Color = Color("#C8A040")
 
 
 func get_damage_type_color(damage_type: Enums.DamageType) -> Color:

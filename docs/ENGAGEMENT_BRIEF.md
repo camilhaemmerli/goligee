@@ -32,7 +32,7 @@ systems are unchanged.
 
 The principle relies on **positive reinforcement** (Skinner, 1938) -- rewarding actions
 with sensory pleasure to increase the likelihood of repetition. In TD games, the "action"
-is placing and upgrading towers; the "reward" is watching them destroy enemies with
+is placing and upgrading towers; the "reward" is watching them disperse agitators with
 satisfying effects.
 
 ### Research Sources
@@ -66,31 +66,31 @@ Type-specific impact effects (4-frame animations):
 | Ice         | Crystal shatter, frost ring    | Ice crystal scatter   |
 | Lightning   | Flash + chain arc              | Electric pixel sparks |
 | Poison      | Toxic splash, drip effect      | Green drip particles  |
-| Magic       | Arcane sigil flash             | Purple swirl pixels   |
-| Holy        | Golden radiance burst          | Rising light motes    |
-| Dark        | Void rift pulse                | Dark pixel implosion  |
+| Chemical    | Irritant cloud burst           | Yellow haze pixels    |
+| Sonic       | Concussive radiance burst      | Rising shockwave motes|
+| EMP         | Voltage rift pulse             | Dark pixel implosion  |
 
 - Floating damage numbers: color-coded by damage type, drift upward, fade over 0.8s
-- Critical hits: larger font, "!" suffix, brief white flash on enemy sprite
-- Enemy hit-flash: 1-frame white overlay on sprite (using `damage_flash.gdshader`)
+- Critical hits: larger font, "!" suffix, brief white flash on agitator sprite
+- Agitator hit-flash: 1-frame white overlay on sprite (using `damage_flash.gdshader`)
 
 #### Per-Kill Feedback
-- Gold coin particles: 3-5 pixel coins fly from corpse position to HUD gold counter
+- Budget coin particles: 3-5 pixel coins fly from dispersal position to HUD budget counter
 - Coin audio: 8-bit "clink" sound, pitch-randomized ±10%
-- Corpse dissolve: 4-frame fade-out, color shifts to ground tone
-- Kill feed (optional HUD element): scrolling list of recent kills
+- Dispersal dissolve: 4-frame fade-out, color shifts to ground tone
+- Incident feed (optional HUD element): scrolling list of recent dispersals
 
 #### Per-Wave Feedback
-- Wave complete banner: "Wave X Complete!" slides in from top, 2s display
-- Screen-wide violet pulse: subtle full-screen flash using atmosphere shader
-- Gold tally: animated counter showing total wave earnings
-- Perfect Wave bonus: golden border on banner if no enemies leaked
-- Streak counter: "Perfect x3!" with escalating visual intensity
+- Wave complete banner: "INCIDENT X CONTAINED" slides in from top, 2s display
+- Screen-wide amber flash: subtle full-screen flash using atmosphere shader
+- Budget tally: animated counter showing total wave earnings
+- Zero Tolerance bonus: golden border on banner if no agitators leaked
+- Streak counter: "Zero Tolerance x3!" with escalating visual intensity
 
 #### Milestone Feedback
 - Tier 5 unlock: 1s fanfare, tower sprite briefly enlarges, particle ring
 - Boss death: 0.5s slow-motion, radial particle cascade, unique death sound
-- Achievement popup: corner notification with Starlight reward preview
+- Achievement popup: corner notification with Commendations reward preview
 
 #### Key Files
 - `scripts/components/weapon_component.gd` -- recoil, muzzle flash triggers
@@ -126,50 +126,50 @@ commitment. Breaking a streak feels like a loss, so players work harder to maint
 
 ### How Top TD Games Use It
 
-- **BTD6**: "X bloons leaked" counter creates urgency, lives system means close rounds feel tense, free-play mode after winning lets players push limits
+- **BTD6**: "X bloons leaked" counter creates urgency, approval rating system means close rounds feel tense, free-play mode after winning lets players push limits
 - **Kingdom Rush**: star rating system (1-3 stars) makes near-perfect runs feel like losses, hero near-death voice lines add urgency
 - **Arknights**: practice mode shows what *would* have worked, DP (deployment cost) pressure creates constant near-miss tension
 
 ### Goligee Implementation
 
 #### "Almost!" Popup System
-- Trigger: enemy reaches exit with <10% HP remaining
+- Trigger: agitator reaches exit with <10% HP remaining
 - Display: "Almost!" text in coral (#C87878) with HP bar showing remaining health
 - Additional info: "X more damage would have killed it" -- connects to upgrade motivation
 - Frequency cap: max 3 per wave to avoid annoyance
 
-#### Perfect Wave Streak
+#### Zero Tolerance Streak
 - Track consecutive waves with 0 leaks
 - Visual: streak counter in HUD corner, escalating glow (3+ = golden, 5+ = pulsing)
-- Reward: +5% cumulative gold bonus per perfect wave (resets on leak)
+- Reward: +5% cumulative budget bonus per zero-tolerance wave (resets on leak)
 - Streak break: brief "crack" sound effect, counter shatters visually
 
-#### Last Stand Mode
-Activates when player reaches 1 remaining life:
+#### Martial Law Mode
+Activates when player reaches 1 remaining approval rating point:
 
 | Element         | Change                                              |
 |-----------------|-----------------------------------------------------|
 | Fog             | Density increases 30%, darker tint                  |
 | Music           | Shifts to minor key variant, lower tempo            |
-| Audio           | Heartbeat layer added, increases with enemy proximity|
-| HUD             | Life counter pulses red                             |
+| Audio           | Heartbeat layer added, increases with agitator proximity|
+| HUD             | Approval rating counter pulses red                  |
 | Camera          | Subtle 0.5% zoom-in (claustrophobia)                |
 
 - Creates intense memorable moments without changing gameplay difficulty
-- If player survives: "Survivor" bonus Starlight reward
+- If player survives: "Survivor" bonus Commendations reward
 
 #### Post-Defeat "What If" Panel
 - Shown on game over screen (not intrusive during play)
-- Calculates: "Upgrading your Arrow Tower to Tier 3 would have added X DPS"
-- Shows the specific enemy that leaked and its remaining HP
+- Calculates: "Upgrading your Rubber Bullet Turret to Tier 3 would have added X DPS"
+- Shows the specific agitator that leaked and its remaining HP
 - One-tap "Retry" button positioned prominently
-- Subtle: "You earned X Starlight this run" -- loss still produced progress
+- Subtle: "You earned X Commendations this run" -- loss still produced progress
 
 #### Key Files
-- `scripts/autoloads/game_manager.gd` -- life tracking, Last Stand trigger
-- `scripts/autoloads/wave_manager.gd` -- streak tracking, perfect wave detection
-- `scripts/ui/hud.gd` -- streak display, Last Stand UI changes
-- `scripts/autoloads/signal_bus.gd` -- `enemy_near_miss`, `streak_broken` signals
+- `scripts/autoloads/game_manager.gd` -- approval rating tracking, Martial Law trigger
+- `scripts/autoloads/wave_manager.gd` -- streak tracking, zero tolerance wave detection
+- `scripts/ui/hud.gd` -- streak display, Martial Law UI changes
+- `scripts/autoloads/signal_bus.gd` -- `agitator_near_miss`, `streak_broken` signals
 
 ---
 
@@ -187,7 +187,7 @@ information gaps. Showing players that hidden content *exists* (silhouettes, loc
 "???") creates a persistent itch to discover it.
 
 **Collector's Motivation** (Bartle, 1996): "Explorer" and "Achiever" player types are
-driven by completion -- filling out a bestiary or synergy grimoire taps this directly.
+driven by completion -- filling out a suspect database or tactical database taps this directly.
 
 ### Research Sources
 
@@ -206,19 +206,19 @@ driven by completion -- filling out a bestiary or synergy grimoire taps this dir
 
 ### Goligee Implementation
 
-#### Corrupted Enemies
-- Spawn chance: 3-5% per enemy (checked at spawn time)
-- Visual: violet-black glow overlay, subtle particle trail
+#### Radicalized Agitators
+- Spawn chance: 3-5% per agitator (checked at spawn time)
+- Visual: red-black glow overlay, subtle particle trail
 - Stats: +50% HP, +20% speed over base variant
-- Drop: Twilight Shards (meta-currency, 1-3 per kill)
+- Drop: Contraband (meta-currency, 1-3 per dispersal)
 - Audio: distinct spawn sound (lower-pitched variant of normal spawn)
 - Design intent: every wave has a *chance* of something special happening
 
-#### Treasure Caravans
+#### Supply Convoys
 - Timing: appears every 8-12 waves (randomized interval)
-- Composition: 5-8 fast, low-HP "Treasure Beetle" enemies on a direct path
+- Composition: 5-8 fast, low-HP "Supply Runner" agitators on a direct path
 - Behavior: they try to *cross* the map, not attack -- escaping means you lose the loot
-- Reward: bonus gold (2-3x wave value) + chance of rare Twilight Shards
+- Reward: bonus budget (2-3x wave value) + chance of rare Contraband
 - Visual: golden glow, trailing sparkle particles
 - Audio: jingling coin sounds while alive
 - Design intent: sudden moments of excitement, player scrambles to redirect towers
@@ -226,33 +226,33 @@ driven by completion -- filling out a bestiary or synergy grimoire taps this dir
 #### Synergy Discovery System
 - Hidden synergies exist beyond the documented ones in `GAME_DESIGN.md`
 - First discovery: "New Synergy Discovered!" popup with name and effect
-- Grimoire screen: collectible log of all discovered synergies
-- Undiscovered synergies shown as "???" with vague hints ("Something stirs between ice and darkness...")
+- Tactical Database screen: collectible log of all discovered synergies
+- Undiscovered synergies shown as "???" with vague hints ("CLASSIFIED -- insufficient clearance...")
 - Total synergies: ~20 (5 documented, 15 hidden)
 - Design intent: encourages experimentation, gives players something to hunt for
 
-#### Tower Evolutions
+#### Equipment Mergers
 - Trigger: two adjacent towers both at tier 4 or higher with specific type combinations
 - Process: merge animation (2s), towers combine into a single ultra-tower
 - Ultra-tower occupies one tile, other tile freed for new placement
 - Visual: unique sprite, combined particle effects from both source towers
 
-| Tower A (Tier 4+) | Tower B (Tier 4+) | Evolution              | Special Effect              |
+| Tower A (Tier 4+) | Tower B (Tier 4+) | Merger Result          | Special Effect              |
 |--------------------|--------------------|------------------------|-----------------------------|
 | Ice (Permafrost)   | Fire (Inferno)     | Obsidian Forge         | Thermal shock AoE, converts ground to obsidian |
-| Lightning (Storm)  | Arcane (Mystic)    | Astral Conduit         | Chain lightning that ignores all armor |
-| Necromancer (Death)| Poison (Blight)    | Plague Lord            | Undead minions spread poison on contact |
+| Lightning (Storm)  | Sonic (Disruptor)  | Broadband Jammer       | Chain lightning that ignores all armor |
+| Drone Bay (Swarm)  | Poison (Blight)    | Contamination Unit     | Drone swarms spread chemical agent on contact |
 | Arrow (Deadshot)   | Lightning (Tesla)  | Railgun Emplacement    | Hitscan pierces entire map, 5s cooldown |
 | Cannon (Siege)     | Ice (Glacier)      | Avalanche Engine       | Explosive ice boulders that freeze and shatter |
 
 - Design intent: aspirational goals, dramatic power spike, encourages diverse builds
 
 #### Key Files
-- `scripts/autoloads/wave_manager.gd` -- corrupted enemy spawn rolls, caravan scheduling
-- `scripts/enemies/base_enemy.gd` -- corrupted variant visuals/stats
-- `data/enemies/` -- corrupted variant `.tres` definitions
-- New: `scripts/systems/synergy_grimoire.gd` -- discovery tracking
-- New: `scripts/systems/tower_evolution.gd` -- merge detection and execution
+- `scripts/autoloads/wave_manager.gd` -- radicalized agitator spawn rolls, convoy scheduling
+- `scripts/enemies/base_enemy.gd` -- radicalized variant visuals/stats
+- `data/enemies/` -- radicalized variant `.tres` definitions
+- New: `scripts/systems/tactical_database.gd` -- discovery tracking
+- New: `scripts/systems/equipment_merger.gd` -- merge detection and execution
 
 ---
 
@@ -269,7 +269,7 @@ Theory, 1985).
 Visible progress toward milestones (1K DPS, 100 kills) naturally increases engagement
 as the player gets closer.
 
-**Risk-Reward Framing**: wave calling (sending waves early for bonus gold) creates a
+**Risk-Reward Framing**: wave calling (sending waves early for bonus budget) creates a
 voluntary risk that makes the reward feel *earned*, not given.
 
 ### Research Sources
@@ -296,7 +296,7 @@ voluntary risk that makes the reward feel *earned*, not given.
 | 1,000 DPS     | Bronze frame appears around meter      |
 | 5,000 DPS     | Silver frame, brief particle burst     |
 | 10,000 DPS    | Gold frame, screen-edge glow           |
-| 25,000 DPS    | Violet-gold frame, "TWILIGHT POWER!" banner |
+| 25,000 DPS    | Red-gold frame, "MAXIMUM FORCE AUTHORIZED" banner |
 
 #### Per-Tower Kill Counter
 - Displayed on tower info panel when selected
@@ -311,31 +311,31 @@ voluntary risk that makes the reward feel *earned*, not given.
 | 500   | "Elite" title, unique idle animation      |
 | 1000  | "Legendary" title, permanent particle aura|
 
-#### Gold Interest System
-- Between waves: 5% interest on current gold, rounded down
-- Minimum balance for interest: 50 gold (prevents trivial gains)
-- Cap: max 100 gold interest per wave (prevents hoarding strats from dominating)
-- Visual: gold counter briefly glows and ticks up at wave end
+#### Budget Interest System
+- Between waves: 5% interest on current budget, rounded down
+- Minimum balance for interest: 50 budget (prevents trivial gains)
+- Cap: max 100 budget interest per wave (prevents hoarding strats from dominating)
+- Visual: budget counter briefly glows and ticks up at wave end
 - Design intent: rewards strategic saving without punishing spending
 
 #### Wave Calling
 - "Send Next Wave" button available during any wave
-- Bonus gold scales with how early you send:
+- Bonus budget scales with how early you send:
 
 ```
 bonus_multiplier = 1.0 + (remaining_time / total_wave_time) * 0.25
-# Example: calling wave at 50% remaining time = +12.5% gold
-# Maximum: +25% gold (calling immediately)
+# Example: calling wave at 50% remaining time = +12.5% budget
+# Maximum: +25% budget (calling immediately)
 ```
 
-- Multiple concurrent waves stack difficulty but also stack gold bonus
-- Visual: button pulses gently when available, gold bonus preview on hover
-- Risk indicator: color-coded (green = safe, yellow = risky, red = dangerous) based on current enemy count
+- Multiple concurrent waves stack difficulty but also stack budget bonus
+- Visual: button pulses gently when available, budget bonus preview on hover
+- Risk indicator: color-coded (green = safe, yellow = risky, red = dangerous) based on current agitator count
 
 #### Post-Game Statistics
 - Displayed on win/lose screen
-- Stats tracked: total damage, total kills, gold earned, gold spent, DPS peak, MVP tower (highest kills), waves survived, perfect waves, time played
-- Gold-per-wave bar graph showing economic progression
+- Stats tracked: total damage, total dispersals, budget earned, budget spent, DPS peak, MVP tower (highest dispersals), waves survived, zero tolerance waves, time played
+- Budget-per-wave bar graph showing economic progression
 - "Tower Performance" breakdown: damage/kills/efficiency per tower
 
 #### Key Files
@@ -352,7 +352,7 @@ bonus_multiplier = 1.0 + (remaining_time / total_wave_time) * 0.25
 ### Psychological Principle
 
 **Endowed Progress Effect** (Nunes & Dreze, 2006). People are more motivated to complete
-a task when they feel they've already made progress. Giving new players 50 Starlight
+a task when they feel they've already made progress. Giving new players 50 Commendations
 immediately makes the progression system feel "started" rather than "empty."
 
 **Sunk Cost Fallacy** (Arkes & Blumer, 1985). The more a player has invested in
@@ -360,7 +360,7 @@ meta-progression, the harder it is to stop playing. This is ethical when the pro
 itself is enjoyable, not just a retention trap.
 
 **Completion Drive** (Zeigarnik, 1927). Uncompleted tasks create psychological tension.
-A bestiary at 73% completion is more motivating than one at 0% or 100% -- the gap creates
+A suspect database at 73% completion is more motivating than one at 0% or 100% -- the gap creates
 a pull to fill it.
 
 **Mastery Motivation** (Dweck, 1986). Tracking mastery per tower type rewards players for
@@ -383,99 +383,99 @@ deepening their skill, not just progressing linearly.
 
 ### Goligee Implementation
 
-#### Starlight Currency
+#### Commendations Currency
 - Earned from every run (win or lose):
 
-| Source                  | Starlight Earned        |
-|-------------------------|-------------------------|
-| Wave completed          | 1 per wave              |
-| Boss killed             | 10-25 (scales with boss)|
-| Map star earned         | 15 per star             |
-| Perfect wave streak (5+)| 5 bonus                 |
-| Corrupted enemy killed  | 2 per kill              |
-| First-time synergy found| 10 per discovery        |
-| Defeat (consolation)    | 25% of what was earned  |
+| Source                           | Commendations Earned    |
+|----------------------------------|-------------------------|
+| Wave completed                   | 1 per wave              |
+| Boss killed                      | 10-25 (scales with boss)|
+| Map star earned                  | 15 per star             |
+| Zero Tolerance streak (5+)      | 5 bonus                 |
+| Radicalized agitator dispersed  | 2 per dispersal         |
+| First-time synergy found        | 10 per discovery        |
+| Defeat (consolation)            | 25% of what was earned  |
 
-- New players receive 50 Starlight on first launch (endowed progress)
-- Starlight cannot be purchased with real money (premium currency is separate if monetized)
+- New players receive 50 Commendations on first launch (endowed progress)
+- Commendations cannot be purchased with real money (premium currency is separate if monetized)
 
-#### Twilight Knowledge Tree
+#### Protocol Manual
 Four branches, each with 8-10 nodes:
 
-**Martial Branch** (combat power):
+**Tactical Branch** (combat power):
 - Sharpened Edges: +5% tower damage globally
 - Quick Draw: +5% fire rate globally
 - Eagle Eye: +5% tower range globally
 - Battle Hardened: towers gain +1% damage per 50 kills (per-run)
 - Master Tactician: +1 tower placement slot on each map
 
-**Arcane Branch** (discovery & synergies):
-- Attunement: +2 hidden synergies revealed as hints
-- Resonance: synergy bonuses increased by 15%
-- Transmutation: 10% chance corrupted enemies drop double shards
-- Arcane Sight: wave preview shows 3 waves ahead (instead of 2)
-- Evolution Catalyst: tower evolutions require tier 3+ (instead of tier 4+)
+**Intelligence Branch** (discovery & synergies):
+- Informant Network: +2 hidden synergies revealed as hints
+- Signal Boost: synergy bonuses increased by 15%
+- Evidence Seizure: 10% chance radicalized agitators drop double contraband
+- Reconnaissance: wave preview shows 3 waves ahead (instead of 2)
+- Fast-Track Procurement: equipment mergers require tier 3+ (instead of tier 4+)
 
-**Commerce Branch** (economy):
-- Seed Money: +50 starting gold
-- Compound Interest: gold interest 7% (instead of 5%)
+**Logistics Branch** (economy):
+- Seed Money: +50 starting budget
+- Compound Interest: budget interest 7% (instead of 5%)
 - Efficient Recycling: tower sell refund 80% (instead of 70%)
-- Treasure Hunter: treasure caravan frequency +25%
-- Golden Age: wave calling gold bonus +10%
+- Supply Chain: supply convoy frequency +25%
+- Austerity Measures: wave calling budget bonus +10%
 
-**Fortitude Branch** (defense & survival):
-- Thick Walls: +2 starting lives
-- Slow Aura: enemies within 2 tiles of exit move 10% slower
-- Last Stand Mastery: Last Stand mode grants +10% tower damage
-- Resilience: first leak per wave deals 0 damage (1 freebie)
-- Twilight Bastion: +5 max lives
+**Morale Branch** (defense & survival):
+- Public Relations: +2 starting approval rating
+- Curfew Zone: agitators within 2 tiles of exit move 10% slower
+- Martial Law Mastery: Martial Law mode grants +10% tower damage
+- Spin Doctor: first leak per wave deals 0 damage (1 freebie)
+- Iron Mandate: +5 max approval rating
 
 #### Map Stars (3 per map)
 | Star | Condition              | Difficulty |
 |------|------------------------|------------|
 | 1    | Complete the map       | Normal     |
-| 2    | Complete with 15+ lives| Hard       |
-| 3    | Complete under par time and gold | Expert |
+| 2    | Complete with 15+ approval rating| Hard       |
+| 3    | Complete under par time and budget | Expert |
 
 - Star count unlocks later campaign maps
-- Visual: constellation map screen showing all maps as connected stars
+- Visual: precinct map screen showing all maps as connected nodes
 
-#### Tower Mastery
+#### Equipment Certification
 - Each tower type has a global XP bar (persists across all runs)
-- XP earned from damage dealt and kills by that tower type
+- XP earned from damage dealt and dispersals by that tower type
 - Milestones at levels 5, 10, 15, 20, 25
 
 | Level | Reward                                        |
 |-------|-----------------------------------------------|
 | 5     | Alternate color palette unlock                |
-| 10    | Mastery border (silver) on tower portrait     |
+| 10    | Certification border (silver) on tower portrait|
 | 15    | Unique idle animation                         |
-| 20    | Mastery border (gold), "Master" title         |
-| 25    | Prestige skin (twilight-themed visual overhaul)|
+| 20    | Certification border (gold), "Certified" title|
+| 25    | Prestige skin (riot-themed visual overhaul)   |
 
 - Design intent: players develop expertise and identity with specific tower types
 
-#### Bestiary
-- All enemy types listed, but undiscovered ones shown as "???" silhouettes
-- Defeating an enemy type fills in its entry (sprite, name, stats, lore)
-- Lore snippets written in atmospheric Goligee style (twilight mythology)
+#### Suspect Database
+- All agitator types listed, but undiscovered ones shown as "???" silhouettes
+- Dispersing an agitator type fills in its entry (sprite, name, stats, dossier)
+- Dossier snippets written in ironic authoritarian Goligee style (bureaucratic incident reports)
 - Completion percentage shown prominently (leverages Zeigarnik effect)
-- Special entries for corrupted variants and bosses
+- Special entries for radicalized variants and bosses
 
-#### Constellation Map
+#### Precinct Map
 - Overworld screen showing campaign progression
-- Each map is a "star" connected by constellation lines
-- Stars glow brighter with more stars earned (0 = dim, 3 = brilliant)
-- Hidden constellation patterns emerge as maps are completed
+- Each map is a "precinct" connected by jurisdiction lines
+- Precincts glow brighter with more stars earned (0 = dim, 3 = brilliant)
+- Hidden network patterns emerge as maps are completed
 - Total star count displayed as a prestige badge in multiplayer/leaderboards
 
 #### Key Files
-- New: `scripts/autoloads/progression_manager.gd` -- Starlight, knowledge tree, mastery
-- New: `scripts/ui/knowledge_tree.gd` -- skill tree UI
-- New: `scripts/ui/constellation_map.gd` -- campaign map screen
-- New: `scripts/ui/bestiary.gd` -- enemy encyclopedia
-- New: `data/progression/knowledge_tree.tres` -- tree structure and costs
-- `scripts/autoloads/game_manager.gd` -- Starlight earning hooks
+- New: `scripts/autoloads/progression_manager.gd` -- Commendations, protocol manual, certification
+- New: `scripts/ui/protocol_manual.gd` -- skill tree UI
+- New: `scripts/ui/precinct_map.gd` -- campaign map screen
+- New: `scripts/ui/suspect_database.gd` -- agitator encyclopedia
+- New: `data/progression/protocol_manual.tres` -- tree structure and costs
+- `scripts/autoloads/game_manager.gd` -- Commendations earning hooks
 
 ---
 
@@ -517,34 +517,34 @@ feel cheated.
 
 #### Active Abilities (3 abilities, shared across all runs)
 
-| Ability         | Cooldown | Effect                                | Visual                      |
-|-----------------|----------|---------------------------------------|-----------------------------|
-| Twilight Strike | 30s      | Targeted AoE: 500 Magic damage in 2-tile radius | Violet meteor impact  |
-| Frost Veil      | 45s      | All enemies slowed 50% for 3s         | Blue-white screen overlay    |
-| Gold Surge      | 60s      | 2x gold from kills for 10s            | Golden shimmer on all enemies|
+| Ability          | Cooldown | Effect                                | Visual                      |
+|------------------|----------|---------------------------------------|-----------------------------|
+| Flashbang        | 30s      | Targeted AoE: 500 concussive damage in 2-tile radius | Amber flash impact  |
+| Tear Gas Cloud   | 45s      | All agitators slowed 50% for 3s       | Yellow-white screen overlay  |
+| Emergency Budget | 60s      | 2x budget from dispersals for 10s     | Golden shimmer on all agitators|
 
-- Abilities unlock via Twilight Knowledge tree (Martial branch)
+- Abilities unlock via Protocol Manual (Tactical branch)
 - Cooldowns visible in HUD, abilities activated by tap/click on target area
 - Abilities do NOT pause gameplay -- must be used tactically during waves
 - Audio: distinct activation sound per ability, satisfying and atmospheric
 
 #### Wave Preview
-- Shows composition of next 2-3 upcoming waves (3 with Arcane Sight upgrade)
+- Shows composition of next 2-3 upcoming waves (3 with Reconnaissance upgrade)
 - Displayed as a compact sidebar or overlay panel
-- Icons for enemy types with count numbers
-- Special indicators for: boss waves, horde waves, elite waves, treasure caravans
+- Icons for agitator types with count numbers
+- Special indicators for: boss waves, horde waves, elite waves, supply convoys
 - Design intent: allows strategic planning, reduces "surprise frustration"
-- Player can tap an enemy icon for full bestiary info (if discovered)
+- Player can tap an agitator icon for full suspect database info (if discovered)
 
 #### Speed Control
 - Three speeds: 1x (default), 2x, 3x
 - Speed persists between waves until manually changed
-- Auto-suggestion: if no enemies on screen for 5+ seconds, a subtle "Speed up?" prompt appears
+- Auto-suggestion: if no agitators on screen for 5+ seconds, a subtle "Speed up?" prompt appears
 - Speed resets to 1x on boss waves (can be overridden)
 - Keyboard shortcuts: 1/2/3 keys (desktop), double-tap pause area (mobile)
 
 #### Hidden Dynamic Difficulty
-- Adjusts enemy HP by ±10% based on recent performance
+- Adjusts agitator HP by ±10% based on recent performance
 - Performance metric: average leak percentage over last 3 waves
 
 ```
@@ -559,7 +559,7 @@ else:
 ```
 
 - **NEVER disclosed to player** -- must feel natural, not patronizing
-- Cap: only applies to standard enemies, never bosses
+- Cap: only applies to standard agitators, never bosses
 - Resets each new map attempt
 - Design intent: keeps casual players from hitting a wall, keeps skilled players from getting bored
 
@@ -583,7 +583,7 @@ sustains interest far beyond static content.
 choice has a trade-off, which creates engagement through agency and identity.
 
 **Voluntary Challenge** (Deterding, 2011). Players who *choose* to make the game harder
-(Blood Moon Gambit) feel more accomplished when succeeding. The challenge must be
+(Escalation Protocol) feel more accomplished when succeeding. The challenge must be
 opt-in, not forced.
 
 **Social Comparison** (Festinger, 1954). Leaderboards create extrinsic motivation through
@@ -606,7 +606,7 @@ comparison, but should be opt-in to avoid discouraging casual players.
 
 ### Goligee Implementation
 
-#### Twilight Trials (Core Mode)
+#### Internal Affairs (Core Mode)
 - Unlocked after completing the campaign
 - Endless waves on procedurally modified maps
 - No pre-built loadout -- start with 1 random basic tower
@@ -615,56 +615,56 @@ comparison, but should be opt-in to avoid discouraging casual players.
 - After each wave, choose 1 of 3 randomly offered options:
   - New tower (spawned on a random valid tile)
   - Upgrade for an existing tower (random eligible tower + random path)
-  - Resource bonus (gold, ability cooldown reset, extra life)
+  - Resource bonus (budget, ability cooldown reset, extra approval rating)
 - Options weighted by wave number (early = basic, late = powerful)
-- Reroll option: spend 50 gold to reroll all 3 choices (once per wave)
+- Reroll option: spend 50 budget to reroll all 3 choices (once per wave)
 
 **Map Modifiers (1-2 per run, random):**
 
 | Modifier          | Effect                                          |
 |-------------------|-------------------------------------------------|
-| Fog of War        | Only see enemies within tower range             |
-| Reversed Paths    | Enemies enter from exit, exit from entrance     |
-| Lava Fields       | Random tiles become lava (damage enemies AND block towers) |
+| Fog of War        | Only see agitators within tower range           |
+| Reversed Paths    | Agitators enter from exit, exit from entrance   |
+| Hazmat Spill      | Random tiles become hazard zones (damage agitators AND block towers) |
 | Narrow Passages   | Extra chokepoints but fewer placement tiles     |
-| Twilight Eclipse   | All enemies gain stealth for first 3s on spawn  |
-| Cursed Ground     | Towers lose 1% HP per wave (yes, towers can die)|
+| Blackout           | All agitators gain stealth for first 3s on spawn|
+| Budget Cuts       | Towers lose 1% HP per wave (yes, towers can die)|
 
-#### Blood Moon Gambit
+#### Escalation Protocol
 - Optional challenge offered every 5 waves
 - Player can accept or decline (no penalty for declining)
-- Acceptance: enemies get +50% HP for the next wave
-- Reward: 3x gold drops, guaranteed Twilight Shard drop
-- Visual: screen tints blood-red, moon changes color in background
-- Stacking: multiple accepted gambits stack multiplicatively
+- Acceptance: agitators get +50% HP for the next wave
+- Reward: 3x budget drops, guaranteed Contraband drop
+- Visual: screen tints red-alert, warning klaxon overlay in background
+- Stacking: multiple accepted protocols stack multiplicatively
 - Design intent: skilled players can accelerate progression, creates dramatic moments
 
 #### Challenge Modifiers (Score Multipliers)
 
 | Modifier             | Effect                     | Score Multiplier |
 |----------------------|----------------------------|------------------|
-| No Ice Towers        | Ice towers cannot be drafted| 1.2x            |
+| No Water Cannons     | Water Cannons cannot be drafted| 1.2x            |
 | Double Speed         | Permanent 2x game speed   | 1.3x             |
 | Glass Cannon         | Towers deal 2x damage, have 50% HP | 1.5x     |
 | Pacifist Start       | No towers for first 3 waves| 1.4x            |
-| Blood Moon Always    | Gambit active every wave   | 2.0x             |
-| True Twilight        | All modifiers active       | 5.0x             |
+| Escalation Always    | Protocol active every wave | 2.0x             |
+| Total Lockdown       | All modifiers active       | 5.0x             |
 
-- Players select modifiers before starting a Twilight Trial run
+- Players select modifiers before starting an Internal Affairs run
 - Modifiers are unlocked by reaching wave milestones (wave 10, 20, 30, etc.)
 
 #### Leaderboard
-- Score formula: `waves_survived * modifier_multiplier * (1 + perfect_waves * 0.05)`
+- Score formula: `waves_survived * modifier_multiplier * (1 + zero_tolerance_waves * 0.05)`
 - Separate leaderboards for: overall, per-modifier, weekly, friends
 - Opt-in: leaderboard submission is manual ("Submit Score?" after run)
 - Display: top 100 global, top 10 friends, personal best highlighted
 
 #### Key Files
-- New: `scripts/modes/twilight_trials.gd` -- draft logic, modifier application
-- New: `scripts/modes/blood_moon.gd` -- gambit system
+- New: `scripts/modes/internal_affairs.gd` -- draft logic, modifier application
+- New: `scripts/modes/escalation_protocol.gd` -- protocol system
 - New: `scripts/ui/draft_panel.gd` -- draft choice UI
 - New: `scripts/ui/leaderboard.gd` -- score display and submission
-- New: `data/trials/modifiers.tres` -- modifier definitions
+- New: `data/internal_affairs/modifiers.tres` -- modifier definitions
 
 ---
 
@@ -677,14 +677,14 @@ comparison, but should be opt-in to avoid discouraging casual players.
 - Collection events and limited-time content create urgency (FOMO)
 - Co-op mode adds social engagement
 - Boss events provide aspirational content
-- Monkey Knowledge tree gives permanent power growth
+- Monkey Knowledge tree (analogous to our Protocol Manual) gives permanent power growth
 - Pop count tracking satisfies completionist and power fantasy needs
 
 **What Goligee should borrow:**
 - Crosspathing depth (already in design -- 3 paths with 5 tiers)
 - Pop/kill tracking per tower and globally
-- Knowledge tree concept (adapted as Twilight Knowledge)
-- Event-based content rotation (adapted as Twilight Trials modifiers)
+- Knowledge tree concept (adapted as Protocol Manual)
+- Event-based content rotation (adapted as Internal Affairs modifiers)
 
 **What Goligee should avoid:**
 - BTD6's UI is cluttered and overwhelming for new players
@@ -695,16 +695,16 @@ comparison, but should be opt-in to avoid discouraging casual players.
 
 **What makes it addictive:**
 - Hero system provides player identity and progression
-- Star-based rating system drives replay (loss aversion on missed stars)
+- Star-based rating system drives replay (loss aversion on missed ratings)
 - Hand-drawn art creates emotional attachment to the world
 - Campaign structure with escalating difficulty maintains flow
-- Encyclopedia/bestiary satisfies explorer motivation
+- Encyclopedia/suspect database satisfies explorer motivation
 
 **What Goligee should borrow:**
-- Star rating per map (3-star system, adapted for constellation map)
-- Bestiary with gradual discovery
-- Strong art direction creating emotional connection (Goligee's twilight aesthetic)
-- Active abilities (rain of fire -> Twilight Strike)
+- Star rating per map (3-star system, adapted for precinct map)
+- Suspect database with gradual discovery
+- Strong art direction creating emotional connection (Goligee's urban riot aesthetic)
+- Active abilities (rain of fire -> Flashbang)
 
 **What Goligee should avoid:**
 - Kingdom Rush's hero system can become a crutch (players rely on hero, not towers)
@@ -722,10 +722,10 @@ comparison, but should be opt-in to avoid discouraging casual players.
 - Challenge modes (Contingency Contract) provide aspirational difficulty
 
 **What Goligee should borrow:**
-- Roguelike mode concept (adapted as Twilight Trials)
+- Roguelike mode concept (adapted as Internal Affairs)
 - Depth of strategic options in challenges
-- World-building through bestiary lore and atmospheric storytelling
-- Operator trust concept (adapted as Tower Mastery)
+- World-building through suspect database dossiers and atmospheric storytelling
+- Operator trust concept (adapted as Equipment Certification)
 
 **What Goligee should avoid:**
 - Gacha monetization is predatory (Goligee should never gate power behind gambling)
@@ -743,10 +743,10 @@ comparison, but should be opt-in to avoid discouraging casual players.
 - Minimal UI -- gameplay speaks for itself
 
 **What Goligee should borrow:**
-- Discovery as core motivation (adapted as Synergy Discovery, Tower Evolutions)
+- Discovery as core motivation (adapted as Synergy Discovery, Equipment Mergers)
 - Power fantasy escalation (DPS meter milestones, kill counter visuals)
-- Short session potential (Twilight Trials can be designed for 15-30 min runs)
-- Evolution system concept (adapted as Tower Evolutions)
+- Short session potential (Internal Affairs can be designed for 15-30 min runs)
+- Evolution system concept (adapted as Equipment Mergers)
 
 **What Goligee should avoid:**
 - Vampire Survivors has no strategic depth -- Goligee is a *strategy* game first
@@ -757,12 +757,12 @@ comparison, but should be opt-in to avoid discouraging casual players.
 
 | Principle                  | BTD6 | KR  | AK  | VS  | Goligee Approach              |
 |----------------------------|------|-----|-----|-----|-------------------------------|
-| Meta-progression           | Yes  | Yes | Yes | Yes | Twilight Knowledge tree       |
-| Variable rewards           | Mod  | Low | High| High| Corrupted enemies, discovery  |
+| Meta-progression           | Yes  | Yes | Yes | Yes | Protocol Manual               |
+| Variable rewards           | Mod  | Low | High| High| Radicalized agitators, discovery|
 | Active abilities           | Yes  | Yes | Yes | No  | 3 cooldown abilities          |
-| Roguelike mode             | Mod  | No  | Yes | Yes | Twilight Trials               |
+| Roguelike mode             | Mod  | No  | Yes | Yes | Internal Affairs              |
 | Power fantasy escalation   | High | Mod | Mod | Ext | DPS meter, kill counters      |
-| Collection/completion      | High | Mod | High| High| Bestiary, Grimoire, Mastery   |
+| Collection/completion      | High | Mod | High| High| Suspect Database, Tactical Database, Certification |
 | Social/competitive         | Yes  | No  | Mod | No  | Leaderboards (opt-in)         |
 
 ---
@@ -792,7 +792,7 @@ comparison, but should be opt-in to avoid discouraging casual players.
 3. **Compounding Power Fantasy third** because kill counters and DPS meters are simple
    to build and immediately rewarding. Wave calling adds strategic depth with minimal code.
 
-4. **Variable Rewards fourth** because corrupted enemies and treasure caravans transform
+4. **Variable Rewards fourth** because radicalized agitators and supply convoys transform
    routine waves into exciting events. This is Goligee's core differentiator from generic TD.
 
 5. **Flow Maintenance fifth** because active abilities and speed controls are mid-priority --
@@ -801,8 +801,8 @@ comparison, but should be opt-in to avoid discouraging casual players.
 6. **Meta-Progression sixth** because it requires significant infrastructure (save system,
    UI screens, balance) but is critical for long-term retention. Ship with core loops first.
 
-7. **Roguelike Endgame last** because it requires all other systems to be polished. Twilight
-   Trials is the endgame carrot -- it only works if the journey there is satisfying.
+7. **Roguelike Endgame last** because it requires all other systems to be polished. Internal
+   Affairs is the endgame carrot -- it only works if the journey there is satisfying.
 
 ---
 

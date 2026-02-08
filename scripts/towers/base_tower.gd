@@ -15,21 +15,35 @@ extends Node2D
 
 var _tile_pos: Vector2i
 var kill_count: int = 0
+var _show_range: bool = false
 
 
 func _ready() -> void:
 	if tower_data:
 		_init_from_data()
 
-	# Fallback placeholder sprite when no texture is assigned
+	# Themed fallback sprite based on tower_id
 	if not sprite.texture:
-		sprite.texture = PlaceholderSprites.create_diamond(20, Color("#90A0B8"))
+		if tower_data and tower_data.tower_id:
+			match tower_data.tower_id:
+				"rubber_bullet":
+					sprite.texture = EntitySprites.create_arrow_tower()
+				"tear_gas":
+					sprite.texture = EntitySprites.create_cannon_tower()
+				"water_cannon":
+					sprite.texture = EntitySprites.create_ice_tower()
+				_:
+					sprite.texture = EntitySprites.create_tower_turret(Color("#606068"), Color("#90A0B8"))
+		else:
+			sprite.texture = EntitySprites.create_tower_turret(Color("#606068"), Color("#90A0B8"))
 
 	range_area.area_entered.connect(_on_enemy_entered_range)
 	range_area.area_exited.connect(_on_enemy_exited_range)
 	attack_timer.timeout.connect(_on_attack_timer)
 	upgrade.upgraded.connect(_on_upgraded)
 	SignalBus.enemy_killed.connect(_on_enemy_killed)
+	SignalBus.tower_selected.connect(_on_tower_selected)
+	SignalBus.tower_deselected.connect(_on_tower_deselected)
 
 
 func _init_from_data() -> void:
@@ -114,6 +128,7 @@ func _fire_at(target: Node2D) -> void:
 			get_parent().add_child(proj)
 
 	weapon.fired.emit(target)
+	_spawn_muzzle_flash()
 
 
 func _on_upgraded(path_index: int, tier: int) -> void:
@@ -154,6 +169,50 @@ func get_sell_value() -> int:
 func _on_enemy_killed(enemy: Node2D, _gold: int) -> void:
 	if enemy is BaseEnemy and enemy.last_hit_by == self:
 		kill_count += 1
+
+
+func _draw() -> void:
+	if not _show_range or not tower_data:
+		return
+	var radius := _get_current_range() * 32.0
+	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 64, Color("#A0D8A040"), 1.0)
+	draw_circle(Vector2.ZERO, radius, Color("#A0D8A010"))
+
+
+func _get_current_range() -> float:
+	var final_range := tower_data.base_range
+	for mod in upgrade.active_modifiers:
+		if mod.stat_name == "base_range":
+			match mod.operation:
+				Enums.ModifierOp.ADD:
+					final_range += mod.value
+				Enums.ModifierOp.MULTIPLY:
+					final_range *= mod.value
+				Enums.ModifierOp.SET:
+					final_range = mod.value
+	return final_range
+
+
+func _on_tower_selected(tower: Node2D) -> void:
+	_show_range = (tower == self)
+	queue_redraw()
+
+
+func _on_tower_deselected() -> void:
+	_show_range = false
+	queue_redraw()
+
+
+func _spawn_muzzle_flash() -> void:
+	var flash := ColorRect.new()
+	flash.size = Vector2(6, 6)
+	flash.color = Color("#F0E0C0")
+	flash.position = Vector2(-3, -3)
+	flash.z_index = 60
+	add_child(flash)
+	var tween := flash.create_tween()
+	tween.tween_property(flash, "modulate:a", 0.0, 0.1)
+	tween.tween_callback(flash.queue_free)
 
 
 func sell() -> void:

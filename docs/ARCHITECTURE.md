@@ -205,27 +205,27 @@ goligee/
 │   │   └── main_menu.tscn
 │   ├── towers/
 │   │   ├── base_tower.tscn
-│   │   ├── arrow_tower.tscn
-│   │   ├── cannon_tower.tscn
-│   │   ├── lightning_tower.tscn
-│   │   ├── ice_tower.tscn
-│   │   └── necromancer_tower.tscn
+│   │   ├── rubber_bullet_turret.tscn
+│   │   ├── tear_gas_launcher.tscn
+│   │   ├── taser_grid.tscn
+│   │   ├── water_cannon.tscn
+│   │   └── surveillance_hub.tscn
 │   ├── enemies/
 │   │   ├── base_enemy.tscn
-│   │   ├── goblin_scout.tscn
-│   │   ├── skeleton_warrior.tscn
+│   │   ├── rioter.tscn
+│   │   ├── masked_protestor.tscn
 │   │   └── ...
 │   ├── projectiles/
-│   │   ├── arrow.tscn
-│   │   ├── cannonball.tscn
-│   │   └── lightning_bolt.tscn
+│   │   ├── rubber_bullet.tscn
+│   │   ├── tear_gas_canister.tscn
+│   │   └── taser_bolt.tscn
 │   ├── effects/
 │   │   ├── explosion.tscn
-│   │   ├── frost_effect.tscn
-│   │   └── poison_cloud.tscn
+│   │   ├── water_spray.tscn
+│   │   └── gas_cloud.tscn
 │   ├── maps/
-│   │   ├── map_01_forest.tscn
-│   │   └── map_02_ruins.tscn
+│   │   ├── map_01_downtown.tscn
+│   │   └── map_02_capitol.tscn
 │   └── ui/
 │       ├── hud.tscn
 │       ├── tower_menu.tscn
@@ -260,17 +260,17 @@ goligee/
 │       └── tower_menu.gd
 ├── data/
 │   ├── towers/               # .tres Resource files
-│   │   ├── arrow_tower.tres
-│   │   ├── cannon_tower.tres
+│   │   ├── rubber_bullet_turret.tres
+│   │   ├── tear_gas_launcher.tres
 │   │   └── ...
 │   ├── enemies/
-│   │   ├── goblin_scout.tres
+│   │   ├── rioter.tres
 │   │   └── ...
 │   ├── waves/
-│   │   ├── map_01_waves.tres
+│   │   ├── wave_01.tres
 │   │   └── ...
 │   └── upgrades/
-│       ├── arrow_path_a.tres
+│       ├── rubber_bullet_path_a.tres
 │       └── ...
 └── export_presets/
     ├── android/

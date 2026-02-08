@@ -21,29 +21,29 @@ value = 1.5
 
 [sub_resource type="Resource" id="tier_1"]
 script = ExtResource("5_utd")
-tier_name = "Sharper Arrows"
-description = "50% more damage"
+tier_name = "Hardened Tips"
+description = "Upgraded polymer rounds"
 cost = 60
 stat_modifiers = [SubResource("mod_dmg_1")]
 
 [sub_resource type="Resource" id="tier_2"]
 script = ExtResource("5_utd")
-tier_name = "Piercing Arrows"
-description = "Another 50% more damage"
+tier_name = "Armor-Piercing Rounds"
+description = "Helmet? What helmet?"
 cost = 120
 stat_modifiers = [SubResource("mod_dmg_2")]
 
 [sub_resource type="Resource" id="path_1"]
 script = ExtResource("4_upd")
-path_name = "Sharpshooter"
-description = "Increase arrow damage"
+path_name = "Marksman Protocol"
+description = "Increase round lethality"
 tiers = [SubResource("tier_1"), SubResource("tier_2")]
 
 [resource]
 script = ExtResource("1_td")
-tower_id = "arrow"
-tower_name = "Arrow Tower"
-description = "Basic tower with fast attack speed"
+tower_id = "rubber_bullet"
+tower_name = "Rubber Bullet Turret"
+description = "Standard-issue crowd dispersal. Totally non-lethal."
 scene = ExtResource("2_scene")
 build_cost = 50
 sell_ratio = 0.6

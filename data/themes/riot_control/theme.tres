@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="ThemeData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/theme_data.gd" id="1_theme"]
-[ext_resource type="Resource" path="res://data/themes/classic_magic/palette.tres" id="2_palette"]
+[ext_resource type="Resource" path="res://data/themes/riot_control/palette.tres" id="2_palette"]
 
 [resource]
 script = ExtResource("1_theme")
-theme_id = "classic_magic"
-display_name = "Classic Magic"
+theme_id = "riot_control"
+display_name = "Riot Control"
 palette = ExtResource("2_palette")

@@ -49,6 +49,10 @@ func apply_shader_params(material: ShaderMaterial, shader_name: String) -> void:
 				params["fog_color_near"] = palette.fog_near
 				params["fog_color_far"] = palette.fog_far
 			params.merge(current_theme.fog_params, true)
+		"ground_smoke":
+			var palette := get_palette()
+			if palette:
+				params["smoke_color"] = palette.ground_smoke_color
 		"atmosphere":
 			var palette := get_palette()
 			if palette:

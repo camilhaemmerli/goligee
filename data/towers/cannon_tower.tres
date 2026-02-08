@@ -33,29 +33,29 @@ value = 1.5
 
 [sub_resource type="Resource" id="tier_1"]
 script = ExtResource("5_utd")
-tier_name = "Bigger Blast"
-description = "Larger AoE and more damage"
+tier_name = "Wide Dispersal"
+description = "More coverage, more compliance"
 cost = 100
 stat_modifiers = [SubResource("mod_aoe_1"), SubResource("mod_dmg_1")]
 
 [sub_resource type="Resource" id="tier_2"]
 script = ExtResource("5_utd")
-tier_name = "Devastation"
-description = "Even larger AoE and much more damage"
+tier_name = "Nerve Agent"
+description = "Geneva suggestion, really"
 cost = 200
 stat_modifiers = [SubResource("mod_aoe_2"), SubResource("mod_dmg_2")]
 
 [sub_resource type="Resource" id="path_1"]
 script = ExtResource("4_upd")
-path_name = "Demolition"
-description = "Increase blast radius and damage"
+path_name = "Chemical Warfare"
+description = "Increase dispersal radius and potency"
 tiers = [SubResource("tier_1"), SubResource("tier_2")]
 
 [resource]
 script = ExtResource("1_td")
-tower_id = "cannon"
-tower_name = "Cannon Tower"
-description = "Slow but powerful area damage"
+tower_id = "tear_gas"
+tower_name = "Tear Gas Launcher"
+description = "Area denial for the greater good."
 scene = ExtResource("2_scene")
 build_cost = 100
 sell_ratio = 0.6

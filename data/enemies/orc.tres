@@ -5,9 +5,9 @@
 
 [resource]
 script = ExtResource("1_ed")
-enemy_id = "orc"
-enemy_name = "Orc"
-description = "Tough and heavily armored"
+enemy_id = "shield_wall"
+enemy_name = "Shield Wall"
+description = "Heavily armored. Solidarity is their superpower."
 scene = ExtResource("2_scene")
 max_hp = 150.0
 base_speed = 0.6

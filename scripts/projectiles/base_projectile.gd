@@ -26,7 +26,24 @@ var _timer: float = 0.0
 
 func _ready() -> void:
 	if sprite and not sprite.texture:
-		sprite.texture = PlaceholderSprites.create_circle(6, Color("#F0D0D8"))
+		_apply_themed_sprite()
+
+
+func _apply_themed_sprite() -> void:
+	match damage_type:
+		Enums.DamageType.ICE:
+			sprite.texture = EntitySprites.create_ice_shard()
+		Enums.DamageType.PHYSICAL:
+			sprite.texture = EntitySprites.create_cannonball()
+		_:
+			var color := Color("#F0D0D8")
+			if damage_type == Enums.DamageType.FIRE:
+				color = Color("#E08040")
+			elif damage_type == Enums.DamageType.POISON:
+				color = Color("#80E060")
+			elif damage_type == Enums.DamageType.LIGHTNING:
+				color = Color("#E0E060")
+			sprite.texture = EntitySprites.create_projectile_streak(color)
 
 
 func init(

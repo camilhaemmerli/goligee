@@ -1,17 +1,23 @@
 # Goligee -- Color Palette Reference
 
-> Inspired by Superbrothers: Sword & Sworcery EP
-> Mood: Melancholic twilight, contemplative grandeur, atmospheric 8-bit
+> Theme: Urban Dystopia / Riot Control
+> Mood: Oppressive concrete sprawl, ironic authoritarianism, smog-choked post-apocalyptic city
 
 ---
 
 ## Palette Rules
 
-1. **80/20 Rule**: 80% cool blue-violets, 20% warm pink/salmon accents
-2. **Low saturation everywhere** -- the misty, humid feel comes from desaturated hues
-3. **Value over hue** -- communicate depth through lightness/darkness, not color shifts
-4. **Warm = Important** -- reserve warm tones for player actions, threats, and critical UI
-5. **Black anchoring** -- use true black sparingly; most "darks" should be deep violet
+1. **80/20 Rule**: 80% cold concrete/gunmetal grays, 20% warning amber/emergency red accents
+2. **Black anchoring** -- use true black sparingly; most "darks" should be deep charcoal
+3. **Warm = Danger** -- reserve warm tones for fires, flares, warning signs, and threats
+4. **Low saturation everywhere** -- the oppressive urban feel comes from desaturated, muted hues
+5. **Value over hue** -- communicate depth through lightness/darkness, not color shifts
+
+### Clear Color
+
+| Hex       | Name            | Usage                        |
+|-----------|-----------------|------------------------------|
+| `#0E0E12` | Blackout        | Viewport clear color         |
 
 ---
 
@@ -19,52 +25,68 @@
 
 | Hex       | Name            | Usage                        |
 |-----------|-----------------|------------------------------|
-| `#E0B0B8` | Salmon Glow     | Brightest horizon center     |
-| `#D4A0B0` | Dusty Rose      | Mid horizon glow             |
-| `#C48A9A` | Muted Rose      | Upper-mid sky transition     |
-| `#9A6B80` | Mauve Dusk      | Upper sky                    |
-| `#6B4A60` | Twilight Plum   | Near-dark sky zone           |
-| `#4A3050` | Deep Twilight   | Top-of-sky                   |
-| `#B8A0B0` | Pale Lavender   | Wispy cloud highlights       |
+| `#D89050` | Smog Glow       | Brightest horizon center     |
+| `#B07040` | Pollution Haze  | Mid horizon glow             |
+| `#805838` | Brown Smog      | Upper-mid sky transition     |
+| `#504040` | Ash Cloud       | Upper sky                    |
+| `#383038` | Smoke Ceiling   | Near-dark sky zone           |
+| `#282428` | Charcoal Sky    | Top-of-sky                   |
+| `#706060` | Haze Highlight  | Distant smog cloud edges     |
 
 ### Sky Gradient (top to bottom)
 ```
-#120E20 -> #241C35 -> #4A3050 -> #6B4A60 -> #9A6B80 -> #C48A9A -> #D4A0B0 -> #E0B0B8
+#0E0E12 -> #1A1A1E -> #282428 -> #383038 -> #504040 -> #805838 -> #B07040 -> #D89050
 ```
 
 ---
 
-## Terrain / Stone
+## Terrain / Urban
 
 | Hex       | Name            | Usage                        |
 |-----------|-----------------|------------------------------|
-| `#7A6080` | Pale Stone      | Brightest rock, bridge top   |
-| `#6E5878` | Weathered Rock  | Lighter cliff ledges         |
-| `#60486A` | Dusky Stone     | Lit rock surfaces            |
-| `#503B5A` | Medium Rock     | General rock body            |
-| `#4D3858` | Shadow Stone    | Mid-shadow cliff faces       |
-| `#3A2845` | Dark Cliff      | Darkest rock, deep shadow    |
+| `#585860` | Pale Concrete   | Brightest surface, rooftops  |
+| `#4A4A50` | Worn Pavement   | Lighter road surfaces        |
+| `#3A3A3E` | Cracked Asphalt | Standard ground tile (lit)   |
+| `#2E2E32` | Dark Asphalt    | Ground tile shade/shadow     |
+| `#28282C` | Rubble/Concrete | Wall tile, barricade base    |
+| `#1E1E22` | Dark Concrete   | Wall shade, deep shadow      |
+
+### Map Tile Reference
+
+| Tile         | Lit Face  | Shade     |
+|--------------|-----------|-----------|
+| Ground       | `#3A3A3E` | `#2E2E32` |
+| Path         | `#C8A040` | `#9A7830` |
+| Wall         | `#28282C` | `#1E1E22` |
+
+### Path / Warning Markings
+
+| Hex       | Name            | Usage                        |
+|-----------|-----------------|------------------------------|
+| `#C8A040` | Warning Yellow  | Path tile, hazard markings   |
+| `#9A7830` | Dark Amber      | Path shade, worn markings    |
+| `#706020` | Faded Caution   | Old road paint, dim markers  |
 
 ### Isometric Tile Face Mapping
 ```
-        TOP FACE:    #7A6080  (lightest)
+        TOP FACE:    #585860  (lightest)
        /        \
 LEFT FACE:        RIGHT FACE:
-#4D3858            #60486A
+#28282C            #3A3A3E
 (darkest)          (mid-tone)
 ```
 
 ---
 
-## Foliage / Vegetation
+## Urban Debris / Environment
 
 | Hex       | Name            | Usage                        |
 |-----------|-----------------|------------------------------|
-| `#402F50` | Light Foliage   | Edges catching ambient light |
-| `#352848` | Mid Foliage     | Slightly lit leaf clusters   |
-| `#2A1E3A` | Dark Foliage    | Main tree body, dense bushes |
-| `#221838` | Forest Shadow   | Ground-level undergrowth     |
-| `#1E1530` | Deepest Canopy  | Darkest bush/tree interiors  |
+| `#3A3838` | Rebar Gray      | Exposed rebar, metal scrap   |
+| `#2A2828` | Rubble Dark     | Collapsed structure debris   |
+| `#484440` | Dust Concrete   | Pulverized concrete dust     |
+| `#363030` | Burnt Ground    | Scorched pavement, burn mark |
+| `#202020` | Deep Ruin       | Interior of collapsed bldgs  |
 
 ---
 
@@ -72,22 +94,10 @@ LEFT FACE:        RIGHT FACE:
 
 | Hex       | Name            | Usage                        |
 |-----------|-----------------|------------------------------|
-| `#0E0A18` | Void            | Absolute darkest areas       |
-| `#120E20` | Near Black      | Character silhouettes        |
-| `#1A1428` | Ink Violet      | Structural silhouettes       |
-| `#241C35` | Dark Frame      | Scene framing, vignettes     |
-
----
-
-## Accent / Highlights
-
-| Hex       | Name            | Usage                        |
-|-----------|-----------------|------------------------------|
-| `#F0D0D8` | Pale Blush      | Extreme bright highlights    |
-| `#E0B0B8` | Salmon Glow     | Horizon glow, backlit edges  |
-| `#D09098` | Rose Highlight  | Warm rim light               |
-| `#C87878` | Warm Coral      | Flags, ribbons, small accents|
-| `#8A5060` | Muted Berry     | Warm mid-tone accents        |
+| `#0A0A0E` | Void            | Absolute darkest areas       |
+| `#0E0E12` | Near Black      | Character silhouettes        |
+| `#161618` | Carbon          | Structural silhouettes       |
+| `#1A1A1E` | Black Steel     | Scene framing, vignettes     |
 
 ---
 
@@ -95,63 +105,16 @@ LEFT FACE:        RIGHT FACE:
 
 | Hex       | Name            | Usage                        |
 |-----------|-----------------|------------------------------|
-| `#F0D0D8` | UI Text Light   | Primary text on dark BG      |
-| `#E0B0B8` | UI Highlight    | Selected items, active btns  |
-| `#9A6B80` | UI Text Dim     | Secondary/disabled text      |
-| `#60486A` | UI Inactive     | Inactive buttons, locked     |
-| `#2A1E3A` | UI Panel Mid    | Card BG, tooltips            |
-| `#1A1428` | UI Panel Dark   | Panel backgrounds, overlays  |
-| `#120E20` | UI Panel Border | Borders, separators          |
-| `#C87878` | UI Warning      | Low health, cost warnings    |
-
----
-
-## Explosion / Particle Effects
-
-| Hex       | Name            | Usage                        |
-|-----------|-----------------|------------------------------|
-| `#F0D0D8` | Flash Core      | Initial explosion flash      |
-| `#E0B0B8` | Warm Bloom      | Expanding explosion halo     |
-| `#C87878` | Fire Mid        | Mid-explosion, embers        |
-| `#8A5060` | Smoke Warm      | Cooling explosion            |
-| `#6B4A60` | Smoke Cool      | Dissipating smoke            |
-| `#4A3050` | Smoke Fade      | Final wisps before vanishing |
-| `#D4A0B0` | Sparkle         | Small spark/glint particles  |
-| `#B070A0` | Magic Burst     | Magical/special ability FX   |
-| `#905070` | Energy Trail    | Projectile trails            |
-
-### Explosion Lifecycle Gradient
-```
-#F0D0D8 -> #E0B0B8 -> #C87878 -> #8A5060 -> #6B4A60 -> #4A3050 -> transparent
-```
-
-### Depth Fog Gradient (near to far)
-```
-Full color -> #4A3050 @50% -> #6B4A60 @70% -> #9A6B80 @100%
-```
-
----
-
-## Enemy Tints (slightly more saturated for visibility)
-
-| Hex       | Name            | Usage                        |
-|-----------|-----------------|------------------------------|
-| `#D06070` | Enemy Core      | Standard enemy tint          |
-| `#E08888` | Enemy Damaged   | Hit flash / damage state     |
-| `#A04050` | Enemy Elite     | Stronger enemy variant       |
-| `#802030` | Enemy Boss      | Boss / mini-boss tint        |
-
----
-
-## Tower / Defense Colors
-
-| Hex       | Name            | Usage                        |
-|-----------|-----------------|------------------------------|
-| `#7A6080` | Tower Light     | Top/lit face                 |
-| `#60486A` | Tower Mid       | Side face                    |
-| `#3A2845` | Tower Dark      | Shadow face                  |
-| `#90A0B8` | Tower Active    | Powered/active glow (cool)   |
-| `#A0D0C0` | Tower Heal      | Healing/support accent       |
+| `#A0D8A0` | Terminal Green  | Primary text on dark BG      |
+| `#D8A040` | Warning Amber   | Selected items, highlights   |
+| `#808898` | Slate           | Secondary/dim text           |
+| `#505860` | Gunmetal        | Inactive buttons, locked     |
+| `#282830` | UI Panel Mid    | Card BG, tooltips            |
+| `#1A1A1E` | Black Steel     | Panel backgrounds, overlays  |
+| `#121216` | UI Panel Border | Borders, separators          |
+| `#D04040` | Emergency Red   | Low health, cost warnings    |
+| `#D8A040` | Progress Fill   | XP bars, wave progress       |
+| `#88C888` | Confirm Green   | Affordable, ready states     |
 
 ---
 
@@ -159,11 +122,105 @@ Full color -> #4A3050 @50% -> #6B4A60 @70% -> #9A6B80 @100%
 
 | Type       | Primary   | Secondary | Particle  |
 |------------|-----------|-----------|-----------|
-| Physical   | `#9A9AA0` | `#707078` | `#C0C0C8` |
-| Fire       | `#C87878` | `#E0B0B8` | `#F0D0D8` |
-| Ice        | `#90A0B8` | `#A0D0C0` | `#D0E0F0` |
-| Lightning  | `#D0C890` | `#F0E0B0` | `#F0F0D0` |
-| Poison     | `#70A070` | `#508050` | `#90C090` |
-| Magic      | `#B070A0` | `#905070` | `#D0A0C0` |
-| Holy       | `#D0C8A0` | `#F0E8D0` | `#F0F0E0` |
-| Dark       | `#4A3050` | `#241C35` | `#6B4A60` |
+| Kinetic    | `#9A9AA0` | `#707078` | `#C0C0C8` |
+| Fire       | `#D06030` | `#E8A040` | `#F0D080` |
+| Chemical   | `#70A040` | `#90C060` | `#B8E080` |
+| Electric   | `#50A0D0` | `#80C8F0` | `#C0E8F8` |
+| Concussive | `#D8A040` | `#F0C860` | `#F0E8B0` |
+| Cryo       | `#6090B0` | `#90B8D0` | `#C0D8E8` |
+| Corrosive  | `#608030` | `#809840` | `#A0B860` |
+| EMP        | `#3878A0` | `#205880` | `#60A0C8` |
+
+---
+
+## Enemy Tints (slightly more saturated for visibility)
+
+Enemies are protestors/rioters -- tinted to stand out against the gray urban backdrop.
+
+| Hex       | Name            | Usage                        |
+|-----------|-----------------|------------------------------|
+| `#D06040` | Rioter Core     | Standard enemy tint          |
+| `#E89060` | Rioter Damaged  | Hit flash / damage state     |
+| `#A84030` | Rioter Elite    | Stronger enemy variant       |
+| `#802818` | Rioter Boss     | Boss / mini-boss tint        |
+| `#C8A040` | Molotov Glow    | Fire-based enemy highlight   |
+| `#60A060` | Gas Mask Green  | Chemical-resistant variant   |
+
+---
+
+## Tower / Defense Colors
+
+Towers are riot control / state defense structures -- cold, institutional, metallic.
+
+| Hex       | Name            | Usage                        |
+|-----------|-----------------|------------------------------|
+| `#606068` | Tower Light     | Top/lit face                 |
+| `#484850` | Tower Mid       | Side face                    |
+| `#2A2A30` | Tower Dark      | Shadow face                  |
+| `#5080A0` | Tower Active    | Powered/active glow (cool)   |
+| `#D04040` | Tower Warning   | Overheating / danger state   |
+| `#3868A0` | Shield Blue     | Barrier / shield accent      |
+| `#C8A040` | Searchlight     | Spotlight / detection glow   |
+
+---
+
+## Explosion / Particle Effects
+
+| Hex       | Name            | Usage                        |
+|-----------|-----------------|------------------------------|
+| `#F0E0C0` | Flash Core      | Initial explosion flash      |
+| `#E8A040` | Fire Bloom      | Expanding explosion halo     |
+| `#D06030` | Fire Mid        | Mid-explosion, embers        |
+| `#903020` | Fire Fade       | Cooling explosion            |
+| `#484040` | Smoke Warm      | Hot smoke near blast         |
+| `#383838` | Smoke Cool      | Dissipating smoke            |
+| `#282828` | Smoke Fade      | Final wisps before vanishing |
+| `#C8A040` | Spark           | Small spark/glint particles  |
+| `#50A0D0` | Electric Arc    | Taser / EMP ability FX       |
+| `#70A040` | Gas Cloud       | Tear gas / chemical FX       |
+
+### Explosion Lifecycle Gradient
+```
+#F0E0C0 -> #E8A040 -> #D06030 -> #903020 -> #484040 -> #383838 -> #282828 -> transparent
+```
+
+### Tear Gas Lifecycle Gradient
+```
+#A0B060 -> #90A848 -> #70A040 -> #607840 @50% opacity -> #505840 @25% -> transparent
+```
+
+---
+
+## Fog / Atmosphere
+
+| Hex       | Name            | Usage                        |
+|-----------|-----------------|------------------------------|
+| `#383838` | Urban Smog      | Near-distance fog tint       |
+| `#484440` | Dust Haze       | Mid-distance atmospheric     |
+| `#504840` | Distant Smog    | Far-distance silhouette wash |
+| `#282420` | Night Fog       | Nighttime atmospheric fog    |
+
+### Depth Fog Gradient (near to far)
+```
+Full color -> #383838 @40% -> #484440 @60% -> #504840 @80% -> #0E0E12 @100%
+```
+
+### Smoke / Haze Overlay
+```
+#282828 @15% opacity -- persistent smog layer across entire scene
+```
+
+---
+
+## Quick Reference -- 80/20 Split
+
+### 80% Cold Base (concrete / gunmetal / charcoal)
+```
+#0E0E12  #161618  #1A1A1E  #1E1E22  #28282C  #2E2E32
+#3A3A3E  #484850  #585860  #606068  #808898
+```
+
+### 20% Warm Accent (amber / red / fire)
+```
+#C8A040  #D8A040  #E8A040  #D06030  #D04040  #903020
+```

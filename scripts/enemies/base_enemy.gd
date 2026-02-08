@@ -44,9 +44,18 @@ func _ready() -> void:
 	if enemy_data:
 		_init_from_data()
 
-	# Fallback placeholder sprite when no texture is assigned
+	# Themed fallback sprite based on enemy type
 	if not sprite.texture:
-		sprite.texture = PlaceholderSprites.create_diamond(16, Color("#D06070"))
+		if enemy_data and enemy_data.enemy_id:
+			match enemy_data.enemy_id:
+				"rioter", "masked_protestor":
+					sprite.texture = EntitySprites.create_protestor()
+				"shield_wall":
+					sprite.texture = EntitySprites.create_agitator_elite()
+				_:
+					sprite.texture = EntitySprites.create_protestor()
+		else:
+			sprite.texture = EntitySprites.create_protestor()
 
 	# Set up damage flash shader material
 	var shader := load("res://assets/shaders/damage_flash.gdshader") as Shader
@@ -200,6 +209,7 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 func _on_damage_taken(amount: float, damage_type: Enums.DamageType, is_crit: bool) -> void:
 	SignalBus.enemy_damaged.emit(self, amount, damage_type)
 	_spawn_damage_number(amount, damage_type, is_crit)
+	_spawn_impact_sparks(damage_type)
 	_flash_damage()
 
 
@@ -252,6 +262,25 @@ func _flash_damage() -> void:
 	_flash_material.set_shader_parameter("flash_amount", 1.0)
 	var tween := create_tween()
 	tween.tween_property(_flash_material, "shader_parameter/flash_amount", 0.0, 0.15)
+
+
+func _spawn_impact_sparks(damage_type: Enums.DamageType) -> void:
+	var spark_color: Color = DAMAGE_COLORS.get(damage_type, Color("#C8A040"))
+	var spark_count := 3
+	for i in spark_count:
+		var spark := ColorRect.new()
+		spark.size = Vector2(2, 2)
+		spark.color = spark_color
+		spark.global_position = global_position + Vector2(-1, -1)
+		spark.z_index = 80
+		get_tree().current_scene.add_child(spark)
+		var dir := Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
+		var target_pos := spark.global_position + dir * randf_range(6, 14)
+		var tween := spark.create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(spark, "global_position", target_pos, 0.2).set_ease(Tween.EASE_OUT)
+		tween.tween_property(spark, "modulate:a", 0.0, 0.2)
+		tween.chain().tween_callback(spark.queue_free)
 
 
 func _spawn_gold_coins() -> void:

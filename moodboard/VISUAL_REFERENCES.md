@@ -2,12 +2,39 @@
 
 ## Primary Inspiration
 
-### Superbrothers: Sword & Sworcery EP
-- **File**: `reference-superbrothers-sworcery.jpg`
-- **Why**: Masterclass in atmospheric pixel art. Limited palette, silhouette-heavy,
-  emotional depth through value contrast. The twilight palette defines our color language.
-- **Take from it**: Color palette, fog/atmosphere treatment, silhouette style,
-  sense of scale and loneliness
+### Papers Please
+- **Why**: The gold standard for bureaucratic dystopia aesthetic. Oppressive UI design
+  with stamping, filing, and document-checking mechanics that feel institutional.
+  Muted institutional color palette -- olive greens, document yellows, passport blues.
+- **Take from it**: UI design language (rubber stamps, bureaucratic forms, approval/denial
+  feedback), institutional color palette, the weight of state authority conveyed through
+  mundane visual design
+
+### Not Tonight
+- **Why**: Bouncer/border control theme set in a post-Brexit dystopian Britain. Neon-lit
+  urban grime, authoritarian propaganda posters plastered on every wall, rain-slicked streets.
+- **Take from it**: Propaganda poster aesthetic, neon signage against dark urban backdrops,
+  the visual language of a surveillance state dressed up as nightlife
+
+### Beholder
+- **Why**: Surveillance state apartment building rendered in dark silhouettes. Every resident
+  is a shadow, every room is a cross-section of paranoia. The visual design makes the player
+  feel like a voyeur and an enforcer simultaneously.
+- **Take from it**: Dark silhouette character design, cross-section building layouts,
+  paranoid atmosphere through limited visibility, the feeling of watching and being watched
+
+### Orwell
+- **Why**: Digital surveillance as gameplay. Data-heavy UI with terminal-green text,
+  propaganda screens, and the cold sterility of a government monitoring system.
+- **Take from it**: Terminal/CRT monitor aesthetic, data-stream UI elements, green-on-black
+  text overlays, propaganda broadcast screens, digital surveillance HUD elements
+
+### RIOT: Civil Unrest
+- **Why**: The most direct visual reference -- an actual riot simulation game. Crowd dynamics
+  rendered as pixel masses, tear gas clouds obscuring the field, police formations
+  holding lines, molotov cocktails arcing through smoke.
+- **Take from it**: Crowd rendering techniques, tear gas/smoke visual effects, police
+  formation silhouettes, the visual chaos of civil unrest, protest sign variety
 
 ---
 
@@ -16,50 +43,69 @@
 ### Pixel Art & Atmosphere
 | Game | What to Reference |
 |------|-------------------|
-| **Hyper Light Drifter** | Color palette usage, particle effects, screen shake, atmospheric fog |
 | **Dead Cells** | Fluid pixel animation, particle-heavy combat, explosion effects |
+| **Hyper Light Drifter** | Atmospheric fog, screen shake, environmental storytelling through ruin |
 | **Celeste** | Clean pixel art with atmospheric backgrounds, parallax fog layers |
-| **Eastward** | Isometric-ish pixel environments, warm/cool lighting contrast |
-| **Octopath Traveler** | "HD-2D" aesthetic -- pixel art with modern lighting and particles |
 
 ### Tower Defense Visual References
 | Game | What to Reference |
 |------|-------------------|
-| **Kingdom Rush** | Isometric layout, tower upgrade visual progression, enemy variety |
-| **Bloons TD 6** | Upgrade path visual spectacle, particle-heavy tier 5 towers |
-| **Dungeon Warfare 2** | Dark atmosphere in a TD, trap/tower visual feedback |
-| **Orcs Must Die 3** | Satisfying explosion effects, enemy death animations |
-| **Element TD 2** | Elemental damage type visual coding, clean UI |
+| **Kingdom Rush** | Isometric layout, tower placement on fixed points, enemy pathing clarity |
+| **Bloons TD 6** | Upgrade path visual progression -- each tier looks distinctly more powerful |
 
-### Isometric Pixel Art
+### Isometric References
 | Game | What to Reference |
 |------|-------------------|
-| **Hades** | Isometric perspective, atmospheric lighting, particle systems |
-| **Into the Breach** | Clean isometric grid, readable unit designs, strategic clarity |
-| **Transistor** | Atmospheric isometric world, color palette mood |
-| **The Last Night** | Pixel art + modern lighting/particles hybrid aesthetic |
+| **Into the Breach** | Clean isometric grid, strategic clarity, readable unit designs at small scale |
+| **Hades** | Atmospheric lighting in isometric view, particle systems, environmental mood |
+
+### Dystopia & Urban Ruin
+| Game | What to Reference |
+|------|-------------------|
+| **This War of Mine** | Wartime urban ruin, scavenging through bombed-out buildings, civilian desperation |
+| **Frostpunk** | Authoritarian management aesthetic, harsh decisions presented through cold UI, societal collapse |
+
+---
+
+## Reference Images
+
+| Image | What to Reference |
+|-------|-------------------|
+| ![Great Wall Sentry](reference-great-wall-sentry.jpeg) **Great Wall Sentry** | Colorful tower defense layout -- fixed tower placement on walls, clear enemy pathing, layered castle architecture. Contrast study: our version replaces the cheerful palette with concrete brutalism and riot barriers |
+| ![CoD Warzone Mobile](reference-cod-warzone-mobile.jpeg) **Call of Duty: Warzone Mobile** | Military operator silhouettes, tactical gear loadout variety, gritty desaturated color grading. Reference for tower unit character design -- helmets, body armor, weapon stances |
+| ![Sword & Sworcery](reference-sworcery-title.jpg) **Superbrothers: Sword & Sworcery EP** | Atmospheric pixel art with modern post-processing. Blackletter title typography (similar to our Pirata One). Proof that pixel art + cinematic lighting + ambient particles = premium feel at low fidelity |
+| ![Military Officer](reference-military-officer-greatcoat.jpg) **Military officer greatcoat** | Olive drab double-breasted greatcoat with gold buttons, black scarf, authoritarian command presence. Character design reference for high-rank tower units or commander UI portrait |
 
 ---
 
 ## Visual Pillars
 
-### 1. Atmospheric Depth
-- Multi-layer parallax fog
-- Depth-based color desaturation (far objects fade toward sky color)
-- Volumetric-looking fog particles near ground level
-- Subtle ambient particle effects (dust motes, fireflies, embers)
+### 1. Urban Decay
+- Cracked asphalt with weeds pushing through
+- Rubble piles, collapsed walls, exposed rebar
+- Chain-link fences topped with razor wire
+- Graffiti tags and protest slogans on every surface
+- Persistent smoke, smog, and haze hanging over the map
+- Burned-out vehicles as environmental props
+- Puddles reflecting harsh overhead lights
 
-### 2. Silhouette Readability
-- Every tower and enemy type should be instantly recognizable by silhouette alone
-- Dark foreground elements against lighter backgrounds
-- Clear shape language: towers = angular/structured, enemies = organic/chaotic
+### 2. Institutional Oppression
+- Harsh fluorescent lighting casting sharp shadows
+- Black-and-yellow warning stripes on barricades and checkpoints
+- Surveillance cameras mounted on poles and building corners
+- Floodlights cutting through smoke
+- Riot barriers, jersey walls, concertina wire
+- Government building architecture -- brutalist concrete, narrow windows, heavy doors
+- Propaganda banners and public address speakers
 
 ### 3. Spectacular Effects
-- Explosions should be the most colorful thing on screen (using accent palette)
-- Screen shake on heavy impacts
-- Lingering particle trails on projectiles
-- Death animations with satisfying particle bursts
-- Tier 5 tower attacks should be visual events
+- Tear gas clouds -- thick, billowing, partially obscuring units beneath
+- Water cannon spray -- high-pressure arcs with mist falloff
+- Flash-bang flares -- brief white-out with afterglow
+- Rubber bullet tracers -- short bright streaks
+- Molotov fire pools -- spreading orange glow on the ground
+- Smoke grenade plumes -- colored smoke (red, yellow) for area denial
+- Shield wall impacts -- sparks and shockwave rings on contact
 
 ### 4. 8-Bit Constraint Discipline
 - Tile sizes: 32x16 isometric tiles (2:1 ratio)
@@ -67,19 +113,22 @@
 - Animation frames: 4-8 frames per animation (true 8-bit feel)
 - No sub-pixel rendering or anti-aliasing on sprites
 - Nearest-neighbor scaling only
-- Post-processing effects (fog, bloom) can be smooth/modern -- they are "the atmosphere"
+- Post-processing effects (fog, smoke, light bloom) can be smooth/modern -- they are "the atmosphere"
 
 ### 5. Color Discipline
-- Sprites use the defined palette strictly
-- Effects and particles can blend/interpolate between palette colors
-- Each damage type has its own sub-palette (see COLOR_PALETTE.md)
-- Night/twilight is the default atmosphere -- the world is perpetually at dusk
+- Dominant palette: gunmetal grays, concrete tans, asphalt blacks
+- Accent colors: warning amber (#FFBF00), emergency red (#CC0000), hazard orange (#FF6600)
+- UI text: terminal green (#33FF33) on dark backgrounds for data/surveillance elements
+- NO bright, saturated, or cheerful colors anywhere
+- Each tower type distinguished by subtle equipment color coding, not bright palette shifts
+- Night/overcast is the default atmosphere -- the world is perpetually under a gray-orange polluted sky
+- Effects (tear gas, flash-bangs, fire) provide the only moments of brightness
 
 ---
 
 ## Mood Keywords
-`twilight` `atmospheric` `melancholic` `ethereal` `ancient` `ruined`
-`mystical` `silhouetted` `foggy` `violet` `dusk` `crystalline`
+`urban` `concrete` `oppressive` `smoky` `authoritarian` `dystopian`
+`institutional` `harsh` `propaganda` `surveillance`
 
 ## Anti-Mood (what we are NOT)
-`bright` `cheerful` `cartoonish` `neon` `saturated` `daytime` `cute` `clean`
+`bright` `cheerful` `cartoonish` `fantasy` `magical` `mystical` `twilight` `violet`

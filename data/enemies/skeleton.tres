@@ -5,9 +5,9 @@
 
 [resource]
 script = ExtResource("1_ed")
-enemy_id = "skeleton"
-enemy_name = "Skeleton"
-description = "Armored undead warrior"
+enemy_id = "masked_protestor"
+enemy_name = "Masked Protestor"
+description = "Anonymous by choice. Carries a sign and a grudge."
 scene = ExtResource("2_scene")
 max_hp = 80.0
 base_speed = 0.8

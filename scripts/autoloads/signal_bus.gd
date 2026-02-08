@@ -29,6 +29,7 @@ signal game_over(victory: bool)
 signal game_paused()
 signal game_resumed()
 signal game_speed_changed(speed: Enums.GameSpeed)
+signal restart_requested()
 
 # -- Pathfinding --
 signal path_blocked()

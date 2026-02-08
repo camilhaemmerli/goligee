@@ -49,13 +49,21 @@ func _spawn_wave(wave: WaveData) -> void:
 		_spawn_sequence(seq)
 
 
+func _get_late_wave_hp_scale() -> float:
+	# After wave 5, add +10% HP per wave beyond 5
+	if current_wave_index >= 5:
+		return 1.0 + (current_wave_index - 4) * 0.1
+	return 1.0
+
+
 func _spawn_sequence(seq: SpawnSequenceData) -> void:
 	if seq.start_delay > 0.0:
 		await get_tree().create_timer(seq.start_delay).timeout
 
+	var late_scale := _get_late_wave_hp_scale()
 	for i in seq.count:
 		var modifiers := {
-			"hp_multiplier": seq.hp_multiplier,
+			"hp_multiplier": seq.hp_multiplier * late_scale,
 			"speed_multiplier": seq.speed_multiplier,
 			"armor_bonus": seq.armor_bonus,
 		}

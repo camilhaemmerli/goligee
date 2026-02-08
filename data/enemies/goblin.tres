@@ -5,9 +5,9 @@
 
 [resource]
 script = ExtResource("1_ed")
-enemy_id = "goblin"
-enemy_name = "Goblin"
-description = "Fast but fragile"
+enemy_id = "rioter"
+enemy_name = "Rioter"
+description = "Fast and angry. Runs on pure adrenaline."
 scene = ExtResource("2_scene")
 max_hp = 40.0
 base_speed = 1.2

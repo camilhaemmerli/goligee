@@ -42,29 +42,29 @@ value = 1.25
 
 [sub_resource type="Resource" id="tier_1"]
 script = ExtResource("5_utd")
-tier_name = "Longer Reach"
-description = "More range and faster attack"
+tier_name = "Extended Hose"
+description = "Reach the back rows"
 cost = 75
 stat_modifiers = [SubResource("mod_range_1"), SubResource("mod_rate_1")]
 
 [sub_resource type="Resource" id="tier_2"]
 script = ExtResource("5_utd")
-tier_name = "Blizzard"
-description = "Even more range and attack speed"
+tier_name = "Firehose Mode"
+description = "Industrial-strength democracy"
 cost = 150
 stat_modifiers = [SubResource("mod_range_2"), SubResource("mod_rate_2")]
 
 [sub_resource type="Resource" id="path_1"]
 script = ExtResource("4_upd")
-path_name = "Frost Mastery"
-description = "Increase range and attack speed"
+path_name = "Pressure Control"
+description = "Increase range and pressure output"
 tiers = [SubResource("tier_1"), SubResource("tier_2")]
 
 [resource]
 script = ExtResource("1_td")
-tower_id = "ice"
-tower_name = "Ice Tower"
-description = "Slows enemies on hit"
+tower_id = "water_cannon"
+tower_name = "Water Cannon"
+description = "Mandatory hydration services."
 scene = ExtResource("2_scene")
 build_cost = 75
 sell_ratio = 0.6

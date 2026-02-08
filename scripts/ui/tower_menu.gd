@@ -40,12 +40,12 @@ func _build_buttons() -> void:
 		# Progress bar background (shows affordability %)
 		var progress_bg := ColorRect.new()
 		progress_bg.custom_minimum_size = Vector2(72, 4)
-		progress_bg.color = Color("#1A1B30")
+		progress_bg.color = Color("#1A1A1E")
 		card.add_child(progress_bg)
 
 		var progress_fill := ColorRect.new()
 		progress_fill.custom_minimum_size = Vector2(0, 4)
-		progress_fill.color = Color("#D06070")
+		progress_fill.color = Color("#D8A040")
 		progress_fill.size = Vector2(0, 4)
 		progress_bg.add_child(progress_fill)
 
@@ -53,7 +53,7 @@ func _build_buttons() -> void:
 		var indicator := Label.new()
 		indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		indicator.add_theme_font_size_override("font_size", 8)
-		indicator.add_theme_color_override("font_color", Color("#9090B0"))
+		indicator.add_theme_color_override("font_color", Color("#808898"))
 		indicator.custom_minimum_size = Vector2(72, 12)
 		card.add_child(indicator)
 
@@ -108,6 +108,6 @@ func _process(_delta: float) -> void:
 
 			if avg_income > 0.0:
 				var waves_needed := ceili(float(gold_needed) / avg_income)
-				indicator.text = "Need " + str(gold_needed) + "g (~" + str(waves_needed) + "w)"
+				indicator.text = "DEFICIT: " + str(gold_needed) + " (~" + str(waves_needed) + " inc.)"
 			else:
-				indicator.text = "Need " + str(gold_needed) + "g"
+				indicator.text = "DEFICIT: " + str(gold_needed)
