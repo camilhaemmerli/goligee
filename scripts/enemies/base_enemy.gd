@@ -11,6 +11,7 @@ extends Node2D
 @onready var status_effects: StatusEffectManager = $StatusEffectManager
 @onready var loot: LootComponent = $LootComponent
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var health_bar: ProgressBar = $HealthBar
 
 var base_speed: float = 1.0
 var _movement_type: Enums.MovementType = Enums.MovementType.GROUND
@@ -27,8 +28,17 @@ func _ready() -> void:
 	if enemy_data:
 		_init_from_data()
 
+	# Fallback placeholder sprite when no texture is assigned
+	if not sprite.texture:
+		sprite.texture = PlaceholderSprites.create_diamond(16, Color("#D06070"))
+
 	health.died.connect(_on_died)
 	health.damage_taken.connect(_on_damage_taken)
+	health.health_changed.connect(_on_health_changed)
+
+	# Initialize health bar
+	health_bar.max_value = health.max_hp
+	health_bar.value = health.current_hp
 
 	if not is_flying():
 		PathfindingManager.path_updated.connect(_on_path_updated)
@@ -157,6 +167,11 @@ func _on_died() -> void:
 	SignalBus.enemy_killed.emit(self, loot.gold_reward)
 	# TODO: death animation and particle burst
 	queue_free()
+
+
+func _on_health_changed(current: float, max_hp: float) -> void:
+	health_bar.max_value = max_hp
+	health_bar.value = current
 
 
 func _on_damage_taken(amount: float, damage_type: Enums.DamageType, is_crit: bool) -> void:

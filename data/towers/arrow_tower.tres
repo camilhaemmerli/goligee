@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/tower_data.gd" id="1_td"]
+[ext_resource type="PackedScene" path="res://scenes/towers/base_tower.tscn" id="2_scene"]
+[ext_resource type="PackedScene" path="res://scenes/projectiles/base_projectile.tscn" id="3_proj"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_path_data.gd" id="4_upd"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_tier_data.gd" id="5_utd"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier_data.gd" id="6_smd"]
+
+[sub_resource type="Resource" id="mod_dmg_1"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.5
+
+[sub_resource type="Resource" id="mod_dmg_2"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.5
+
+[sub_resource type="Resource" id="tier_1"]
+script = ExtResource("5_utd")
+tier_name = "Sharper Arrows"
+description = "50% more damage"
+cost = 60
+stat_modifiers = [SubResource("mod_dmg_1")]
+
+[sub_resource type="Resource" id="tier_2"]
+script = ExtResource("5_utd")
+tier_name = "Piercing Arrows"
+description = "Another 50% more damage"
+cost = 120
+stat_modifiers = [SubResource("mod_dmg_2")]
+
+[sub_resource type="Resource" id="path_1"]
+script = ExtResource("4_upd")
+path_name = "Sharpshooter"
+description = "Increase arrow damage"
+tiers = [SubResource("tier_1"), SubResource("tier_2")]
+
+[resource]
+script = ExtResource("1_td")
+tower_id = "arrow"
+tower_name = "Arrow Tower"
+description = "Basic tower with fast attack speed"
+scene = ExtResource("2_scene")
+build_cost = 50
+sell_ratio = 0.6
+base_damage = 8.0
+damage_type = 0
+base_range = 4.0
+fire_rate = 1.2
+projectile_type = 1
+projectile_scene = ExtResource("3_proj")
+area_of_effect = 0.0
+pierce_count = 1
+crit_chance = 0.0
+crit_multiplier = 2.0
+upgrade_paths = [SubResource("path_1")]

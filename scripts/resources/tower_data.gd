@@ -22,6 +22,7 @@ extends Resource
 @export var pierce_count: int = 1
 @export var crit_chance: float = 0.0
 @export var crit_multiplier: float = 2.0
+@export var on_hit_effects: Array[StatusEffectData] = []
 
 @export_group("Upgrades")
 @export var upgrade_paths: Array[UpgradePathData] = []

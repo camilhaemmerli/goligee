@@ -19,6 +19,13 @@ var _direction: Vector2
 var _has_target: bool = false
 var _timer: float = 0.0
 
+@onready var sprite: Sprite2D = $Sprite2D
+
+
+func _ready() -> void:
+	if sprite and not sprite.texture:
+		sprite.texture = PlaceholderSprites.create_circle(6, Color("#F0D0D8"))
+
 
 func init(
 	p_target: Node2D,

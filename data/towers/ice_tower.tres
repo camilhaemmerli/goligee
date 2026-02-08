@@ -1,0 +1,82 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/tower_data.gd" id="1_td"]
+[ext_resource type="PackedScene" path="res://scenes/towers/base_tower.tscn" id="2_scene"]
+[ext_resource type="PackedScene" path="res://scenes/projectiles/base_projectile.tscn" id="3_proj"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_path_data.gd" id="4_upd"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_tier_data.gd" id="5_utd"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier_data.gd" id="6_smd"]
+[ext_resource type="Script" path="res://scripts/resources/status_effect_data.gd" id="7_sed"]
+
+[sub_resource type="Resource" id="slow_effect"]
+script = ExtResource("7_sed")
+effect_type = 0
+duration = 2.0
+potency = 0.4
+stack_limit = 1
+apply_chance = 1.0
+
+[sub_resource type="Resource" id="mod_range_1"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 1.0
+
+[sub_resource type="Resource" id="mod_rate_1"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.25
+
+[sub_resource type="Resource" id="mod_range_2"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 1.0
+
+[sub_resource type="Resource" id="mod_rate_2"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.25
+
+[sub_resource type="Resource" id="tier_1"]
+script = ExtResource("5_utd")
+tier_name = "Longer Reach"
+description = "More range and faster attack"
+cost = 75
+stat_modifiers = [SubResource("mod_range_1"), SubResource("mod_rate_1")]
+
+[sub_resource type="Resource" id="tier_2"]
+script = ExtResource("5_utd")
+tier_name = "Blizzard"
+description = "Even more range and attack speed"
+cost = 150
+stat_modifiers = [SubResource("mod_range_2"), SubResource("mod_rate_2")]
+
+[sub_resource type="Resource" id="path_1"]
+script = ExtResource("4_upd")
+path_name = "Frost Mastery"
+description = "Increase range and attack speed"
+tiers = [SubResource("tier_1"), SubResource("tier_2")]
+
+[resource]
+script = ExtResource("1_td")
+tower_id = "ice"
+tower_name = "Ice Tower"
+description = "Slows enemies on hit"
+scene = ExtResource("2_scene")
+build_cost = 75
+sell_ratio = 0.6
+base_damage = 5.0
+damage_type = 2
+base_range = 3.0
+fire_rate = 0.8
+projectile_type = 0
+projectile_scene = ExtResource("3_proj")
+area_of_effect = 0.0
+pierce_count = 1
+crit_chance = 0.0
+crit_multiplier = 2.0
+on_hit_effects = [SubResource("slow_effect")]
+upgrade_paths = [SubResource("path_1")]

@@ -20,8 +20,12 @@ func _ready() -> void:
 	if tower_data:
 		_init_from_data()
 
-	range_area.body_entered.connect(_on_enemy_entered_range)
-	range_area.body_exited.connect(_on_enemy_exited_range)
+	# Fallback placeholder sprite when no texture is assigned
+	if not sprite.texture:
+		sprite.texture = PlaceholderSprites.create_diamond(20, Color("#90A0B8"))
+
+	range_area.area_entered.connect(_on_enemy_entered_range)
+	range_area.area_exited.connect(_on_enemy_exited_range)
 	attack_timer.timeout.connect(_on_attack_timer)
 	upgrade.upgraded.connect(_on_upgraded)
 
@@ -35,6 +39,7 @@ func _init_from_data() -> void:
 	weapon.pierce_count = tower_data.pierce_count
 	weapon.crit_chance = tower_data.crit_chance
 	weapon.crit_multiplier = tower_data.crit_multiplier
+	weapon.on_hit_effects = tower_data.on_hit_effects
 	weapon._recalculate()
 
 	attack_timer.wait_time = 1.0 / tower_data.fire_rate
@@ -64,12 +69,16 @@ func _update_range_shape(range_val: float) -> void:
 		collision.shape = shape
 
 
-func _on_enemy_entered_range(body: Node2D) -> void:
-	targeting.add_enemy(body)
+func _on_enemy_entered_range(area: Area2D) -> void:
+	var enemy := area.get_parent()
+	if enemy is BaseEnemy:
+		targeting.add_enemy(enemy)
 
 
-func _on_enemy_exited_range(body: Node2D) -> void:
-	targeting.remove_enemy(body)
+func _on_enemy_exited_range(area: Area2D) -> void:
+	var enemy := area.get_parent()
+	if enemy is BaseEnemy:
+		targeting.remove_enemy(enemy)
 
 
 func _on_attack_timer() -> void:

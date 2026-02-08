@@ -255,3 +255,119 @@ Gold per enemy   = base_gold * (1.0 + wave * 0.05)
 - Animation: 4-8 frames (true 8-bit feel)
 - Nearest-neighbor scaling only (no anti-aliasing on sprites)
 - Post-processing (fog, bloom) can be smooth/modern -- they are "the atmosphere"
+
+---
+
+## Engagement & Progression Systems
+
+Seven psychological systems designed to drive retention and player satisfaction.
+See `docs/ENGAGEMENT_BRIEF.md` for detailed research, sources, and implementation specs.
+
+### 1. Game Juice & Feedback
+
+Multi-layered feedback that makes every action feel impactful.
+
+| Layer         | Examples                                                        |
+|---------------|-----------------------------------------------------------------|
+| Per-Shot      | Tower recoil (1-2px), muzzle flash, projectile trails           |
+| Per-Hit       | Type-specific impacts (ember burst, crystal shatter, void rift) |
+| Per-Kill      | Gold coins fly to HUD, corpse dissolve, floating damage numbers |
+| Per-Wave      | Screen-wide violet pulse, gold tally, streak banner             |
+| Per-Milestone | Tier 5 unlock fanfare, boss death slow-mo (0.5s), particle cascade |
+
+- Damage numbers color-coded by type (coral for Fire, cool blue for Ice, etc.)
+- Screen shake scales with damage dealt (light for arrows, heavy for cannon)
+- Boss kills trigger brief slow-motion with radial particle burst
+
+### 2. Near-Miss & Loss Aversion
+
+Leverage loss aversion (Kahneman & Tversky) to keep players engaged through close calls.
+
+- **"Almost!" popups** when enemies escape with <10% HP remaining
+- **Perfect Wave streak** -- consecutive no-leak waves grant +5% cumulative gold bonus
+- **Last Stand mode** -- at 1 life remaining: fog thickens, music shifts to minor key, heartbeat audio layer
+- **Post-defeat "What If" panel** -- shows which upgrade would have killed the leaking enemy
+- **Starlight earned on defeat** -- meta-currency from all runs softens the sting of losing
+
+### 3. Variable Rewards & Discovery
+
+Variable-ratio reinforcement (Skinner) keeps players curious and hunting for surprises.
+
+| Mechanic             | Trigger                    | Reward                                  |
+|----------------------|----------------------------|-----------------------------------------|
+| Corrupted Enemies    | 3-5% spawn chance          | Violet-black glow, +50% HP, drops Twilight Shards |
+| Treasure Caravans    | Every 8-12 waves (random)  | Fast, fragile convoy -- kill for bonus gold/items  |
+| Synergy Discovery    | Place towers in proximity  | Hidden synergies revealed, logged in Grimoire      |
+| Tower Evolutions     | Adjacent tier 4+ towers    | Merge into ultra-tower (e.g., Permafrost + Inferno = Obsidian Forge) |
+
+- Synergy Grimoire: collectible screen tracking all discovered combos
+- "???" silhouettes for undiscovered synergies hint at hidden depth
+
+### 4. Compounding Power Fantasy
+
+Players should feel increasingly powerful -- numbers going up is intrinsically satisfying.
+
+- **Real-time DPS meter** with milestones at 1K / 5K / 10K DPS (visual flourish on each)
+- **Per-tower kill counters** -- 100+ kills adds a subtle glow to the tower sprite
+- **Gold interest** -- 5% interest on banked gold between waves (rewards saving)
+- **Wave calling** -- send next wave early for +10-25% gold bonus (risk/reward)
+- **Post-game stats screen** -- gold-per-wave graph, total damage, MVP tower
+
+### 5. Meta-Progression
+
+Cross-run progression that gives every session lasting value.
+
+```
+Starlight (meta-currency)
+  └─ Earned from: completing waves, killing bosses, map stars, achievements
+  └─ Spent on: Twilight Knowledge tree
+
+Twilight Knowledge Tree (4 branches):
+  ├── Martial   -- tower damage, fire rate, range
+  ├── Arcane    -- new synergies, tower evolutions
+  ├── Commerce  -- starting gold, interest rate, sell refund
+  └── Fortitude -- extra lives, slow aura, Last Stand bonuses
+```
+
+| System             | Description                                                      |
+|--------------------|------------------------------------------------------------------|
+| Map Stars          | 3-star rating per map (complete / 15+ lives / par time)          |
+| Tower Mastery      | Global XP bar per tower type -- cosmetic skins at milestones     |
+| Bestiary           | Enemy encyclopedia with "???" silhouettes for undiscovered types |
+| Constellation Map  | Visual star map that fills in with achievements                  |
+
+- New players start with 50 Starlight (endowed progress effect -- motivates continued play)
+
+### 6. Flow State Maintenance
+
+Keep players in Csikszentmihalyi's flow channel -- never bored, never overwhelmed.
+
+- **Active abilities** (cooldown-based, not passive):
+  - Twilight Strike (30s) -- targeted AoE burst
+  - Frost Veil (45s) -- slow all enemies for 3s
+  - Gold Surge (60s) -- 2x gold for 10s
+- **Wave preview** -- shows composition of next 2-3 waves for strategic planning
+- **Speed control** -- 1x / 2x / 3x with auto-suggestion after idle periods
+- **Hidden dynamic difficulty** -- ±10% enemy HP based on performance (never disclosed to player)
+
+### 7. Roguelike Endgame (Twilight Trials)
+
+Post-campaign endless mode with roguelike draft mechanics for infinite replayability.
+
+- **Draft system** -- after each wave, choose 1 of 3 random towers/upgrades to add
+- **Random map modifiers** -- fog zones, reversed paths, lava tiles, narrow chokepoints
+- **Blood Moon Gambit** -- opt-in challenge (+50% enemy HP, 3x gold drops)
+- **Challenge modifiers** with score multipliers (e.g., "No Ice towers", "Double speed")
+- **Leaderboard** -- scored by waves survived × modifier multiplier
+
+### Implementation Priority
+
+| Priority | System                   | Impact    | Effort | Rationale                          |
+|----------|--------------------------|-----------|--------|------------------------------------|
+| 1        | Game Juice & Feedback    | Very High | Medium | Foundation -- makes everything feel good |
+| 2        | Near-Miss & Loss Aversion| High      | Low    | Small changes, outsized impact     |
+| 3        | Compounding Power Fantasy| High      | Low    | Simple counters/meters, big payoff |
+| 4        | Variable Rewards         | Very High | Medium | Core differentiator for Goligee    |
+| 5        | Flow Maintenance         | High      | Medium | Keeps sessions going longer        |
+| 6        | Meta-Progression         | Very High | High   | Critical for long-term retention   |
+| 7        | Roguelike Endgame        | High      | High   | Endgame content, ship post-launch  |

@@ -24,6 +24,8 @@ func _on_build_mode_entered(tower_data: TowerData) -> void:
 	_ghost = Sprite2D.new()
 	if tower_data.icon:
 		_ghost.texture = tower_data.icon
+	else:
+		_ghost.texture = PlaceholderSprites.create_diamond(20, Color("#90A0B8"))
 	_ghost.modulate = Color(1, 1, 1, 0.5)
 	add_child(_ghost)
 

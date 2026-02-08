@@ -10,6 +10,7 @@ var enemies_alive: int = 0
 var is_spawning: bool = false
 var _between_wave_timer: float = 0.0
 var _waiting_for_next_wave: bool = false
+var _active_sequences: int = 0
 
 
 func _ready() -> void:
@@ -37,10 +38,9 @@ func _start_next_wave() -> void:
 
 
 func _spawn_wave(wave: WaveData) -> void:
+	_active_sequences = wave.spawn_sequences.size()
 	for seq in wave.spawn_sequences:
 		_spawn_sequence(seq)
-	# After all coroutines launch, the wave is fully queued.
-	# Completion is tracked by enemies_alive reaching 0.
 
 
 func _spawn_sequence(seq: SpawnSequenceData) -> void:
@@ -60,7 +60,9 @@ func _spawn_sequence(seq: SpawnSequenceData) -> void:
 		if i < seq.count - 1 and seq.spawn_interval > 0.0:
 			await get_tree().create_timer(seq.spawn_interval).timeout
 
-	is_spawning = false
+	_active_sequences -= 1
+	if _active_sequences <= 0:
+		is_spawning = false
 
 
 func _on_enemy_died(_enemy: Node2D, _value: int = 0) -> void:
