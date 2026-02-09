@@ -33,12 +33,14 @@ func take_damage(
 	vulnerability_mod: float = 1.0,
 	crit_chance: float = 0.0,
 	crit_mult: float = 2.0,
+	armor_shred: float = 0.0,
 ) -> void:
 	if is_dead:
 		return
 
+	var effective_armor := armor * (1.0 - armor_shred)
 	var result := DamageCalculator.calculate_damage(
-		base_damage, damage_type, armor_type, armor,
+		base_damage, damage_type, armor_type, effective_armor,
 		elemental_resistances, vulnerability_mod,
 		crit_chance, crit_mult,
 	)

@@ -17,6 +17,8 @@ var _tile_pos: Vector2i
 var kill_count: int = 0
 var _show_range: bool = false
 
+const KILL_MILESTONES := [25, 50, 100, 250, 500, 1000]
+
 
 func _ready() -> void:
 	if tower_data:
@@ -55,6 +57,8 @@ func _init_from_data() -> void:
 	weapon.pierce_count = tower_data.pierce_count
 	weapon.crit_chance = tower_data.crit_chance
 	weapon.crit_multiplier = tower_data.crit_multiplier
+	weapon.chain_targets = tower_data.chain_targets
+	weapon.chain_damage_falloff = tower_data.chain_damage_falloff
 	weapon.on_hit_effects = tower_data.on_hit_effects
 	weapon._recalculate()
 
@@ -128,12 +132,19 @@ func _fire_at(target: Node2D) -> void:
 			get_parent().add_child(proj)
 
 	weapon.fired.emit(target)
+	_play_recoil(target)
 	_spawn_muzzle_flash()
 
 
 func _on_upgraded(path_index: int, tier: int) -> void:
 	# Reapply all accumulated modifiers to weapon and range
 	weapon.apply_stat_modifiers(upgrade.active_modifiers)
+
+	# Rebuild on_hit_effects: base effects + unlocked effects from upgrades
+	var combined_effects: Array[StatusEffectData] = []
+	combined_effects.append_array(tower_data.on_hit_effects)
+	combined_effects.append_array(upgrade.unlocked_effects)
+	weapon.on_hit_effects = combined_effects
 
 	# Recompute fire rate
 	var final_rate := tower_data.fire_rate
@@ -169,6 +180,11 @@ func get_sell_value() -> int:
 func _on_enemy_killed(enemy: Node2D, _gold: int) -> void:
 	if enemy is BaseEnemy and enemy.last_hit_by == self:
 		kill_count += 1
+		if kill_count in KILL_MILESTONES:
+			SignalBus.tower_kill_milestone.emit(self, kill_count)
+			var tween := create_tween()
+			tween.tween_property(sprite, "modulate", Color("#D8A040"), 0.15)
+			tween.tween_property(sprite, "modulate", Color.WHITE, 0.3)
 
 
 func _draw() -> void:
@@ -203,10 +219,17 @@ func _on_tower_deselected() -> void:
 	queue_redraw()
 
 
+func _play_recoil(target: Node2D) -> void:
+	var dir := (global_position - target.global_position).normalized()
+	var tween := create_tween()
+	tween.tween_property(sprite, "position", dir * 2.0, 0.033)
+	tween.tween_property(sprite, "position", Vector2.ZERO, 0.033)
+
+
 func _spawn_muzzle_flash() -> void:
 	var flash := ColorRect.new()
 	flash.size = Vector2(6, 6)
-	flash.color = Color("#F0E0C0")
+	flash.color = ThemeManager.get_damage_type_color(weapon.damage_type)
 	flash.position = Vector2(-3, -3)
 	flash.z_index = 60
 	add_child(flash)

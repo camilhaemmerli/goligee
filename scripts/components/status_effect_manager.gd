@@ -96,6 +96,16 @@ func get_vulnerability_modifier() -> float:
 	return modifier
 
 
+func get_armor_shred() -> float:
+	## Returns total armor shred fraction (0.0 = no shred, 1.0 = fully shredded).
+	var total := 0.0
+	if _active_effects.has(Enums.StatusEffectType.ARMOR_SHRED):
+		for stack in _active_effects[Enums.StatusEffectType.ARMOR_SHRED]:
+			var data: StatusEffectData = stack["data"]
+			total += data.potency
+	return min(total, 1.0)
+
+
 func purge_all() -> void:
 	for effect_type in _active_effects.keys():
 		effect_removed.emit(effect_type)

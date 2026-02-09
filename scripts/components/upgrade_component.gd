@@ -13,6 +13,8 @@ signal upgraded(path_index: int, tier: int)
 var path_tiers: Array[int] = [0, 0, 0]
 ## Accumulated stat modifiers from all upgrades
 var active_modifiers: Array[StatModifierData] = []
+## Status effects unlocked by upgrades
+var unlocked_effects: Array[StatusEffectData] = []
 
 var _tower_data: TowerData
 
@@ -21,6 +23,7 @@ func init(tower_data: TowerData) -> void:
 	_tower_data = tower_data
 	path_tiers = [0, 0, 0]
 	active_modifiers.clear()
+	unlocked_effects.clear()
 
 
 func can_upgrade_path(path_index: int) -> bool:
@@ -54,6 +57,10 @@ func do_upgrade(path_index: int) -> bool:
 	# Collect new modifiers
 	for mod in tier_data.stat_modifiers:
 		active_modifiers.append(mod)
+
+	# Collect unlocked status effects
+	if tier_data.unlocks_ability:
+		unlocked_effects.append(tier_data.unlocks_ability)
 
 	path_tiers[path_index] += 1
 	upgraded.emit(path_index, path_tiers[path_index])

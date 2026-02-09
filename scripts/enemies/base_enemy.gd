@@ -198,7 +198,20 @@ func _on_path_updated(spawn_index: int) -> void:
 func _on_died() -> void:
 	SignalBus.enemy_killed.emit(self, loot.gold_reward)
 	_spawn_gold_coins()
-	queue_free()
+	# Disable gameplay immediately
+	set_process(false)
+	var hit_area := get_node_or_null("HitArea") as Area2D
+	if hit_area:
+		hit_area.set_deferred("monitorable", false)
+		hit_area.set_deferred("monitoring", false)
+	health_bar.visible = false
+	# 4-frame dissolve: shrink + fade to ground color
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(sprite, "modulate", Color("#3A3A3E"), 0.13)
+	tween.tween_property(sprite, "scale", Vector2(0.5, 0.5), 0.13)
+	tween.chain().tween_property(sprite, "modulate:a", 0.0, 0.07)
+	tween.chain().tween_callback(queue_free)
 
 
 func _on_health_changed(current: float, max_hp: float) -> void:
@@ -310,19 +323,18 @@ func _spawn_gold_coins() -> void:
 
 func _spawn_near_miss_label() -> void:
 	var label := Label.new()
-	label.text = "Almost! " + str(int(health.current_hp)) + " HP left!"
+	var hp_left := int(health.current_hp)
+	label.text = "Almost! " + str(hp_left) + " HP left!"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_color_override("font_color", Color("#C87878"))
-	label.add_theme_font_size_override("font_size", 12)
-	label.global_position = global_position + Vector2(-30, -24)
+	label.add_theme_font_size_override("font_size", 11)
+	label.global_position = global_position + Vector2(-40, -24)
 	label.z_index = 100
-
 	get_tree().current_scene.add_child(label)
-
 	var tween := label.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(label, "position:y", label.position.y - 24.0, 1.2)
-	tween.tween_property(label, "modulate:a", 0.0, 1.2)
+	tween.tween_property(label, "position:y", label.position.y - 28.0, 1.5)
+	tween.tween_property(label, "modulate:a", 0.0, 1.5)
 	tween.chain().tween_callback(label.queue_free)
 
 
@@ -344,6 +356,10 @@ func is_stealthed() -> bool:
 
 func get_vulnerability_modifier() -> float:
 	return status_effects.get_vulnerability_modifier()
+
+
+func get_armor_shred() -> float:
+	return status_effects.get_armor_shred()
 
 
 func _calculate_path_length(path: PackedVector2Array) -> float:

@@ -39,6 +39,8 @@ signal streak_changed(count: int)
 signal near_miss(enemy: Node2D, hp_remaining: float)
 signal last_stand_entered()
 signal send_wave_bonus(gold_bonus: int)
+signal streak_broken(old_streak: int)
+signal tower_kill_milestone(tower: Node2D, kill_count: int)
 
 # -- UI --
 signal tower_selected(tower: Node2D)

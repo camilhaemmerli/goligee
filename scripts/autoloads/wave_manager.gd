@@ -103,6 +103,8 @@ func _on_wave_cleared() -> void:
 	if not _wave_had_leak:
 		perfect_streak += 1
 	else:
+		if perfect_streak > 0:
+			SignalBus.streak_broken.emit(perfect_streak)
 		perfect_streak = 0
 	SignalBus.streak_changed.emit(perfect_streak)
 

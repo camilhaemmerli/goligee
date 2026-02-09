@@ -12,7 +12,7 @@ static func create_rubble(seed_val: int) -> ImageTexture:
 		var h := _hash3(seed_val, i, 0)
 		var x := h % 14 + 1
 		var y := (h / 17) % 14 + 1
-		var c := colors[h % colors.size()]
+		var c: Color = colors[h % colors.size()]
 		img.set_pixel(x, y, c)
 		# Some debris is 2px
 		if h % 3 == 0 and x + 1 < 16:
@@ -57,7 +57,7 @@ static func create_graffiti_tag(seed_val: int) -> ImageTexture:
 	# Small pixel text/tag — 12x6
 	var img := Image.create(12, 6, false, Image.FORMAT_RGBA8)
 	var colors := [Color("#D04040"), Color("#D8A040"), Color("#A0D8A0")]
-	var tag_color := colors[seed_val % colors.size()]
+	var tag_color: Color = colors[seed_val % colors.size()]
 	# Random pixel cluster resembling a tag
 	for i in range(8):
 		var h := _hash3(seed_val, i, 7)
@@ -97,8 +97,8 @@ static func create_burned_vehicle() -> ImageTexture:
 		for dy in range(-2, 3):
 			for dx in range(-2, 3):
 				if dx * dx + dy * dy <= 4:
-					var px := wx + dx
-					var py := 19 + dy
+					var px: int = wx + dx
+					var py: int = 19 + dy
 					if px >= 0 and px < 48 and py >= 0 and py < 24:
 						img.set_pixel(px, py, Color("#121216"))
 

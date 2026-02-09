@@ -22,6 +22,18 @@ var _shake_duration: float = 0.0
 var _shake_timer: float = 0.0
 var _camera_origin: Vector2
 
+var _stats := {
+	"total_damage": 0.0,
+	"total_kills": 0,
+	"peak_dps": 0.0,
+	"waves_survived": 0,
+	"zero_tolerance_waves": 0,
+	"time_played": 0.0,
+	"leaking_enemies": [],
+}
+var _dps_window: Array[float] = []
+var _dps_timer: float = 0.0
+
 
 func _ready() -> void:
 	# Set up groups for lookups
@@ -33,13 +45,13 @@ func _ready() -> void:
 	goal_tiles = map_result["goal_tiles"]
 
 	# Phase 1: Set up raised platform with depth
-	platform_renderer.setup(tile_map, MapBuilder.MAP_W, MapBuilder.MAP_H)
+	#platform_renderer.setup(tile_map, MapBuilder.MAP_W, MapBuilder.MAP_H)
 
 	# Phase 3: Build isometric structures
-	StructureBuilder.build_structures(structures, tile_map)
+	#StructureBuilder.build_structures(structures, tile_map)
 
 	# Phase 4: Place environmental props
-	EnvironmentBuilder.build_environment(environment_props, tile_map)
+	#EnvironmentBuilder.build_environment(environment_props, tile_map)
 
 	# Center camera on the map
 	var center_tile := Vector2i(MapBuilder.MAP_W / 2, MapBuilder.MAP_H / 2)
@@ -97,6 +109,11 @@ func _ready() -> void:
 	# Camera shake on enemy kills
 	SignalBus.enemy_killed.connect(_on_enemy_killed_shake)
 
+	SignalBus.enemy_damaged.connect(_on_enemy_damaged_stats)
+	SignalBus.enemy_killed.connect(_on_enemy_killed_stats)
+	SignalBus.enemy_reached_end.connect(_on_enemy_leaked_stats)
+	SignalBus.wave_completed.connect(_on_wave_completed_stats)
+
 	# Restart handler
 	SignalBus.restart_requested.connect(_on_restart)
 
@@ -106,6 +123,17 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_stats["time_played"] += delta
+	_dps_timer += delta
+	if _dps_timer >= 1.0:
+		_dps_timer -= 1.0
+		var window_sum := 0.0
+		for d in _dps_window:
+			window_sum += d
+		if window_sum > _stats["peak_dps"]:
+			_stats["peak_dps"] = window_sum
+		_dps_window.clear()
+
 	# Camera shake update
 	if _shake_timer > 0.0:
 		_shake_timer -= delta
@@ -129,8 +157,16 @@ func _on_restart() -> void:
 	get_tree().reload_current_scene()
 
 
-func _on_enemy_killed_shake(_enemy: Node2D, _gold: int) -> void:
-	_shake_camera(2.0, 0.1)
+func _on_enemy_killed_shake(enemy: Node2D, _gold: int) -> void:
+	if enemy is BaseEnemy and enemy.enemy_data:
+		if enemy.enemy_data.max_hp >= 500.0:
+			_shake_camera(4.0, 0.15)
+		elif enemy.enemy_data.max_hp >= 200.0:
+			_shake_camera(2.5, 0.1)
+		else:
+			_shake_camera(1.5, 0.08)
+	else:
+		_shake_camera(1.5, 0.08)
 
 
 # -- Phase 5: Lighting --
@@ -380,3 +416,26 @@ func _on_spawn_enemy(enemy_data: EnemyData, spawn_point_index: int, modifiers: D
 	enemy.apply_wave_modifiers(modifiers)
 	enemy.setup_path(spawn_point_index % spawn_tiles.size())
 	SignalBus.enemy_spawned.emit(enemy)
+
+
+func _on_enemy_damaged_stats(_enemy: Node2D, amount: float, _dtype: Enums.DamageType) -> void:
+	_stats["total_damage"] += amount
+	_dps_window.append(amount)
+
+
+func _on_enemy_killed_stats(_enemy: Node2D, _gold: int) -> void:
+	_stats["total_kills"] += 1
+
+
+func _on_enemy_leaked_stats(enemy: Node2D, _lives_cost: int) -> void:
+	if enemy is BaseEnemy:
+		_stats["leaking_enemies"].append({
+			"name": enemy.enemy_data.get_display_name() if enemy.enemy_data else "agitator",
+			"remaining_hp": enemy.health.current_hp,
+		})
+
+
+func _on_wave_completed_stats(_wave_number: int) -> void:
+	_stats["waves_survived"] += 1
+	if not WaveManager._wave_had_leak:
+		_stats["zero_tolerance_waves"] += 1

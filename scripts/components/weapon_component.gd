@@ -57,6 +57,8 @@ func apply_stat_modifiers(modifiers: Array[StatModifierData]) -> void:
 				final_crit_chance = _apply_mod(final_crit_chance, mod)
 			"crit_multiplier":
 				final_crit_multiplier = _apply_mod(final_crit_multiplier, mod)
+			"chain_targets":
+				chain_targets = int(_apply_mod(float(chain_targets), mod))
 
 
 func _apply_mod(base: float, mod: StatModifierData) -> float:

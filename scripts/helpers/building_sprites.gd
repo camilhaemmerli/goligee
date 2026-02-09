@@ -84,8 +84,8 @@ static func create_government_building() -> ImageTexture:
 			var wc: Color = window_lit if is_lit else window_dark
 			for dy in range(4):
 				for dx in range(6):
-					var px := wx + dx
-					var py := wy + dy
+					var px: int = wx + dx
+					var py: int = wy + dy
 					if px >= 0 and px < w and py >= 0 and py < h:
 						img.set_pixel(px, py, wc)
 
@@ -185,8 +185,8 @@ static func create_apartment_block() -> ImageTexture:
 			var wc: Color = window_lit if is_lit else window_dark
 			for dy in range(4):
 				for dx in range(5):
-					var px := wx + dx
-					var py := wy + dy
+					var px: int = wx + dx
+					var py: int = wy + dy
 					if px < w and py < h:
 						img.set_pixel(px, py, wc)
 

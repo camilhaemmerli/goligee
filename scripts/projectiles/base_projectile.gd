@@ -21,12 +21,27 @@ var _direction: Vector2
 var _has_target: bool = false
 var _timer: float = 0.0
 
+var _trail: Line2D
+var _trail_points: PackedVector2Array = PackedVector2Array()
+const MAX_TRAIL_POINTS := 5
+
 @onready var sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
 	if sprite and not sprite.texture:
 		_apply_themed_sprite()
+
+	_trail = Line2D.new()
+	_trail.width = 2.0
+	_trail.default_color = Color(1, 1, 1, 0.4)
+	_trail.z_index = -1
+	_trail.top_level = true
+	var grad := Gradient.new()
+	grad.set_color(0, Color(1, 1, 1, 0.0))
+	grad.set_color(1, Color(1, 1, 1, 0.4))
+	_trail.gradient = grad
+	add_child(_trail)
 
 
 func _apply_themed_sprite() -> void:
@@ -68,10 +83,25 @@ func init(
 	if _has_target:
 		_direction = (target.global_position - global_position).normalized()
 
+	if _trail:
+		var tc := ThemeManager.get_damage_type_color(damage_type)
+		_trail.default_color = Color(tc, 0.4)
+		var g := Gradient.new()
+		g.set_color(0, Color(tc, 0.0))
+		g.set_color(1, Color(tc, 0.4))
+		_trail.gradient = g
+
 
 func _process(delta: float) -> void:
+	if _trail:
+		_trail_points.append(global_position)
+		if _trail_points.size() > MAX_TRAIL_POINTS:
+			_trail_points = _trail_points.slice(_trail_points.size() - MAX_TRAIL_POINTS)
+		_trail.points = _trail_points
+
 	_timer += delta
 	if _timer >= lifetime:
+		_fade_trail()
 		queue_free()
 		return
 
@@ -94,7 +124,8 @@ func _hit_target(hit_enemy: Node2D) -> void:
 
 	pierce_remaining -= 1
 	if pierce_remaining <= 0:
-		# TODO: impact particle effect
+		_spawn_impact_particles()
+		_fade_trail()
 		queue_free()
 
 
@@ -114,7 +145,11 @@ func _apply_damage_to(enemy: Node2D) -> void:
 	if enemy.has_method("get_vulnerability_modifier"):
 		vuln_mod = enemy.get_vulnerability_modifier()
 
-	health.take_damage(damage, damage_type, resists, vuln_mod, crit_chance, crit_multiplier)
+	var armor_shred := 0.0
+	if enemy.has_method("get_armor_shred"):
+		armor_shred = enemy.get_armor_shred()
+
+	health.take_damage(damage, damage_type, resists, vuln_mod, crit_chance, crit_multiplier, armor_shred)
 
 	# Apply on-hit status effects
 	var effect_mgr := enemy.get_node_or_null("StatusEffectManager") as StatusEffectManager
@@ -130,3 +165,34 @@ func _apply_aoe_damage(center: Vector2) -> void:
 			var dist := center.distance_to(enemy.global_position)
 			if dist <= aoe_radius * 32.0:  # Convert tile radius to pixels
 				_apply_damage_to(enemy)
+
+
+func _spawn_impact_particles() -> void:
+	var color := ThemeManager.get_damage_type_color(damage_type)
+	for i in randi_range(2, 4):
+		var shard := ColorRect.new()
+		shard.size = Vector2(2, 2)
+		shard.color = color
+		shard.global_position = global_position + Vector2(-1, -1)
+		shard.z_index = 50
+		get_tree().current_scene.add_child(shard)
+		var angle := randf() * TAU
+		var end_pos := shard.global_position + Vector2(cos(angle), sin(angle)) * randf_range(6.0, 14.0)
+		var tween := shard.create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(shard, "global_position", end_pos, 0.25).set_ease(Tween.EASE_OUT)
+		tween.tween_property(shard, "modulate:a", 0.0, 0.25)
+		tween.chain().tween_callback(shard.queue_free)
+
+
+func _fade_trail() -> void:
+	if not _trail:
+		return
+	var trail_ref := _trail
+	_trail = null
+	trail_ref.top_level = true
+	remove_child(trail_ref)
+	get_tree().current_scene.add_child(trail_ref)
+	var tween := trail_ref.create_tween()
+	tween.tween_property(trail_ref, "modulate:a", 0.0, 0.15)
+	tween.tween_callback(trail_ref.queue_free)

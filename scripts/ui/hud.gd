@@ -24,6 +24,9 @@ var _restart_btn: Button
 var _banner_tween: Tween
 var _lives_pulse_tween: Tween
 
+var _kill_counter_label: Label
+var _selected_tower_ref: BaseTower
+
 var _blackletter_font: Font
 
 
@@ -40,6 +43,11 @@ func _ready() -> void:
 	SignalBus.game_over.connect(_on_game_over)
 	SignalBus.streak_changed.connect(_on_streak_changed)
 	SignalBus.last_stand_entered.connect(_on_last_stand_entered)
+	SignalBus.streak_broken.connect(_on_streak_broken)
+	SignalBus.tower_selected.connect(_on_tower_selected_hud)
+	SignalBus.tower_deselected.connect(_on_tower_deselected_hud)
+	SignalBus.enemy_killed.connect(_on_enemy_killed_hud)
+	SignalBus.tower_kill_milestone.connect(_on_tower_kill_milestone)
 
 	_create_engagement_ui()
 
@@ -171,6 +179,20 @@ func _create_engagement_ui() -> void:
 	_restart_btn.pressed.connect(_on_restart_pressed)
 	_game_over_overlay.add_child(_restart_btn)
 
+	_kill_counter_label = Label.new()
+	_kill_counter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_kill_counter_label.anchors_preset = Control.PRESET_BOTTOM_RIGHT
+	_kill_counter_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_kill_counter_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_kill_counter_label.offset_right = -8.0
+	_kill_counter_label.offset_bottom = -68.0
+	_kill_counter_label.offset_left = -180.0
+	_kill_counter_label.add_theme_font_size_override("font_size", 10)
+	_kill_counter_label.add_theme_color_override("font_color", Color("#A0D8A0"))
+	_kill_counter_label.visible = false
+	_kill_counter_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_kill_counter_label)
+
 
 func _process(_delta: float) -> void:
 	# Update send wave button visibility and text
@@ -230,6 +252,8 @@ func _on_game_over(victory: bool) -> void:
 		_game_over_label.add_theme_color_override("font_color", Color("#D04040"))
 	_game_over_overlay.visible = true
 	_send_wave_btn.visible = false
+	_kill_counter_label.visible = false
+	_build_post_game_ui(victory)
 
 
 # -- Engagement UI handlers --
@@ -249,7 +273,7 @@ func _show_wave_banner(wave_number: int) -> void:
 	_wave_banner.modulate.a = 0.0
 	_wave_banner.position.y = 10.0
 	_banner_tween.tween_property(_wave_banner, "modulate:a", 1.0, 0.3)
-	_banner_tween.tween_property(_wave_banner, "position:y", 0.0, 0.3).set_parallel()
+	_banner_tween.parallel().tween_property(_wave_banner, "position:y", 0.0, 0.3)
 	_banner_tween.tween_interval(2.0)
 	_banner_tween.tween_property(_wave_banner, "modulate:a", 0.0, 0.3)
 
@@ -315,3 +339,129 @@ func _update_wave_preview() -> void:
 
 func _on_restart_pressed() -> void:
 	SignalBus.restart_requested.emit()
+
+
+func _on_streak_broken(old_streak: int) -> void:
+	if old_streak <= 0:
+		return
+	_streak_label.text = "ZERO TOLERANCE: BROKEN"
+	_streak_label.add_theme_color_override("font_color", Color("#D04040"))
+	var tween := create_tween()
+	_streak_label.pivot_offset = _streak_label.size / 2.0
+	tween.tween_property(_streak_label, "scale", Vector2(1.3, 1.3), 0.1)
+	tween.tween_property(_streak_label, "scale", Vector2(1.0, 1.0), 0.1)
+	tween.tween_interval(1.0)
+	tween.tween_property(_streak_label, "modulate:a", 0.0, 0.4)
+	tween.tween_callback(func():
+		_streak_label.text = ""
+		_streak_label.modulate.a = 1.0
+		_streak_label.scale = Vector2.ONE
+	)
+
+
+func _on_tower_selected_hud(tower: Node2D) -> void:
+	if tower is BaseTower:
+		_selected_tower_ref = tower
+		_update_kill_counter()
+		_kill_counter_label.visible = true
+
+
+func _on_tower_deselected_hud() -> void:
+	_selected_tower_ref = null
+	_kill_counter_label.visible = false
+
+
+func _on_enemy_killed_hud(_enemy: Node2D, _gold: int) -> void:
+	if _selected_tower_ref and is_instance_valid(_selected_tower_ref):
+		call_deferred("_update_kill_counter")
+
+
+func _update_kill_counter() -> void:
+	if not _selected_tower_ref or not is_instance_valid(_selected_tower_ref):
+		return
+	var count := _selected_tower_ref.kill_count
+	var title := _get_kill_title(count)
+	_kill_counter_label.text = "DISPERSALS: " + str(count)
+	if title != "":
+		_kill_counter_label.text += " [" + title + "]"
+
+
+static func _get_kill_title(count: int) -> String:
+	if count >= 1000: return "ABSOLUTE AUTHORITY"
+	if count >= 500: return "SUPREME ENFORCER"
+	if count >= 250: return "IRON FIST"
+	if count >= 100: return "VETERAN OPERATIVE"
+	if count >= 50: return "SEASONED AGENT"
+	if count >= 25: return "FIRST COMMENDATION"
+	return ""
+
+
+func _on_tower_kill_milestone(tower: Node2D, kc: int) -> void:
+	if not tower is BaseTower:
+		return
+	var tname: String = tower.tower_data.get_display_name() if tower.tower_data else "Unit"
+	_wave_banner.text = tname + ": " + _get_kill_title(kc) + " (" + str(kc) + " DISPERSALS)"
+	_wave_banner.add_theme_color_override("font_color", Color("#D8A040"))
+	if _banner_tween:
+		_banner_tween.kill()
+	_banner_tween = create_tween()
+	_wave_banner.modulate.a = 0.0
+	_banner_tween.tween_property(_wave_banner, "modulate:a", 1.0, 0.2)
+	_banner_tween.tween_interval(1.5)
+	_banner_tween.tween_property(_wave_banner, "modulate:a", 0.0, 0.3)
+
+
+func _build_post_game_ui(victory: bool) -> void:
+	var game_node := get_tree().current_scene
+	if not "_stats" in game_node:
+		return
+	var stats: Dictionary = game_node._stats
+
+	# Stats summary label
+	var stats_label := Label.new()
+	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats_label.anchors_preset = Control.PRESET_CENTER
+	stats_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	stats_label.grow_vertical = Control.GROW_DIRECTION_BOTH
+	stats_label.offset_top = 60.0
+	stats_label.add_theme_font_size_override("font_size", 9)
+	stats_label.add_theme_color_override("font_color", Color("#A0A8B0"))
+
+	var secs: int = int(stats.get("time_played", 0.0))
+	var text := "OPERATION DEBRIEF\n"
+	text += "Waves: " + str(stats.get("waves_survived", 0))
+	text += "  |  Dispersals: " + str(stats.get("total_kills", 0))
+	text += "  |  Damage: " + str(int(stats.get("total_damage", 0.0))) + "\n"
+	text += "Peak DPS: " + str(int(stats.get("peak_dps", 0.0)))
+	text += "  |  Zero Tolerance: " + str(stats.get("zero_tolerance_waves", 0))
+	text += "  |  Time: " + str(secs / 60) + "m " + str(secs % 60) + "s"
+
+	# MVP tower
+	var max_kills := 0
+	var mvp_name := ""
+	for tower in game_node.tower_container.get_children():
+		if tower is BaseTower and tower.kill_count > max_kills:
+			max_kills = tower.kill_count
+			mvp_name = tower.tower_data.get_display_name() if tower.tower_data else "Unknown"
+	if mvp_name != "":
+		text += "\nMVP: " + mvp_name + " (" + str(max_kills) + " dispersals)"
+
+	stats_label.text = text
+	_game_over_overlay.add_child(stats_label)
+
+	# "What If" panel (defeat only)
+	if not victory:
+		var leaking: Array = stats.get("leaking_enemies", [])
+		if not leaking.is_empty():
+			var last: Dictionary = leaking[leaking.size() - 1]
+			var hp: int = int(last.get("remaining_hp", 0.0))
+			var ename: String = last.get("name", "agitator")
+			var what_if := Label.new()
+			what_if.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			what_if.anchors_preset = Control.PRESET_CENTER
+			what_if.grow_horizontal = Control.GROW_DIRECTION_BOTH
+			what_if.offset_top = 120.0
+			what_if.add_theme_font_size_override("font_size", 10)
+			what_if.add_theme_color_override("font_color", Color("#D8A040"))
+			what_if.text = "INTEL: Final " + ename + " escaped with " + str(hp) + " HP remaining"
+			_game_over_overlay.add_child(what_if)
