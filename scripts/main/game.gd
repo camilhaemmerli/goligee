@@ -14,7 +14,7 @@ extends Node2D
 @onready var projectile_container: Node2D = $World/Projectiles
 @onready var effects_container: Node2D = $World/Effects
 @onready var tower_placer: TowerPlacer = $TowerPlacer
-@onready var tower_menu: TowerMenu = $HUD/BottomUI/TowerMenu
+@onready var tower_menu: TowerMenu = $HUD/TowerMenu
 
 var _camera: Camera2D
 var _shake_intensity: float = 0.0
