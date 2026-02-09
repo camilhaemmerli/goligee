@@ -156,15 +156,20 @@ Minimum: 4 directions (SE, SW, NE, NW) for isometric. 8 if quality allows.
 
 ## Sprite Sizes
 
-| Category | Size | Notes |
-|----------|------|-------|
-| Standard enemies | 16x16 | Base unit |
-| Towers | 32x32 | Mounted on platform |
-| Boss enemies | 48x48 | 3x base unit |
-| Iso tiles | 32x16 | 2:1 ratio |
-| Projectiles | 8x8 to 16x16 | Varies by type |
-| Effects | 16x16 to 32x32 | Varies by type |
-| UI icons | 16x16 or 32x32 | Consistent within category |
+All sprites are generated at **2x resolution** for quality, then displayed at native scale in-engine (Godot nearest-neighbor filtering).
+
+| Category | Logical Size | File Size (2x) | Notes |
+|----------|-------------|-----------------|-------|
+| Standard enemies | 16x16 | 32x32 | Base unit |
+| Towers | 32x32 | 64x64 | Mounted on platform |
+| Tower evolutions | 32x40-56 | 64x80-112 | Taller for upgrade tiers |
+| Boss enemies | 48x48 | 96x96 | 3x base unit |
+| Iso tiles | 32x16 | 64x32 | 2:1 ratio |
+| Projectiles | 8x8 to 16x16 | 16x16 to 32x32 | Varies by type |
+| Effects | 16x16 to 32x32 | 32x32 to 64x64 | Varies by type |
+| UI icons | 16x16 or 32x32 | 32x32 or 64x64 | Consistent within category |
+
+> **Note:** PixelLab minimum output is 32x32. Smaller logical sprites (8x8 projectiles) are generated at 32x32 and trimmed/scaled as needed.
 
 ---
 

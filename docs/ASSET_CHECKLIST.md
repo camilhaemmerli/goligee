@@ -9,11 +9,11 @@
 
 | # | Asset | Size | File | Status |
 |---|-------|------|------|--------|
-| 1 | Ground tile (cracked asphalt) | 32x16 | `tiles/tile_ground_cracked.png` | [ ] |
-| 2 | Rubber Bullet Turret (idle) | 32x32 | `towers/tower_rubber_bullet_idle.png` | [ ] |
-| 3 | Rioter (walk SE) | 16x16 | `enemies/enemy_rioter_se_01.png` | [ ] |
-| 4 | Bullet tracer | 8x8 | `projectiles/proj_rubber_bullet.png` | [ ] |
-| 5 | Kinetic impact explosion | 16x16 | `effects/effect_explosion_kinetic_01.png` | [ ] |
+| 1 | Ground tile (cracked asphalt) | 32x16 | `tiles/tile_ground_cracked.png` | [~] needs 2:1 iso ratio fix |
+| 2 | Rubber Bullet Turret (idle) | 32x32 | `towers/tower_rubber_bullet_idle.png` | [x] |
+| 3 | Rioter (walk SE) | 16x16 | `enemies/enemy_rioter_se_01.png` | [x] |
+| 4 | Bullet tracer | 8x8 | `projectiles/proj_rubber_bullet.png` | [x] |
+| 5 | Kinetic impact explosion | 16x16 | `effects/effect_explosion_kinetic_01.png` | [x] |
 
 ---
 
@@ -40,11 +40,11 @@ Each tower needs: idle + active states. Tier 5 variants in Phase 4.
 
 | # | Tower | States | Files | Status |
 |---|-------|--------|-------|--------|
-| 1 | Rubber Bullet Turret | idle, active | `towers/tower_rubber_bullet_*.png` | [ ] |
-| 2 | Tear Gas Launcher | idle, active | `towers/tower_tear_gas_*.png` | [ ] |
-| 3 | Water Cannon | idle, active | `towers/tower_water_cannon_*.png` | [ ] |
-| 4 | Taser Grid | idle, active | `towers/tower_taser_grid_*.png` | [ ] |
-| 5 | Surveillance Hub | idle, active | `towers/tower_surveillance_*.png` | [ ] |
+| 1 | Rubber Bullet Turret | idle, active | `towers/tower_rubber_bullet_*.png` | [~] idle done, need active |
+| 2 | Tear Gas Launcher | idle, active | `towers/tower_tear_gas_*.png` | [~] idle done, need active |
+| 3 | Water Cannon | idle, active | `towers/tower_water_cannon_*.png` | [~] idle done, need active |
+| 4 | Taser Grid | idle, active | `towers/tower_taser_grid_*.png` | [~] idle done, need active |
+| 5 | Surveillance Hub | idle, active | `towers/tower_surveillance_*.png` | [ ] broken, needs regen |
 | 6 | Pepper Spray Emitter | idle, active | `towers/tower_pepper_spray_*.png` | [ ] |
 | 7 | LRAD Cannon | idle, active | `towers/tower_lrad_*.png` | [ ] |
 | 8 | Microwave Emitter | idle, active | `towers/tower_microwave_*.png` | [ ] |
@@ -75,20 +75,24 @@ Start with SE direction only, expand to 4 directions after style lock.
 
 | # | Enemy | Directions | Frames/Dir | Files | Status |
 |---|-------|------------|------------|-------|--------|
-| 1 | Rioter | SE,SW,NE,NW | 4 | `enemies/enemy_rioter_*_*.png` | [ ] |
-| 2 | Masked Protestor | SE,SW,NE,NW | 4 | `enemies/enemy_masked_*_*.png` | [ ] |
-| 3 | Shield Wall | SE,SW,NE,NW | 4 | `enemies/enemy_shield_wall_*_*.png` | [ ] |
-| 4 | Molotov Thrower | SE,SW,NE,NW | 4 | `enemies/enemy_molotov_*_*.png` | [ ] |
-| 5 | Drone Operator | SE,SW,NE,NW | 4 | `enemies/enemy_drone_op_*_*.png` | [ ] |
-| 6 | Flash Mob | SE,SW,NE,NW | 4 | `enemies/enemy_flash_mob_*_*.png` | [ ] |
-| 7 | Street Medic | SE,SW,NE,NW | 4 | `enemies/enemy_street_medic_*_*.png` | [ ] |
-| 8 | Armored Van (24x16) | SE,SW,NE,NW | 4 | `enemies/enemy_armored_van_*_*.png` | [ ] |
-| 9 | Infiltrator | SE,SW,NE,NW | 4 | `enemies/enemy_infiltrator_*_*.png` | [ ] |
-| 10 | Social Media Swarm (8x8) | SE,SW,NE,NW | 4 | `enemies/enemy_swarm_*_*.png` | [ ] |
-| 11 | Tunnel Rat | SE,SW,NE,NW | 4 | `enemies/enemy_tunnel_rat_*_*.png` | [ ] |
-| 12 | Union Boss (20x20) | SE,SW,NE,NW | 4 | `enemies/enemy_union_boss_*_*.png` | [ ] |
+| 1 | Rioter | SE,SW,NE,NW | 4 | `enemies/enemy_rioter_*_*.png` | [~] SE frame 1 done |
+| 2 | Masked Protestor | SE,SW,NE,NW | 4 | `enemies/enemy_masked_*_*.png` | [~] SE frame 1 done |
+| 3 | Shield Wall | SE,SW,NE,NW | 4 | `enemies/enemy_shield_wall_*_*.png` | [~] SE frame 1 done |
+| 4 | Molotov Thrower | SE,SW,NE,NW | 4 | `enemies/enemy_molotov_*_*.png` | [~] SE frame 1 done |
+| 5 | Drone Operator | SE,SW,NE,NW | 4 | `enemies/enemy_drone_op_*_*.png` | [ ] broken, needs regen |
+| 6 | Flash Mob | SE,SW,NE,NW | 4 | `enemies/enemy_flash_mob_*_*.png` | [~] SE frame 1 done |
+| 7 | Street Medic | SE,SW,NE,NW | 4 | `enemies/enemy_street_medic_*_*.png` | [~] SE frame 1 done |
+| 8 | Armored Van (24x16) | SE,SW,NE,NW | 4 | `enemies/enemy_armored_van_*_*.png` | [~] SE frame 1 done |
+| 9 | Infiltrator | SE,SW,NE,NW | 4 | `enemies/enemy_infiltrator_*_*.png` | [~] SE frame 1 done |
+| 10 | Social Media Swarm (8x8) | SE,SW,NE,NW | 4 | `enemies/enemy_swarm_*_*.png` | [~] SE frame 1 done |
+| 11 | Tunnel Rat | SE,SW,NE,NW | 4 | `enemies/enemy_tunnel_rat_*_*.png` | [~] SE frame 1 done |
+| 12 | Union Boss (20x20) | SE,SW,NE,NW | 4 | `enemies/enemy_union_boss_*_*.png` | [~] SE frame 1 done |
+| 13 | Journalist | SE,SW,NE,NW | 4 | `enemies/enemy_journalist_*_*.png` | [~] SE frame 1 done |
+| 14 | Grandma | SE,SW,NE,NW | 4 | `enemies/enemy_grandma_*_*.png` | [~] SE frame 1 done |
+| 15 | Family | SE,SW,NE,NW | 4 | `enemies/enemy_family_*_*.png` | [~] SE frame 1 done |
+| 16 | Student | SE,SW,NE,NW | 4 | `enemies/enemy_student_*_*.png` | [~] SE frame 1 done |
 
-**Estimated: 192 enemy frames (12 enemies x 4 dirs x 4 frames)**
+**Estimated: 256 enemy frames (16 enemies x 4 dirs x 4 frames)**
 
 ---
 
@@ -112,7 +116,7 @@ Each boss needs: idle + attack + death states (4 frames each).
 
 | # | Projectile | Size | File | Status |
 |---|-----------|------|------|--------|
-| 1 | Rubber bullet tracer | 8x8 | `projectiles/proj_rubber_bullet.png` | [ ] |
+| 1 | Rubber bullet tracer | 8x8 | `projectiles/proj_rubber_bullet.png` | [x] |
 | 2 | Tear gas canister | 12x12 | `projectiles/proj_tear_gas.png` | [ ] |
 | 3 | Water blast | 16x16 | `projectiles/proj_water_blast.png` | [ ] |
 | 4 | Electric arc | 12x12 | `projectiles/proj_electric_arc.png` | [ ] |
@@ -131,7 +135,7 @@ Each boss needs: idle + attack + death states (4 frames each).
 
 | # | Effect | Size | Frames | Files | Status |
 |---|--------|------|--------|-------|--------|
-| 1 | Kinetic impact | 16x16 | 4 | `effects/effect_explosion_kinetic_*.png` | [ ] |
+| 1 | Kinetic impact | 16x16 | 4 | `effects/effect_explosion_kinetic_*.png` | [~] frame 1 done |
 | 2 | Chemical burst | 32x32 | 4 | `effects/effect_explosion_chemical_*.png` | [ ] |
 | 3 | Fire explosion | 32x32 | 6 | `effects/effect_explosion_fire_*.png` | [ ] |
 | 4 | Electric discharge | 24x24 | 4 | `effects/effect_explosion_electric_*.png` | [ ] |
@@ -231,16 +235,16 @@ Each boss needs: idle + attack + death states (4 frames each).
 
 ## Total Asset Count
 
-| Category | Sprites | Frames (incl. animation) |
-|----------|---------|--------------------------|
-| Golden standards | 5 | 5 |
-| Tiles | 12 | 12 |
-| Towers (base) | 16 | 16 |
-| Towers (tier 5) | 8 | 8 |
-| Standard enemies | 12 | 192 |
-| Boss enemies | 5 | 60 |
-| Projectiles | 8 | 8 |
-| Effects | 13 | 48 |
-| UI icons | 28 | 28 |
-| Props | 12 | 12 |
-| **TOTAL** | **~119 unique assets** | **~389 total frames** |
+| Category | Sprites | Frames (incl. animation) | Done |
+|----------|---------|--------------------------|------|
+| Golden standards | 5 | 5 | 4/5 |
+| Tiles | 12 | 12 | 0/12 (1 needs ratio fix) |
+| Towers (base) | 16 | 16 | 4/16 idle (need active + 4 more) |
+| Towers (tier 5) | 8 | 8 | 0/8 |
+| Standard enemies | 16 | 256 | 15/16 SE frame 1 |
+| Boss enemies | 5 | 60 | 0/5 |
+| Projectiles | 8 | 8 | 1/8 |
+| Effects | 13 | 48 | 1/13 (frame 1 only) |
+| UI icons | 28 | 28 | 0/28 |
+| Props | 12 | 12 | 0/12 |
+| **TOTAL** | **~123 unique assets** | **~453 total frames** | **~25 files exist** |
