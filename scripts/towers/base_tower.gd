@@ -34,6 +34,16 @@ func _ready() -> void:
 					sprite.texture = EntitySprites.create_cannon_tower()
 				"water_cannon":
 					sprite.texture = EntitySprites.create_ice_tower()
+				"taser_grid":
+					sprite.texture = EntitySprites.create_tower_turret(Color("#505060"), Color("#E0E060"))
+				"surveillance_hub":
+					sprite.texture = EntitySprites.create_tower_turret(Color("#303040"), Color("#A0A0C0"))
+				"pepper_spray":
+					sprite.texture = EntitySprites.create_tower_turret(Color("#585050"), Color("#E08040"))
+				"lrad_cannon":
+					sprite.texture = EntitySprites.create_tower_turret(Color("#405040"), Color("#80E060"))
+				"microwave_emitter":
+					sprite.texture = EntitySprites.create_tower_turret(Color("#504058"), Color("#C080E0"))
 				_:
 					sprite.texture = EntitySprites.create_tower_turret(Color("#606068"), Color("#90A0B8"))
 		else:

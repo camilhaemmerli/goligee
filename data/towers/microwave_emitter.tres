@@ -1,0 +1,162 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=28 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/tower_data.gd" id="1_td"]
+[ext_resource type="PackedScene" path="res://scenes/towers/base_tower.tscn" id="2_scene"]
+[ext_resource type="PackedScene" path="res://scenes/projectiles/base_projectile.tscn" id="3_proj"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_path_data.gd" id="4_upd"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_tier_data.gd" id="5_utd"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier_data.gd" id="6_smd"]
+[ext_resource type="Script" path="res://scripts/resources/status_effect_data.gd" id="7_sed"]
+
+; -- Base on-hit: ARMOR_SHRED 10%, 5s, 3 stacks --
+[sub_resource type="Resource" id="shred_effect"]
+script = ExtResource("7_sed")
+effect_type = 4
+duration = 5.0
+potency = 0.1
+stack_limit = 3
+apply_chance = 1.0
+
+; -- Path A "Power Amplification" --
+[sub_resource type="Resource" id="mod_a1_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.4
+
+[sub_resource type="Resource" id="tier_a1"]
+script = ExtResource("5_utd")
+tier_name = "Magnetron Upgrade"
+description = "More watts, more compliance"
+cost = 225
+stat_modifiers = [SubResource("mod_a1_dmg")]
+
+[sub_resource type="Resource" id="mod_a2_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.4
+
+[sub_resource type="Resource" id="mod_a2_crit"]
+script = ExtResource("6_smd")
+stat_name = "crit_chance"
+operation = 0
+value = 0.05
+
+[sub_resource type="Resource" id="tier_a2"]
+script = ExtResource("5_utd")
+tier_name = "Cavity Resonator"
+description = "Tuned to the resonant frequency of dissent"
+cost = 450
+stat_modifiers = [SubResource("mod_a2_dmg"), SubResource("mod_a2_crit")]
+
+[sub_resource type="Resource" id="path_a"]
+script = ExtResource("4_upd")
+path_name = "Power Amplification"
+description = "Increase beam damage output"
+tiers = [SubResource("tier_a1"), SubResource("tier_a2")]
+
+; -- Path B "Beam Focus" --
+[sub_resource type="Resource" id="mod_b1_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="mod_b1_crit"]
+script = ExtResource("6_smd")
+stat_name = "crit_chance"
+operation = 0
+value = 0.05
+
+[sub_resource type="Resource" id="tier_b1"]
+script = ExtResource("5_utd")
+tier_name = "Collimator Lens"
+description = "Precision heating for precision compliance"
+cost = 225
+stat_modifiers = [SubResource("mod_b1_range"), SubResource("mod_b1_crit")]
+
+[sub_resource type="Resource" id="mod_b2_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="mod_b2_crit"]
+script = ExtResource("6_smd")
+stat_name = "crit_chance"
+operation = 0
+value = 0.05
+
+[sub_resource type="Resource" id="tier_b2"]
+script = ExtResource("5_utd")
+tier_name = "Adaptive Targeting"
+description = "Heat-seeking heat beam. Redundantly effective."
+cost = 450
+stat_modifiers = [SubResource("mod_b2_range"), SubResource("mod_b2_crit")]
+
+[sub_resource type="Resource" id="path_b"]
+script = ExtResource("4_upd")
+path_name = "Beam Focus"
+description = "Improve range and critical precision"
+tiers = [SubResource("tier_b1"), SubResource("tier_b2")]
+
+; -- Path C "Area Coverage" --
+[sub_resource type="Resource" id="mod_c1_aoe"]
+script = ExtResource("6_smd")
+stat_name = "area_of_effect"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="tier_c1"]
+script = ExtResource("5_utd")
+tier_name = "Heat Diffuser"
+description = "Spread the warmth to everyone nearby"
+cost = 225
+stat_modifiers = [SubResource("mod_c1_aoe")]
+
+[sub_resource type="Resource" id="mod_c2_aoe"]
+script = ExtResource("6_smd")
+stat_name = "area_of_effect"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="mod_c2_rate"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.2
+
+[sub_resource type="Resource" id="tier_c2"]
+script = ExtResource("5_utd")
+tier_name = "Radiant Emitter"
+description = "Mandatory sunburn dispenser"
+cost = 450
+stat_modifiers = [SubResource("mod_c2_aoe"), SubResource("mod_c2_rate")]
+
+[sub_resource type="Resource" id="path_c"]
+script = ExtResource("4_upd")
+path_name = "Area Coverage"
+description = "Widen the microwave emission field"
+tiers = [SubResource("tier_c1"), SubResource("tier_c2")]
+
+[resource]
+script = ExtResource("1_td")
+tower_id = "microwave_emitter"
+tower_name = "Microwave Emitter"
+description = "Active Denial System. Makes you feel warm inside. And outside. Mostly outside."
+scene = ExtResource("2_scene")
+build_cost = 225
+sell_ratio = 0.6
+base_damage = 18.0
+damage_type = 5
+base_range = 3.5
+fire_rate = 0.5
+projectile_type = 4
+projectile_scene = ExtResource("3_proj")
+area_of_effect = 0.0
+pierce_count = 1
+crit_chance = 0.0
+crit_multiplier = 2.0
+on_hit_effects = [SubResource("shred_effect")]
+upgrade_paths = [SubResource("path_a"), SubResource("path_b"), SubResource("path_c")]

@@ -80,9 +80,14 @@ func _ready() -> void:
 
 	# Load and assign tower data to the build menu
 	tower_menu.tower_list = [
-		load("res://data/towers/arrow_tower.tres") as TowerData,
-		load("res://data/towers/cannon_tower.tres") as TowerData,
-		load("res://data/towers/ice_tower.tres") as TowerData,
+		load("res://data/towers/arrow_tower.tres") as TowerData,       # 50
+		load("res://data/towers/ice_tower.tres") as TowerData,          # 75
+		load("res://data/towers/cannon_tower.tres") as TowerData,       # 100
+		load("res://data/towers/lrad_cannon.tres") as TowerData,        # 150
+		load("res://data/towers/taser_grid.tres") as TowerData,         # 175
+		load("res://data/towers/pepper_spray.tres") as TowerData,       # 175
+		load("res://data/towers/microwave_emitter.tres") as TowerData,  # 225
+		load("res://data/towers/surveillance_hub.tres") as TowerData,   # 250
 	]
 	tower_menu._build_buttons()
 

@@ -28,18 +28,18 @@ func _build_buttons() -> void:
 	for tower_data in tower_list:
 		# Card container
 		var card := VBoxContainer.new()
-		card.custom_minimum_size = Vector2(72, 64)
+		card.custom_minimum_size = Vector2(56, 64)
 
 		# Main button
 		var btn := Button.new()
 		btn.text = tower_data.get_display_name() + "\n" + str(tower_data.build_cost) + "g"
-		btn.custom_minimum_size = Vector2(72, 40)
+		btn.custom_minimum_size = Vector2(56, 40)
 		btn.pressed.connect(_on_tower_selected.bind(tower_data))
 		card.add_child(btn)
 
 		# Progress bar background (shows affordability %)
 		var progress_bg := ColorRect.new()
-		progress_bg.custom_minimum_size = Vector2(72, 4)
+		progress_bg.custom_minimum_size = Vector2(56, 4)
 		progress_bg.color = Color("#1A1A1E")
 		card.add_child(progress_bg)
 
@@ -54,7 +54,7 @@ func _build_buttons() -> void:
 		indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		indicator.add_theme_font_size_override("font_size", 8)
 		indicator.add_theme_color_override("font_color", Color("#808898"))
-		indicator.custom_minimum_size = Vector2(72, 12)
+		indicator.custom_minimum_size = Vector2(56, 12)
 		card.add_child(indicator)
 
 		button_container.add_child(card)

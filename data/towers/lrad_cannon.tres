@@ -1,0 +1,156 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=27 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/tower_data.gd" id="1_td"]
+[ext_resource type="PackedScene" path="res://scenes/towers/base_tower.tscn" id="2_scene"]
+[ext_resource type="PackedScene" path="res://scenes/projectiles/base_projectile.tscn" id="3_proj"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_path_data.gd" id="4_upd"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_tier_data.gd" id="5_utd"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier_data.gd" id="6_smd"]
+[ext_resource type="Script" path="res://scripts/resources/status_effect_data.gd" id="7_sed"]
+
+; -- Base on-hit: POISON 5 DPS, 4s, 5 stacks --
+[sub_resource type="Resource" id="poison_effect"]
+script = ExtResource("7_sed")
+effect_type = 2
+duration = 4.0
+potency = 5.0
+stack_limit = 5
+apply_chance = 1.0
+
+; -- Path A "Volume Control" --
+[sub_resource type="Resource" id="mod_a1_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.4
+
+[sub_resource type="Resource" id="tier_a1"]
+script = ExtResource("5_utd")
+tier_name = "Bass Boost"
+description = "Subsonic frequencies for subsonic compliance"
+cost = 150
+stat_modifiers = [SubResource("mod_a1_dmg")]
+
+[sub_resource type="Resource" id="mod_a2_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.4
+
+[sub_resource type="Resource" id="mod_a2_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="tier_a2"]
+script = ExtResource("5_utd")
+tier_name = "Directional Array"
+description = "Focused sonic beam. Earplugs not included."
+cost = 300
+stat_modifiers = [SubResource("mod_a2_dmg"), SubResource("mod_a2_range")]
+
+[sub_resource type="Resource" id="path_a"]
+script = ExtResource("4_upd")
+path_name = "Volume Control"
+description = "Increase acoustic output and focus"
+tiers = [SubResource("tier_a1"), SubResource("tier_a2")]
+
+; -- Path B "Frequency Modulation" --
+[sub_resource type="Resource" id="mod_b1_aoe"]
+script = ExtResource("6_smd")
+stat_name = "area_of_effect"
+operation = 0
+value = 0.3
+
+[sub_resource type="Resource" id="tier_b1"]
+script = ExtResource("5_utd")
+tier_name = "Harmonic Resonance"
+description = "Sympathetic vibrations at civilian frequency"
+cost = 150
+stat_modifiers = [SubResource("mod_b1_aoe")]
+
+[sub_resource type="Resource" id="mod_b2_aoe"]
+script = ExtResource("6_smd")
+stat_name = "area_of_effect"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="mod_b2_rate"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.2
+
+[sub_resource type="Resource" id="tier_b2"]
+script = ExtResource("5_utd")
+tier_name = "Doppler Array"
+description = "Moving targets receive bonus discomfort"
+cost = 300
+stat_modifiers = [SubResource("mod_b2_aoe"), SubResource("mod_b2_rate")]
+
+[sub_resource type="Resource" id="path_b"]
+script = ExtResource("4_upd")
+path_name = "Frequency Modulation"
+description = "Widen blast area and cycling speed"
+tiers = [SubResource("tier_b1"), SubResource("tier_b2")]
+
+; -- Path C "Psychological Ops" --
+[sub_resource type="Resource" id="mod_c1_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="tier_c1"]
+script = ExtResource("5_utd")
+tier_name = "Disorientation Pulse"
+description = "Which way is the exit? There is no exit."
+cost = 150
+stat_modifiers = [SubResource("mod_c1_range")]
+
+[sub_resource type="Resource" id="mod_c2_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.2
+
+[sub_resource type="Resource" id="mod_c2_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="tier_c2"]
+script = ExtResource("5_utd")
+tier_name = "Nausea Frequency"
+description = "Weaponized motion sickness at 19Hz"
+cost = 300
+stat_modifiers = [SubResource("mod_c2_dmg"), SubResource("mod_c2_range")]
+
+[sub_resource type="Resource" id="path_c"]
+script = ExtResource("4_upd")
+path_name = "Psychological Ops"
+description = "Extend influence through disorientation"
+tiers = [SubResource("tier_c1"), SubResource("tier_c2")]
+
+[resource]
+script = ExtResource("1_td")
+tower_id = "lrad_cannon"
+tower_name = "LRAD Cannon"
+description = "Long Range Acoustic Device. Hearing damage is a feature, not a bug."
+scene = ExtResource("2_scene")
+build_cost = 150
+sell_ratio = 0.6
+base_damage = 10.0
+damage_type = 4
+base_range = 4.0
+fire_rate = 0.6
+projectile_type = 3
+projectile_scene = ExtResource("3_proj")
+area_of_effect = 1.0
+pierce_count = 1
+crit_chance = 0.0
+crit_multiplier = 2.0
+on_hit_effects = [SubResource("poison_effect")]
+upgrade_paths = [SubResource("path_a"), SubResource("path_b"), SubResource("path_c")]
