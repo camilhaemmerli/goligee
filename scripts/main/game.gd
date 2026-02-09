@@ -36,6 +36,9 @@ var _dps_timer: float = 0.0
 
 
 func _ready() -> void:
+	# Load the riot control theme
+	ThemeManager.apply_theme(load("res://data/themes/riot_control/theme.tres"))
+
 	# Set up groups for lookups
 	projectile_container.add_to_group("projectiles")
 
@@ -45,13 +48,13 @@ func _ready() -> void:
 	goal_tiles = map_result["goal_tiles"]
 
 	# Phase 1: Set up raised platform with depth
-	#platform_renderer.setup(tile_map, MapBuilder.MAP_W, MapBuilder.MAP_H)
+	platform_renderer.setup(tile_map, MapBuilder.MAP_W, MapBuilder.MAP_H)
 
 	# Phase 3: Build isometric structures
-	#StructureBuilder.build_structures(structures, tile_map)
+	StructureBuilder.build_structures(structures, tile_map)
 
 	# Phase 4: Place environmental props
-	#EnvironmentBuilder.build_environment(environment_props, tile_map)
+	EnvironmentBuilder.build_environment(environment_props, tile_map)
 
 	# Center camera on the map
 	var center_tile := Vector2i(MapBuilder.MAP_W / 2, MapBuilder.MAP_H / 2)

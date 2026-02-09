@@ -40,6 +40,9 @@ func _on_build_mode_exited() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _placing:
+		# Click-to-select placed towers when not in build mode
+		if event.is_action_pressed("select"):
+			_try_select(get_global_mouse_position())
 		return
 
 	if event is InputEventMouseMotion and _ghost:
@@ -95,3 +98,17 @@ func _try_place(world_pos: Vector2) -> void:
 	PathfindingManager.place_tower(tile_pos)
 	SignalBus.tower_placed.emit(tower, tile_pos)
 	SignalBus.build_mode_exited.emit()
+
+
+func _try_select(world_pos: Vector2) -> void:
+	if not tile_map or not tower_container:
+		return
+
+	var tile_pos := tile_map.local_to_map(tile_map.to_local(world_pos))
+
+	for tower in tower_container.get_children():
+		if tower is BaseTower and tower._tile_pos == tile_pos:
+			SignalBus.tower_selected.emit(tower)
+			return
+
+	SignalBus.tower_deselected.emit()

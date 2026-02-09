@@ -848,7 +848,12 @@ def main():
             print(f"Asset '{name}' not found in towers/enemies/bosses.")
             sys.exit(1)
 
-    print("\nDone!")
+    print("\nDone generating! Running asset sync...")
+    import subprocess
+    subprocess.run(
+        [sys.executable, str(Path(__file__).parent / "sync_assets.py")],
+        cwd=str(PROJECT_ROOT),
+    )
 
 
 def gen_single_tower(client: PixelLabClient, name: str):

@@ -94,15 +94,44 @@ static func build_map(tile_map: TileMapLayer) -> Dictionary:
 	var ground_variants := [GROUND, GROUND_B, GROUND_C]
 	var wall_variants := [WALL, WALL, WALL, WALL_RUBBLE]  # 25% rubble chance
 
+	# Build a set of path tile positions (zigzag route from spawn to goal)
+	var path_tiles: Dictionary = {}  # Vector2i -> true
+	# Spawn(0,4) → east to (4,4)
+	for x in range(0, 5):
+		path_tiles[Vector2i(x, 4)] = true
+	# North to (4,2)
+	for y in range(2, 4):
+		path_tiles[Vector2i(4, y)] = true
+	# East to (8,2)
+	for x in range(5, 9):
+		path_tiles[Vector2i(x, 2)] = true
+	# South to (8,6)
+	for y in range(3, 7):
+		path_tiles[Vector2i(8, y)] = true
+	# East to (12,6)
+	for x in range(9, 13):
+		path_tiles[Vector2i(x, 6)] = true
+	# North to (12,4)
+	for y in range(4, 6):
+		path_tiles[Vector2i(12, y)] = true
+	# East to goal (15,4)
+	for x in range(13, 16):
+		path_tiles[Vector2i(x, 4)] = true
+
 	for y in MAP_H:
 		for x in MAP_W:
 			var pos := Vector2i(x, y)
 			var tile := GROUND
 
-			# Walls: top/bottom rows, left/right columns
-			if y == 0 or y == MAP_H - 1 or x == 0 or x == MAP_W - 1:
+			# Walls: top/bottom rows, left/right columns (skip path at edges)
+			if (y == 0 or y == MAP_H - 1 or x == 0 or x == MAP_W - 1) and not path_tiles.has(pos):
 				var hash_val := _tile_hash(x, y, 77)
 				tile = wall_variants[hash_val % wall_variants.size()]
+
+			# Path tiles: alternate between PATH and PATH_WORN for visual variety
+			elif path_tiles.has(pos):
+				var hash_val := _tile_hash(x, y, 55)
+				tile = PATH_WORN if hash_val % 3 == 0 else PATH
 
 			# Ground: random variant based on position
 			elif tile == GROUND:
@@ -111,12 +140,10 @@ static func build_map(tile_map: TileMapLayer) -> Dictionary:
 
 			# Spawn point (left edge, row 4)
 			if y == 4 and x == 0:
-				tile = PATH
 				spawn_tiles.append(pos)
 
 			# Goal point (right edge, row 4)
 			if y == 4 and x == MAP_W - 1:
-				tile = PATH
 				goal_tiles.append(pos)
 
 			tile_map.set_cell(pos, source_id, tile)
