@@ -8,12 +8,26 @@
 ## Base Prompt (prepend to everything)
 
 ```
-8-bit isometric pixel art, urban dystopia riot control setting,
-night scene with harsh institutional lighting, cold concrete
-and gunmetal gray palette with warning amber and emergency red
-accents, desaturated muted colors, no anti-aliasing, clean pixel
-grid, oppressive authoritarian atmosphere, post-apocalyptic urban
+16-bit isometric pixel art, isometric 3/4 view,
+light source from top-left casting shadows to bottom-right,
+left faces brightest, right faces mid-tone, bottom faces darkest,
+satirical riot control police state setting,
+Soviet brutalist architecture influence, panelka apartment blocks,
+raw concrete angular geometry, crumbling prefab facades,
+broken windows and rusted playgrounds,
+comically exaggerated militarized police equipment,
+dark night scene lit by harsh overhead floodlights from top-left,
+cold concrete and gunmetal gray palette with warning amber and emergency red accents,
+desaturated muted tones, oppressive authoritarian dystopia,
+post-Soviet urban decay, graffiti and grime, razor barbed wire,
+clean pixel grid, no anti-aliasing, detailed 16-bit shading
 ```
+
+> **Important prompt lessons:**
+> - For character sprites: use SHORT character-only prompts, avoid scene/environment words
+> - `no_background` API flag alone is unreliable -- you must also avoid mentioning buildings/ground/scenes in the prompt text
+> - The `BASE_PROMPT` above is for **scene/environment** assets (tiles, props, backgrounds)
+> - For **character sprites**, use the stripped-down character template below instead
 
 ---
 
@@ -124,10 +138,13 @@ emitter face pattern, industrial mounting bracket
 
 ### Template
 
+> **Note:** Do NOT use the full base prompt for characters -- it causes background bleed.
+> Use this minimal character template instead:
+
 ```
-{base_prompt}, protestor character, isometric 3/4 view,
-single game sprite, transparent background,
-{specific_description}
+pixel art character sprite, isometric 3/4 view, facing south-east,
+walking pose, dark muted colors, gunmetal gray and warm accents,
+16-bit style, {specific_description}
 ```
 
 ### Rioter
@@ -175,13 +192,13 @@ backpack with antenna, goggles, flying unit,
 screen glow #A0D8A0, drone propeller blur
 ```
 
-### Flash Mob
+### Goth Protestor
 
 ```
 {enemy_template},
-cluster of 3-4 tiny figures merged together, crowd blob,
-mixed civilian clothing, protest signs sticking up,
-unarmored mass, chaotic grouping, split-able appearance
+goth punk girl, black hair, pale skin,
+black tank top, short black skirt, fishnet stockings, combat boots,
+spiked choker, dark makeup, carrying small flag, confident stride
 ```
 
 ### Street Medic
@@ -211,13 +228,13 @@ near-invisible stealth shimmer effect, shadow-blend clothing,
 void dark #0A0A0E body, slight transparency suggestion
 ```
 
-### Social Media Swarm
+### Blonde Protestor
 
 ```
-{enemy_template} but 8x8 size,
-tiny phone-wielding figure, single small protestor,
-very simple 4-color sprite, minimal detail,
-bright screen glow #A0D8A0, swarm unit
+{enemy_template},
+blonde girl, long flowing blonde hair,
+crop top, shorts, sneakers, holding megaphone,
+sassy confident walk, bright hair contrasting dark outfit
 ```
 
 ### Tunnel Rat
@@ -670,3 +687,10 @@ mixed grays #484440 #3A3838, dust particles
 4. **Post-process in Aseprite**: palette swap to exact hex values, fix any anti-aliased edges, clean orphan pixels
 5. **Test in-engine early** -- a sprite that looks good in isolation may not read well at game zoom level
 6. **Batch by category** -- do all towers, then all enemies, etc. Context switching hurts consistency
+
+### Prompt Lessons (from production)
+
+7. **Character sprites need SHORT prompts** -- the full base prompt describes scenes/buildings which causes background bleed even with `no_background=True`. Use the minimal character template for characters.
+8. **Avoid scene words in character prompts** -- words like "urban", "building", "night scene", "institutional" cause PixelLab to render environments behind the character. Keep it to physical character description only.
+9. **`no_background` API flag is unreliable alone** -- must be paired with prompt discipline. The flag hints, but the prompt text dominates.
+10. **Base prompt is for environment/scene assets** (tiles, props, backgrounds). Character template is for isolated character sprites.

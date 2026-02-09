@@ -308,13 +308,22 @@ BASE_PROMPT = (
     "light source from top-left casting shadows to bottom-right, "
     "left faces brightest, right faces mid-tone, bottom faces darkest, "
     "satirical riot control police state setting, "
-    "Soviet brutalist architecture influence, raw concrete angular geometry, "
+    "Soviet brutalist architecture influence, panelka apartment blocks, "
+    "raw concrete angular geometry, crumbling prefab facades, "
+    "broken windows and rusted playgrounds, "
     "comically exaggerated militarized police equipment, "
     "dark night scene lit by harsh overhead floodlights from top-left, "
     "cold concrete and gunmetal gray palette with warning amber and emergency red accents, "
     "desaturated muted tones, oppressive authoritarian dystopia, "
-    "post-apocalyptic urban decay, graffiti and grime, razor barbed wire, "
+    "post-Soviet urban decay, graffiti and grime, razor barbed wire, "
     "clean pixel grid, no anti-aliasing, detailed 16-bit shading"
+)
+
+# For character sprites: use this minimal prompt to avoid background bleed.
+# The no_background API flag is unreliable when the prompt mentions scenes/buildings.
+CHAR_PROMPT = (
+    "pixel art character sprite, isometric 3/4 view, "
+    "dark muted colors, gunmetal gray and warm accents, 16-bit style"
 )
 
 # -- Towers ----------------------------------------------------------------
@@ -397,9 +406,10 @@ ENEMIES = {
                 "backpack with antenna, goggles, screen glow",
         "size": (16, 16),
     },
-    "flash_mob": {
-        "desc": "cluster of 3-4 tiny figures merged together, crowd blob, "
-                "mixed civilian clothing, protest signs sticking up, chaotic grouping",
+    "goth_protestor": {
+        "desc": "goth punk girl, black hair, pale skin, "
+                "black tank top, short black skirt, fishnet stockings, combat boots, "
+                "spiked choker, dark makeup, carrying small flag, confident stride",
         "size": (16, 16),
     },
     "street_medic": {
@@ -417,10 +427,11 @@ ENEMIES = {
                 "near-invisible stealth shimmer, shadow-blend clothing, very dark body",
         "size": (16, 16),
     },
-    "swarm": {
-        "desc": "tiny phone-wielding figure, single small protestor, "
-                "very simple 4-color sprite, minimal detail, bright screen glow, swarm unit",
-        "size": (8, 8),
+    "blonde_protestor": {
+        "desc": "blonde girl, long flowing blonde hair, "
+                "crop top, shorts, sneakers, holding megaphone, "
+                "sassy confident walk, bright hair contrasting dark outfit",
+        "size": (16, 16),
     },
     "tunnel_rat": {
         "desc": "hunched figure with mining helmet, goggles and dust mask, "
@@ -683,9 +694,9 @@ def gen_enemies(client: PixelLabClient):
         # Clamp minimum size to 16 for API (PixelLab min is 16)
         api_w = max(w, 16)
         api_h = max(h, 16)
+        # Use CHAR_PROMPT (not BASE_PROMPT) to avoid background bleed
         img = client.generate_image(
-            f"{BASE_PROMPT}, protestor character, isometric 3/4 view, "
-            f"facing south-east, walking pose, single game sprite, {info['desc']}",
+            f"{CHAR_PROMPT}, facing south-east, walking pose, {info['desc']}",
             api_w, api_h, isometric=True,
         )
         save_image(img, f"enemies/enemy_{name}_se_01.png")
@@ -858,9 +869,9 @@ def gen_single_enemy(client: PixelLabClient, name: str):
     info = ENEMIES[name]
     w, h = info["size"]
     api_w, api_h = max(w, 16), max(h, 16)
+    # Use CHAR_PROMPT (not BASE_PROMPT) to avoid background bleed
     img = client.generate_image(
-        f"{BASE_PROMPT}, protestor character, isometric 3/4 view, "
-        f"facing south-east, walking pose, single game sprite, {info['desc']}",
+        f"{CHAR_PROMPT}, facing south-east, walking pose, {info['desc']}",
         api_w, api_h, isometric=True,
     )
     save_image(img, f"enemies/enemy_{name}_se_01.png")

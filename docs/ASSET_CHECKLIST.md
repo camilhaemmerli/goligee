@@ -80,11 +80,11 @@ Start with SE direction only, expand to 4 directions after style lock.
 | 3 | Shield Wall | SE,SW,NE,NW | 4 | `enemies/enemy_shield_wall_*_*.png` | [~] SE frame 1 done |
 | 4 | Molotov Thrower | SE,SW,NE,NW | 4 | `enemies/enemy_molotov_*_*.png` | [~] SE frame 1 done |
 | 5 | Drone Operator | SE,SW,NE,NW | 4 | `enemies/enemy_drone_op_*_*.png` | [ ] broken, needs regen |
-| 6 | Flash Mob | SE,SW,NE,NW | 4 | `enemies/enemy_flash_mob_*_*.png` | [~] SE frame 1 done |
+| 6 | Goth Protestor | SE,SW,NE,NW | 4 | `enemies/enemy_goth_protestor_*_*.png` | [~] SE frame 1 done |
 | 7 | Street Medic | SE,SW,NE,NW | 4 | `enemies/enemy_street_medic_*_*.png` | [~] SE frame 1 done |
 | 8 | Armored Van (24x16) | SE,SW,NE,NW | 4 | `enemies/enemy_armored_van_*_*.png` | [~] SE frame 1 done |
 | 9 | Infiltrator | SE,SW,NE,NW | 4 | `enemies/enemy_infiltrator_*_*.png` | [~] SE frame 1 done |
-| 10 | Social Media Swarm (8x8) | SE,SW,NE,NW | 4 | `enemies/enemy_swarm_*_*.png` | [~] SE frame 1 done |
+| 10 | Blonde Protestor | SE,SW,NE,NW | 4 | `enemies/enemy_blonde_protestor_*_*.png` | [~] SE frame 1 done |
 | 11 | Tunnel Rat | SE,SW,NE,NW | 4 | `enemies/enemy_tunnel_rat_*_*.png` | [~] SE frame 1 done |
 | 12 | Union Boss (20x20) | SE,SW,NE,NW | 4 | `enemies/enemy_union_boss_*_*.png` | [~] SE frame 1 done |
 | 13 | Journalist | SE,SW,NE,NW | 4 | `enemies/enemy_journalist_*_*.png` | [~] SE frame 1 done |

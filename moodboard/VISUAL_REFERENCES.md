@@ -126,9 +126,27 @@
 
 ---
 
+### 6. Post-Soviet Brutalism
+- **Panelka apartment blocks** -- mass-produced prefab concrete housing, uniform rectangular
+  windows in grid patterns, stained and crumbling facade panels, exposed utility pipes
+- Broken windows with jagged glass, some boarded up with plywood
+- **Broken playgrounds** -- rusted swing sets with missing seats, collapsed climbing frames,
+  cracked concrete sandbox borders, faded paint on metal equipment
+- Exposed rebar where concrete has crumbled, water stains streaking down facades
+- Satellite dishes bolted haphazardly to balconies
+- Laundry lines between buildings (some with clothes, some snapped)
+- Soviet-era mosaics partially destroyed on building facades
+- Cramped courtyards between panelka blocks with cracked pavement
+- Overhead electrical wires and cables strung chaotically
+- Brutalist public infrastructure -- bus stops, underpasses, utility buildings
+- Khrushchyovka-style 5-story blocks as background silhouettes
+
+---
+
 ## Mood Keywords
 `urban` `concrete` `oppressive` `smoky` `authoritarian` `dystopian`
-`institutional` `harsh` `propaganda` `surveillance`
+`institutional` `harsh` `propaganda` `surveillance` `post-soviet`
+`panelka` `brutalist` `crumbling` `prefab`
 
 ## Anti-Mood (what we are NOT)
 `bright` `cheerful` `cartoonish` `fantasy` `magical` `mystical` `twilight` `violet`
