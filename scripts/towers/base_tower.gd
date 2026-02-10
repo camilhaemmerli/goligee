@@ -97,7 +97,11 @@ func _apply_theme_skin() -> void:
 	# Base+turret architecture: separate base and turret sprites
 	if skin.base_texture:
 		sprite.texture = skin.base_texture
+		# Align the diamond ground (bottom of 64x64) with the tile center
+		sprite.offset.y = -16
 		turret_sprite.visible = true
+		turret_sprite.position.y = skin.turret_y_offset
+		muzzle_point.position.y = skin.turret_y_offset - 4.0
 		if skin.turret_textures.size() == 8:
 			_turret_textures = skin.turret_textures
 			turret_sprite.texture = _turret_textures[7]  # Default: SE
@@ -120,7 +124,7 @@ func _aim_at(target_pos: Vector2) -> void:
 	# angle_to_point: 0=right, PI/2=down. Map to 8 sectors.
 	# Our DIRS order: S(0), SW(1), W(2), NW(3), N(4), NE(5), E(6), SE(7)
 	# Offset so south=0: subtract PI/2 to rotate, then divide into 8 sectors
-	var adjusted := angle + PI / 2.0  # Now 0=south
+	var adjusted := angle - PI / 2.0  # Now 0=south
 	var idx := wrapi(roundi(adjusted / (TAU / 8.0)), 0, 8)
 	turret_sprite.texture = _turret_textures[idx]
 

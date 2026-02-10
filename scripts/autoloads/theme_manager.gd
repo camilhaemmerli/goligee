@@ -16,6 +16,18 @@ const TOWER_ASSET_ALIASES := {
 	"microwave_emitter": "microwave",
 }
 
+# Per-tower turret Y offset (turret drawn above base).
+const TURRET_Y_OFFSETS := {
+	"rubber_bullet": -26.0,
+	"taser_grid": -26.0,
+	"surveillance": -28.0,
+	"pepper_spray": -28.0,
+	"microwave": -25.0,
+	"water_cannon": -27.0,
+	"lrad": -27.0,
+	"tear_gas": -26.0,
+}
+
 
 func apply_theme(theme: ThemeData) -> void:
 	current_theme = theme
@@ -46,7 +58,7 @@ func _load_tower_skin_from_assets(tower_data: TowerData) -> TowerSkinData:
 	var folder_id := tower_id
 	var base_path := "res://assets/sprites/towers/%s/base.png" % folder_id
 	if not ResourceLoader.exists(base_path):
-		var alias := TOWER_ASSET_ALIASES.get(tower_id, "")
+		var alias: String = TOWER_ASSET_ALIASES.get(tower_id, "")
 		if alias != "":
 			folder_id = alias
 			base_path = "res://assets/sprites/towers/%s/base.png" % folder_id
@@ -73,6 +85,12 @@ func _load_tower_skin_from_assets(tower_data: TowerData) -> TowerSkinData:
 	skin.description = tower_data.description
 	skin.base_texture = base_tex
 	skin.turret_textures = turret_textures
+
+	# Apply per-tower turret Y offset (try folder_id first, then tower_id).
+	if TURRET_Y_OFFSETS.has(folder_id):
+		skin.turret_y_offset = TURRET_Y_OFFSETS[folder_id]
+	elif TURRET_Y_OFFSETS.has(tower_id):
+		skin.turret_y_offset = TURRET_Y_OFFSETS[tower_id]
 
 	var icon := _load_tower_icon(tower_id, folder_id)
 	if icon:

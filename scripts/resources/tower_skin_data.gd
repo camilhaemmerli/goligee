@@ -12,6 +12,8 @@ extends Resource
 @export var base_texture: Texture2D
 ## Turret head sprites for 8 directions: S, SW, W, NW, N, NE, E, SE (48x48).
 @export var turret_textures: Array[Texture2D] = []
+## Y offset for turret sprite relative to base (negative = upward).
+@export var turret_y_offset: float = -26.0
 
 @export_group("Legacy")
 ## Legacy single sprite (used if base_texture is null).
