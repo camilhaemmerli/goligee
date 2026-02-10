@@ -14,6 +14,9 @@ script = ExtResource("1_enemy")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 
+[node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
+visible = false
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 
 [node name="HitArea" type="Area2D" parent="."]

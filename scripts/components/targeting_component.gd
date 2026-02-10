@@ -70,7 +70,7 @@ func _get_first(enemies: Array[Node2D]) -> Node2D:
 			if p > best_progress:
 				best_progress = p
 				best = e
-	return best if best else enemies[0]
+	return best if best else (enemies[0] if not enemies.is_empty() else null)
 
 
 func _get_last(enemies: Array[Node2D]) -> Node2D:
@@ -82,7 +82,7 @@ func _get_last(enemies: Array[Node2D]) -> Node2D:
 			if p < best_progress:
 				best_progress = p
 				best = e
-	return best if best else enemies[0]
+	return best if best else (enemies[0] if not enemies.is_empty() else null)
 
 
 func _get_strongest(enemies: Array[Node2D]) -> Node2D:
@@ -93,7 +93,7 @@ func _get_strongest(enemies: Array[Node2D]) -> Node2D:
 		if health and health.current_hp > best_hp:
 			best_hp = health.current_hp
 			best = e
-	return best if best else enemies[0]
+	return best if best else (enemies[0] if not enemies.is_empty() else null)
 
 
 func _get_weakest(enemies: Array[Node2D]) -> Node2D:
@@ -104,7 +104,7 @@ func _get_weakest(enemies: Array[Node2D]) -> Node2D:
 		if health and health.current_hp < best_hp:
 			best_hp = health.current_hp
 			best = e
-	return best if best else enemies[0]
+	return best if best else (enemies[0] if not enemies.is_empty() else null)
 
 
 func _get_closest(enemies: Array[Node2D], pos: Vector2) -> Node2D:
@@ -115,4 +115,4 @@ func _get_closest(enemies: Array[Node2D], pos: Vector2) -> Node2D:
 		if d < best_dist:
 			best_dist = d
 			best = e
-	return best if best else enemies[0]
+	return best if best else (enemies[0] if not enemies.is_empty() else null)

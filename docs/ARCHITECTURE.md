@@ -80,20 +80,23 @@ is the clear winner for this project.
 
 ```
 Game (Node2D)
-├── World (Node2D)
+├── CityBackground (Node2D, z_index=-10)   ← decorative city layer
+│   ├── BuildingsLeft (Node2D)              ← panelka apartment blocks
+│   ├── BuildingsRight (Node2D)              ← buildings along right edge
+│   ├── GovernmentBuilding (Node2D)         ← right side, building being defended
+│   ├── AnimatedDetails (Node2D)            ← burning barrels, waving flags, etc.
+│   └── BackgroundDim (CanvasModulate)      ← dims background so field pops
+├── World (Node2D, y_sort_enabled=true)
 │   ├── TileMapLayer (Isometric map)
-│   ├── Paths (Node2D)
-│   │   ├── Path2D (enemy path 1)
-│   │   └── Path2D (enemy path 2)
 │   ├── Towers (Node2D, container for all placed towers)
 │   ├── Enemies (Node2D, container for all active enemies)
 │   ├── Projectiles (Node2D, container for active projectiles)
 │   └── Effects (Node2D, particles and visual FX)
-├── FogLayer (CanvasLayer + shader)
-├── UI (CanvasLayer)
-│   ├── HUD (gold, lives, wave counter)
-│   ├── TowerMenu (build/upgrade panel)
-│   └── WaveInfo (upcoming wave preview)
+├── TowerPlacer (Node2D)                    ← handles tower placement input
+├── HUD (CanvasLayer, layer=10)
+│   ├── TopBar (HBoxContainer)              ← budget, approval, wave info
+│   ├── TowerMenu (PanelContainer)          ← bottom build menu
+│   └── UpgradePanel (PanelContainer)       ← tower upgrade/sell panel
 └── GameManager (Node, autoload singleton)
     ├── WaveManager
     ├── EconomyManager
@@ -106,28 +109,27 @@ Each tower/enemy is a **PackedScene** composed of reusable child nodes:
 
 ```
 BaseTower.tscn
-├── Sprite2D (visual)
-├── AnimationPlayer (animations)
-├── Area2D + CollisionShape2D (range detection)
+├── Sprite2D (base platform -- static)
+├── TurretSprite (Sprite2D -- 8-direction weapon head, swapped by angle)
+├── MuzzlePoint (Marker2D -- projectile spawn + muzzle flash position)
+├── AnimationPlayer
+├── RangeArea (Area2D + CollisionShape2D -- range detection)
 ├── AttackTimer (Timer node)
 ├── WeaponComponent.gd (custom node -- damage, type, projectile)
 ├── TargetingComponent.gd (custom node -- priority, current target)
 ├── UpgradeComponent.gd (custom node -- paths, tiers, modifiers)
 └── AudioStreamPlayer2D (SFX)
 
-ArrowTower.tscn (inherits BaseTower)
-├── [overrides: sprite, weapon stats, upgrade paths]
-└── [adds: ArrowTrailEffect]
-
 BaseEnemy.tscn
-├── Sprite2D (visual)
+├── Sprite2D (static fallback visual)
+├── AnimatedSprite2D (8-dir walk, hit_{dir}, death_{dir} anims)
 ├── AnimationPlayer
-├── PathFollow2D (movement along path)
-├── HealthComponent.gd (HP, armor, shield)
+├── HitArea (Area2D + CollisionShape2D -- targeting)
+├── HealthComponent.gd (HP, armor, shield, armor_shred clamped 0-1)
 ├── ResistanceComponent.gd (damage type multipliers)
 ├── StatusEffectManager.gd (active debuffs)
 ├── LootComponent.gd (gold, XP rewards)
-└── HealthBar (Control node)
+└── HealthBar (ProgressBar, synced after wave modifiers)
 ```
 
 ### Key Autoload Singletons
@@ -184,14 +186,28 @@ goligee/
 ├── project.godot
 ├── moodboard/                  # Visual references & palette
 ├── docs/                       # Architecture & design docs
+├── tools/
+│   ├── generate_assets.py      # Batch PixelLab API sprite generator
+│   ├── sync_assets.py          # Asset sync: updates checklist + overview sheets
+│   └── .character_manifest.json # PixelLab character IDs for enemy animation
 ├── assets/
 │   ├── sprites/
-│   │   ├── towers/
-│   │   ├── enemies/
+│   │   ├── towers/             # Subfolders per tower type
+│   │   │   ├── rubber_bullet/  #   base.png + turret_{dir}.png + tier5{x}_turret_{dir}.png
+│   │   │   ├── tear_gas/
+│   │   │   └── ...             # 8 tower subfolders total
+│   │   ├── enemies/            # Subfolders per enemy type
+│   │   │   ├── rioter/         #   walk_{dir}_{frame}.png
+│   │   │   ├── masked/
+│   │   │   └── ...             # 16 enemy subfolders total
+│   │   ├── buildings/          # building_{name}.png (city background)
+│   │   ├── animated/           # anim_{name}_{frame}.png (animated details)
 │   │   ├── projectiles/
 │   │   ├── effects/
 │   │   ├── tiles/
-│   │   └── ui/
+│   │   ├── ui/
+│   │   ├── _overview/          # Auto-generated overview sheets
+│   │   └── _archive/           # Archived legacy sprites
 │   ├── audio/
 │   │   ├── sfx/
 │   │   └── music/

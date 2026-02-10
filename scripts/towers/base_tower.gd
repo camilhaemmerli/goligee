@@ -2,7 +2,7 @@ class_name BaseTower
 extends Node2D
 ## Base class for all tower types. Composed of child components:
 ##   WeaponComponent, TargetingComponent, UpgradeComponent
-## Subclass scenes override exported data and can add extra nodes.
+## Uses base+turret architecture: static base sprite + rotating turret sprite.
 
 @export var tower_data: TowerData
 
@@ -11,11 +11,18 @@ extends Node2D
 @onready var upgrade: UpgradeComponent = $UpgradeComponent
 @onready var range_area: Area2D = $RangeArea
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var turret_sprite: Sprite2D = $TurretSprite
+@onready var muzzle_point: Marker2D = $MuzzlePoint
 @onready var attack_timer: Timer = $AttackTimer
 
 var _tile_pos: Vector2i
 var kill_count: int = 0
 var _show_range: bool = false
+
+## Turret textures for 8 directions: S, SW, W, NW, N, NE, E, SE
+var _turret_textures: Array[Texture2D] = []
+## Direction names matching _turret_textures indices
+const DIRS := ["s", "sw", "w", "nw", "n", "ne", "e", "se"]
 
 const KILL_MILESTONES := [25, 50, 100, 250, 500, 1000]
 
@@ -84,17 +91,44 @@ func _apply_theme_skin() -> void:
 	if not tower_data or not tower_data.tower_id:
 		return
 	var skin = ThemeManager.get_tower_skin(tower_data.tower_id)
-	if skin and skin.sprite_sheet:
+	if not skin:
+		return
+
+	# Base+turret architecture: separate base and turret sprites
+	if skin.base_texture:
+		sprite.texture = skin.base_texture
+		turret_sprite.visible = true
+		if skin.turret_textures.size() == 8:
+			_turret_textures = skin.turret_textures
+			turret_sprite.texture = _turret_textures[7]  # Default: SE
+		elif skin.turret_textures.size() > 0:
+			turret_sprite.texture = skin.turret_textures[0]
+	elif skin.sprite_sheet:
+		# Legacy single-sprite mode
 		sprite.texture = skin.sprite_sheet
-	if skin and skin.icon:
+		turret_sprite.visible = false
+
+	if skin.icon:
 		tower_data.icon = skin.icon
+
+
+func _aim_at(target_pos: Vector2) -> void:
+	"""Point turret toward target using 8-direction sprite swap."""
+	if _turret_textures.size() != 8:
+		return
+	var angle := global_position.angle_to_point(target_pos)
+	# angle_to_point: 0=right, PI/2=down. Map to 8 sectors.
+	# Our DIRS order: S(0), SW(1), W(2), NW(3), N(4), NE(5), E(6), SE(7)
+	# Offset so south=0: subtract PI/2 to rotate, then divide into 8 sectors
+	var adjusted := angle + PI / 2.0  # Now 0=south
+	var idx := wrapi(roundi(adjusted / (TAU / 8.0)), 0, 8)
+	turret_sprite.texture = _turret_textures[idx]
 
 
 func _update_range_shape(range_val: float) -> void:
 	var collision := range_area.get_node_or_null("CollisionShape2D") as CollisionShape2D
 	if collision:
 		var shape := CircleShape2D.new()
-		# Convert tile range to pixel range (32px per tile width)
 		shape.radius = range_val * 32.0
 		collision.shape = shape
 
@@ -114,13 +148,18 @@ func _on_enemy_exited_range(area: Area2D) -> void:
 func _on_attack_timer() -> void:
 	var target := targeting.update_target(global_position)
 	if target:
+		_aim_at(target.global_position)
 		_fire_at(target)
 
 
 func _fire_at(target: Node2D) -> void:
 	if weapon.projectile_scene:
 		var proj: Node2D = weapon.projectile_scene.instantiate()
-		proj.global_position = global_position
+		# Spawn from muzzle point if turret is active, otherwise tower center
+		if _turret_textures.size() == 8:
+			proj.global_position = muzzle_point.global_position
+		else:
+			proj.global_position = global_position
 		if proj is BaseProjectile:
 			proj.source_tower = self
 		if proj.has_method("init"):
@@ -134,7 +173,6 @@ func _fire_at(target: Node2D) -> void:
 				weapon.final_crit_multiplier,
 				weapon.on_hit_effects,
 			)
-		# Add to the projectile container in the game scene
 		var proj_container := get_tree().get_first_node_in_group("projectiles")
 		if proj_container:
 			proj_container.add_child(proj)
@@ -147,16 +185,13 @@ func _fire_at(target: Node2D) -> void:
 
 
 func _on_upgraded(path_index: int, tier: int) -> void:
-	# Reapply all accumulated modifiers to weapon and range
 	weapon.apply_stat_modifiers(upgrade.active_modifiers)
 
-	# Rebuild on_hit_effects: base effects + unlocked effects from upgrades
 	var combined_effects: Array[StatusEffectData] = []
 	combined_effects.append_array(tower_data.on_hit_effects)
 	combined_effects.append_array(upgrade.unlocked_effects)
 	weapon.on_hit_effects = combined_effects
 
-	# Recompute fire rate
 	var final_rate := tower_data.fire_rate
 	for mod in upgrade.active_modifiers:
 		if mod.stat_name == "fire_rate":
@@ -169,7 +204,6 @@ func _on_upgraded(path_index: int, tier: int) -> void:
 					final_rate = mod.value
 	attack_timer.wait_time = 1.0 / max(final_rate, 0.1)
 
-	# Recompute range
 	var final_range := tower_data.base_range
 	for mod in upgrade.active_modifiers:
 		if mod.stat_name == "base_range":
@@ -231,16 +265,21 @@ func _on_tower_deselected() -> void:
 
 func _play_recoil(target: Node2D) -> void:
 	var dir := (global_position - target.global_position).normalized()
+	# Recoil on the turret sprite if available, otherwise base sprite
+	var recoil_node: Sprite2D = turret_sprite if _turret_textures.size() == 8 else sprite
 	var tween := create_tween()
-	tween.tween_property(sprite, "position", dir * 2.0, 0.033)
-	tween.tween_property(sprite, "position", Vector2.ZERO, 0.033)
+	tween.tween_property(recoil_node, "position",
+		recoil_node.position + dir * 2.0, 0.033)
+	tween.tween_property(recoil_node, "position",
+		recoil_node.position, 0.033)
 
 
 func _spawn_muzzle_flash() -> void:
 	var flash := ColorRect.new()
 	flash.size = Vector2(6, 6)
 	flash.color = ThemeManager.get_damage_type_color(weapon.damage_type)
-	flash.position = Vector2(-3, -3)
+	# Position flash at muzzle point
+	flash.position = muzzle_point.position + Vector2(-3, -3)
 	flash.z_index = 60
 	add_child(flash)
 	var tween := flash.create_tween()

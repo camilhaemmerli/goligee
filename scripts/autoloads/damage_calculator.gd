@@ -8,14 +8,14 @@ const ARMOR_CONSTANT := 100.0
 ## Row = DamageType enum index, Column = ArmorType enum index
 ## Order: Unarmored, Light, Medium, Heavy, Fortified, Boss
 var ARMOR_MATRIX := {
-	Enums.DamageType.PHYSICAL:  [1.0, 1.0,  1.0,  0.7,  0.5,  0.8],
-	Enums.DamageType.FIRE:      [1.25, 1.5, 1.0,  0.75, 0.5,  0.9],
-	Enums.DamageType.ICE:       [1.0, 1.25, 1.0,  1.0,  0.75, 0.85],
-	Enums.DamageType.LIGHTNING: [1.5, 1.0,  0.75, 1.25, 0.35, 0.9],
-	Enums.DamageType.POISON:    [1.5, 1.25, 1.0,  1.0,  1.0,  0.7],
-	Enums.DamageType.MAGIC:     [1.0, 1.25, 0.75, 1.5,  0.35, 0.85],
-	Enums.DamageType.HOLY:      [1.0, 1.0,  1.0,  1.0,  1.0,  1.0],
-	Enums.DamageType.DARK:      [1.25, 1.0, 1.0,  0.5,  0.5,  0.75],
+	Enums.DamageType.KINETIC:         [1.0, 1.0,  1.0,  0.7,  0.5,  0.8],
+	Enums.DamageType.CHEMICAL:        [1.25, 1.5, 1.0,  0.75, 0.5,  0.9],
+	Enums.DamageType.HYDRAULIC:       [1.0, 1.25, 1.0,  1.0,  0.75, 0.85],
+	Enums.DamageType.ELECTRIC:        [1.5, 1.0,  0.75, 1.25, 0.35, 0.9],
+	Enums.DamageType.SONIC:           [1.5, 1.25, 1.0,  1.0,  1.0,  0.7],
+	Enums.DamageType.DIRECTED_ENERGY: [1.0, 1.25, 0.75, 1.5,  0.35, 0.85],
+	Enums.DamageType.CYBER:           [1.0, 1.0,  1.0,  1.0,  1.0,  1.0],
+	Enums.DamageType.PSYCHOLOGICAL:   [1.25, 1.0, 1.0,  0.5,  0.5,  0.75],
 }
 
 

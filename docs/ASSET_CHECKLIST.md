@@ -10,7 +10,7 @@
 
 | # | Tile | Variants | Files | Status |
 |---|------|----------|-------|--------|
-| 1 | Ground -- cracked asphalt | 2-3 | `tiles/tile_ground_cracked*.png` | [x] tile_ground_cracked.png |
+| 1 | Ground -- cracked asphalt | 2-3 | `tiles/tile_ground_cracked*.png` | [ ]  |
 | 2 | Path -- warning yellow | 2 | `tiles/tile_path*.png` | [ ]  |
 | 3 | Wall -- concrete | 2 | `tiles/tile_wall*.png` | [ ]  |
 | 4 | Elevated -- platform | 1 | `tiles/tile_platform*.png` | [ ]  |
@@ -19,68 +19,70 @@
 | 7 | Toxic spill | 1 | `tiles/tile_toxic*.png` | [ ]  |
 | 8 | Rubble | 1-2 | `tiles/tile_rubble*.png` | [ ]  |
 
-**Progress: 1/8 tiles**
+**Progress: 0/8 tiles**
 
 ---
 
-## Towers (32x32)
+## Towers -- Base + Turret Architecture
 
-Each tower needs: idle + active states.
+Each tower needs: 1 base platform (64x64) + 8 turret directions (48x48).
 
-| # | Tower | idle | active | Status |
-|---|-------|------|--------|--------|
-| 1 | Rubber Bullet Turret | [x] | [x] | [x] |
-| 2 | Tear Gas Launcher | [x] | [x] | [x] |
-| 3 | Water Cannon | [x] | [x] | [x] |
-| 4 | Taser Grid | [x] | [x] | [x] |
-| 5 | Surveillance Hub | [x] | [x] | [x] |
-| 6 | Pepper Spray Emitter | [x] | [x] | [x] |
-| 7 | LRAD Cannon | [x] | [x] | [x] |
-| 8 | Microwave Emitter | [x] | [x] | [x] |
+| # | Tower | Base | Turret Dirs | Status |
+|---|-------|------|-------------|--------|
+| 1 | Rubber Bullet Turret | [x] | 8/8 | [x] |
+| 2 | Tear Gas Launcher | [x] | 8/8 | [x] |
+| 3 | Water Cannon | [x] | 8/8 | [x] |
+| 4 | Taser Grid | [x] | 8/8 | [x] |
+| 5 | Surveillance Hub | [x] | 8/8 | [x] |
+| 6 | Pepper Spray Emitter | [x] | 8/8 | [x] |
+| 7 | LRAD Cannon | [x] | 8/8 | [x] |
+| 8 | Microwave Emitter | [x] | 8/8 | [x] |
 
-**Progress: 16/16 tower sprites**
+**Progress: 72/72 tower sprites** (base+turret)
 
 ### Tier 5 Variants (Phase 4)
 
-| # | Tier 5 Tower | Path | File | Status |
-|---|-------------|------|------|--------|
-| 1 | DEADSHOT | Rubber Bullet A5 | `towers/tower_rubber_bullet_tier5a.png` | [ ] |
-| 2 | BULLET HELL | Rubber Bullet B5 | `towers/tower_rubber_bullet_tier5b.png` | [ ] |
-| 3 | EXPERIMENTAL ORDNANCE | Rubber Bullet C5 | `towers/tower_rubber_bullet_tier5c.png` | [ ] |
-| 4 | NERVE AGENT DEPLOYER | Tear Gas A5 | `towers/tower_tear_gas_tier5a.png` | [ ] |
-| 5 | ARC REACTOR | Taser Grid A5 | `towers/tower_taser_grid_tier5a.png` | [ ] |
-| 6 | TSUNAMI CANNON | Water Cannon A5 | `towers/tower_water_cannon_tier5a.png` | [ ] |
-| 7 | PANOPTICON | Surveillance A5 | `towers/tower_surveillance_tier5a.png` | [ ] |
-| 8 | DEATH RAY | Microwave A5 | `towers/tower_microwave_tier5a.png` | [ ] |
+Each tier 5 variant needs 8 turret directions (like the base tier).
 
-**Progress: 0/8 tier 5 sprites**
+| # | Tier 5 Tower | Path | Base | Turret Dirs | Status |
+|---|-------------|------|------|-------------|--------|
+| 1 | DEADSHOT | Rubber Bullet A5 | [ ] | 0/8 | [ ] |
+| 2 | BULLET HELL | Rubber Bullet B5 | [ ] | 0/8 | [ ] |
+| 3 | EXPERIMENTAL ORDNANCE | Rubber Bullet C5 | [ ] | 0/8 | [ ] |
+| 4 | NERVE AGENT DEPLOYER | Tear Gas A5 | [ ] | 0/8 | [ ] |
+| 5 | ARC REACTOR | Taser Grid A5 | [ ] | 0/8 | [ ] |
+| 6 | TSUNAMI CANNON | Water Cannon A5 | [ ] | 0/8 | [ ] |
+| 7 | PANOPTICON | Surveillance A5 | [ ] | 0/8 | [ ] |
+| 8 | DEATH RAY | Microwave A5 | [ ] | 0/8 | [ ] |
+
+**Progress: 0/72 tier 5 turret sprites**
 
 ---
 
-## Standard Enemies (16x16)
+## Standard Enemies (32x32)
 
-Each enemy needs: 4-direction walk cycle (4 frames each = 16 frames per enemy).
+Each enemy needs: 8-direction walk cycle (4 frames each = 32 frames per enemy).
 
 | # | Enemy | Size | SE_01 | Total Frames | Status |
 |---|-------|------|-------|--------------|--------|
-| 1 | Rioter | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 2 | Masked Protestor | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 3 | Shield Wall | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 4 | Molotov Thrower | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 5 | Drone Operator | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 6 | Goth Protestor | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 7 | Street Medic | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 8 | Armored Van | 24x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 9 | Infiltrator | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 10 | Blonde Protestor | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 11 | Tunnel Rat | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 12 | Union Boss | 20x20 | [x] | 1/16 | [~] 1/16 (SE) |
-| 13 | Journalist | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 14 | Grandma | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 15 | Family | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
-| 16 | Student | 16x16 | [x] | 1/16 | [~] 1/16 (SE) |
+| 1 | Rioter | 32x32 | [x] | 1/32 | [~] 1/32 (SE) |
+| 2 | Masked Protestor | 32x32 | [ ] | 0/32 | [ ] |
+| 3 | Shield Wall | 32x32 | [ ] | 0/32 | [ ] |
+| 4 | Molotov Thrower | 32x32 | [ ] | 0/32 | [ ] |
+| 5 | Drone Operator | 32x32 | [ ] | 0/32 | [ ] |
+| 6 | Goth Protestor | 32x32 | [ ] | 0/32 | [ ] |
+| 7 | Street Medic | 32x32 | [ ] | 0/32 | [ ] |
+| 8 | Armored Van | 32x32 | [ ] | 0/32 | [ ] |
+| 9 | Infiltrator | 32x32 | [ ] | 0/32 | [ ] |
+| 10 | Blonde Protestor | 32x32 | [ ] | 0/32 | [ ] |
+| 11 | Tunnel Rat | 32x32 | [ ] | 0/32 | [ ] |
+| 12 | Union Boss | 32x32 | [ ] | 0/32 | [ ] |
+| 13 | Journalist | 32x32 | [ ] | 0/32 | [ ] |
+| 14 | Grandma | 32x32 | [ ] | 0/32 | [ ] |
+| 15 | Family | 32x32 | [ ] | 0/32 | [ ] |
+| 16 | Student | 32x32 | [ ] | 0/32 | [ ] |
 
-**Progress: 16/256 enemy frames**
+**Progress: 1/512 enemy frames**
 
 ---
 
@@ -102,16 +104,16 @@ Each enemy needs: 4-direction walk cycle (4 frames each = 16 frames per enemy).
 
 | # | Projectile | Size | File | Status |
 |---|-----------|------|------|--------|
-| 1 | Rubber bullet tracer | 8x8 | `projectiles/proj_rubber_bullet.png` | [x] |
-| 2 | Tear gas canister | 12x12 | `projectiles/proj_tear_gas.png` | [x] |
-| 3 | Water blast | 16x16 | `projectiles/proj_water_blast.png` | [x] |
-| 4 | Electric arc | 12x12 | `projectiles/proj_electric_arc.png` | [x] |
-| 5 | Sonic wave | 16x8 | `projectiles/proj_sonic_wave.png` | [x] |
-| 6 | Heat beam | 16x4 | `projectiles/proj_heat_beam.png` | [x] |
-| 7 | Pepper spray cloud | 16x16 | `projectiles/proj_pepper_spray.png` | [x] |
+| 1 | Rubber bullet tracer | 8x8 | `projectiles/proj_rubber_bullet.png` | [ ] |
+| 2 | Tear gas canister | 12x12 | `projectiles/proj_tear_gas.png` | [ ] |
+| 3 | Water blast | 16x16 | `projectiles/proj_water_blast.png` | [ ] |
+| 4 | Electric arc | 12x12 | `projectiles/proj_electric_arc.png` | [ ] |
+| 5 | Sonic wave | 16x8 | `projectiles/proj_sonic_wave.png` | [ ] |
+| 6 | Heat beam | 16x4 | `projectiles/proj_heat_beam.png` | [ ] |
+| 7 | Pepper spray cloud | 16x16 | `projectiles/proj_pepper_spray.png` | [ ] |
 | 8 | Surveillance ping | 8x8 | `projectiles/proj_surveillance_ping.png` | [ ] |
 
-**Progress: 7/8 projectile sprites**
+**Progress: 0/8 projectile sprites**
 
 ---
 
@@ -121,7 +123,7 @@ Each enemy needs: 4-direction walk cycle (4 frames each = 16 frames per enemy).
 
 | # | Effect | Size | Frames | Found | Status |
 |---|--------|------|--------|-------|--------|
-| 1 | Kinetic impact | 16x16 | 4 | 1/4 | [~] 1/4 |
+| 1 | Kinetic impact | 16x16 | 4 | 0/4 | [ ] |
 | 2 | Chemical burst | 32x32 | 4 | 0/4 | [ ] |
 | 3 | Fire explosion | 32x32 | 6 | 0/6 | [ ] |
 | 4 | Electric discharge | 24x24 | 4 | 0/4 | [ ] |
@@ -140,7 +142,34 @@ Each enemy needs: 4-direction walk cycle (4 frames each = 16 frames per enemy).
 | 4 | Poison DOT | 16x16 | 4 | 0/4 | [ ] |
 | 5 | Shield | 16x16 | 2 | 0/2 | [ ] |
 
-**Progress: 1/50 effect frames**
+**Progress: 0/50 effect frames**
+
+---
+
+## City Buildings (background)
+
+| # | Building | Size | File | Status |
+|---|----------|------|------|--------|
+| 1 | Panelka (tall) | 128x192 | `buildings/building_panelka_tall.png` | [ ] |
+| 2 | Panelka (wide) | 192x128 | `buildings/building_panelka_wide.png` | [ ] |
+| 3 | Panelka (ruined) | 128x160 | `buildings/building_panelka_ruined.png` | [ ] |
+| 4 | Government Building | 192x192 | `buildings/building_government.png` | [ ] |
+| 5 | Guard Booth | 64x64 | `buildings/building_guard_booth.png` | [ ] |
+| 6 | Checkpoint | 96x64 | `buildings/building_checkpoint.png` | [ ] |
+
+**Progress: 0/6 building sprites**
+
+---
+
+## Animated Details
+
+| # | Detail | Size | Frames | Found | Status |
+|---|--------|------|--------|-------|--------|
+| 1 | Burning Barrel | 64x64 | 4 | 0/4 | [ ] |
+| 2 | Waving Flag | 64x64 | 4 | 0/4 | [ ] |
+| 3 | Neon Sign | 64x64 | 4 | 0/4 | [ ] |
+
+**Progress: 0/12 animated frames**
 
 ---
 
@@ -223,14 +252,16 @@ Each enemy needs: 4-direction walk cycle (4 frames each = 16 frames per enemy).
 
 | Category | Done | Total |
 |----------|------|-------|
-| Tiles | 1 | 8 |
-| Towers (base) | 16 | 16 |
-| Towers (tier 5) | 0 | 8 |
-| Enemy frames | 16 | 256 |
+| Tiles | 0 | 8 |
+| Towers (base+turret) | 72 | 72 |
+| Towers (tier 5 turrets) | 0 | 72 |
+| Enemy frames | 1 | 512 |
 | Boss frames | 0 | 72 |
-| Projectiles | 7 | 8 |
-| Effect frames | 1 | 50 |
+| Projectiles | 0 | 8 |
+| Effect frames | 0 | 50 |
+| City buildings | 0 | 6 |
+| Animated details | 0 | 12 |
 | UI icons | 0 | 28 |
 | Props | 0 | 12 |
-| **TOTAL** | **41** | **458** |
+| **TOTAL** | **73** | **852** |
 

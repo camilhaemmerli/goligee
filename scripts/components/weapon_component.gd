@@ -5,7 +5,7 @@ extends Node
 signal fired(target: Node2D)
 
 @export var base_damage: float = 10.0
-@export var damage_type: Enums.DamageType = Enums.DamageType.PHYSICAL
+@export var damage_type: Enums.DamageType = Enums.DamageType.KINETIC
 @export var projectile_type: Enums.ProjectileType = Enums.ProjectileType.ARROW
 @export var projectile_scene: PackedScene
 @export var area_of_effect: float = 0.0

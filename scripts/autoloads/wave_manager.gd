@@ -52,7 +52,7 @@ func _spawn_wave(wave: WaveData) -> void:
 func _get_late_wave_hp_scale() -> float:
 	# After wave 5, add +10% HP per wave beyond 5
 	if current_wave_index >= 5:
-		return 1.0 + (current_wave_index - 4) * 0.1
+		return 1.0 + (current_wave_index - 5) * 0.1
 	return 1.0
 
 

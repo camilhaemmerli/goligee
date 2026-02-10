@@ -13,7 +13,7 @@ extends Resource
 
 @export_group("Combat")
 @export var base_damage: float = 10.0
-@export var damage_type: Enums.DamageType = Enums.DamageType.PHYSICAL
+@export var damage_type: Enums.DamageType = Enums.DamageType.KINETIC
 @export var base_range: float = 4.0
 @export var fire_rate: float = 1.0
 @export var projectile_type: Enums.ProjectileType = Enums.ProjectileType.ARROW

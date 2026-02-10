@@ -16,7 +16,6 @@ Requires: pip install Pillow
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 from typing import NamedTuple
@@ -41,15 +40,15 @@ CHECKLIST_PATH = PROJECT_ROOT / "docs" / "ASSET_CHECKLIST.md"
 # ---------------------------------------------------------------------------
 
 class AssetEntry(NamedTuple):
-    """One expected sprite file."""
-    category: str        # subdirectory under sprites/
-    filename: str        # expected filename (may use * for glob)
-    display_name: str    # human-readable label
-    size: str            # expected dimensions string
-    phase: str           # which production phase
+    category: str
+    filename: str
+    display_name: str
+    size: str
+    phase: str
 
 
-# Towers: 8 towers x 2 states
+# -- Towers: base + turret architecture --
+
 TOWER_IDS = [
     ("rubber_bullet", "Rubber Bullet Turret"),
     ("tear_gas", "Tear Gas Launcher"),
@@ -61,7 +60,7 @@ TOWER_IDS = [
     ("microwave", "Microwave Emitter"),
 ]
 
-TOWER_STATES = ["idle", "active"]
+TURRET_DIRS = ["s", "sw", "w", "nw", "n", "ne", "e", "se"]
 
 TOWER_TIER5 = [
     ("rubber_bullet_tier5a", "DEADSHOT", "Rubber Bullet A5"),
@@ -74,30 +73,32 @@ TOWER_TIER5 = [
     ("microwave_tier5a", "DEATH RAY", "Microwave A5"),
 ]
 
-# Enemies: 16 enemies, each needs SE frame 1 minimum, full = 4 dirs x 4 frames
+# -- Enemies: 16 enemies, 8-direction walk cycles --
+
 ENEMY_IDS = [
-    ("rioter", "Rioter", "16x16"),
-    ("masked", "Masked Protestor", "16x16"),
-    ("shield_wall", "Shield Wall", "16x16"),
-    ("molotov", "Molotov Thrower", "16x16"),
-    ("drone_op", "Drone Operator", "16x16"),
-    ("goth_protestor", "Goth Protestor", "16x16"),
-    ("street_medic", "Street Medic", "16x16"),
-    ("armored_van", "Armored Van", "24x16"),
-    ("infiltrator", "Infiltrator", "16x16"),
-    ("blonde_protestor", "Blonde Protestor", "16x16"),
-    ("tunnel_rat", "Tunnel Rat", "16x16"),
-    ("union_boss", "Union Boss", "20x20"),
-    ("journalist", "Journalist", "16x16"),
-    ("grandma", "Grandma", "16x16"),
-    ("family", "Family", "16x16"),
-    ("student", "Student", "16x16"),
+    ("rioter", "Rioter", "32x32"),
+    ("masked", "Masked Protestor", "32x32"),
+    ("shield_wall", "Shield Wall", "32x32"),
+    ("molotov", "Molotov Thrower", "32x32"),
+    ("drone_op", "Drone Operator", "32x32"),
+    ("goth_protestor", "Goth Protestor", "32x32"),
+    ("street_medic", "Street Medic", "32x32"),
+    ("armored_van", "Armored Van", "32x32"),
+    ("infiltrator", "Infiltrator", "32x32"),
+    ("blonde_protestor", "Blonde Protestor", "32x32"),
+    ("tunnel_rat", "Tunnel Rat", "32x32"),
+    ("union_boss", "Union Boss", "32x32"),
+    ("journalist", "Journalist", "32x32"),
+    ("grandma", "Grandma", "32x32"),
+    ("family", "Family", "32x32"),
+    ("student", "Student", "32x32"),
 ]
 
-ENEMY_DIRS = ["se", "sw", "ne", "nw"]
+ENEMY_DIRS = ["s", "sw", "w", "nw", "n", "ne", "e", "se"]
 ENEMY_FRAMES = ["01", "02", "03", "04"]
 
-# Bosses
+# -- Bosses --
+
 BOSS_IDS = [
     ("demagogue", "The Demagogue", "idle,attack,phase2,death"),
     ("hacktivist", "The Hacktivist", "idle,attack,death"),
@@ -106,7 +107,8 @@ BOSS_IDS = [
     ("ghost_protocol", "Ghost Protocol", "idle,attack,teleport,death"),
 ]
 
-# Projectiles
+# -- Projectiles --
+
 PROJECTILE_IDS = [
     ("rubber_bullet", "Rubber bullet tracer", "8x8"),
     ("tear_gas", "Tear gas canister", "12x12"),
@@ -118,7 +120,8 @@ PROJECTILE_IDS = [
     ("surveillance_ping", "Surveillance ping", "8x8"),
 ]
 
-# Effects
+# -- Effects --
+
 EFFECT_EXPLOSION_IDS = [
     ("kinetic", "Kinetic impact", "16x16", 4),
     ("chemical", "Chemical burst", "32x32", 4),
@@ -138,7 +141,8 @@ EFFECT_STATUS_IDS = [
     ("shield", "Shield", "16x16", 2),
 ]
 
-# Tiles
+# -- Tiles --
+
 TILE_IDS = [
     ("ground_cracked", "Ground -- cracked asphalt", "2-3"),
     ("path", "Path -- warning yellow", "2"),
@@ -150,13 +154,34 @@ TILE_IDS = [
     ("rubble", "Rubble", "1-2"),
 ]
 
-# UI Icons
+# -- City Buildings --
+
+BUILDING_IDS = [
+    ("panelka_tall", "Panelka (tall)", "128x192"),
+    ("panelka_wide", "Panelka (wide)", "192x128"),
+    ("panelka_ruined", "Panelka (ruined)", "128x160"),
+    ("government", "Government Building", "192x192"),
+    ("guard_booth", "Guard Booth", "64x64"),
+    ("checkpoint", "Checkpoint", "96x64"),
+]
+
+# -- Animated Details --
+
+ANIMATED_IDS = [
+    ("burning_barrel", "Burning Barrel", "64x64", 4),
+    ("waving_flag", "Waving Flag", "64x64", 4),
+    ("neon_sign", "Neon Sign", "64x64", 4),
+]
+
+# -- UI Icons --
+
 UI_TOWER_ICONS = [tid for tid, _ in TOWER_IDS]
 UI_DMG_ICONS = ["kinetic", "chemical", "hydraulic", "electric", "sonic", "energy", "cyber", "psychological"]
 UI_HUD_ICONS = ["budget", "approval", "incident", "speed_1x", "speed_2x", "speed_3x", "upgrade", "sell", "locked"]
 UI_ABILITY_ICONS = ["airstrike", "freeze", "funding"]
 
-# Props
+# -- Props --
+
 PROP_IDS = [
     ("barricade", "Concrete barricade", "32x24"),
     ("burnt_car", "Burnt vehicle", "48x32"),
@@ -174,16 +199,29 @@ PROP_IDS = [
 
 
 # ---------------------------------------------------------------------------
-# Scanner -- find what actually exists on disk
+# Scanner
 # ---------------------------------------------------------------------------
 
 def scan_sprites() -> dict[str, set[str]]:
-    """Return {category: set_of_filenames} for all .png files under sprites/."""
+    """Return {category: set_of_relative_paths} for all .png files under sprites/.
+
+    For categories with subfolders (towers, enemies), paths include the subfolder:
+    e.g. "rubber_bullet/base.png", "rioter/walk_se_01.png"
+    For flat categories, paths are just filenames: e.g. "proj_rubber_bullet.png"
+    """
     result: dict[str, set[str]] = {}
     for cat_dir in sorted(SPRITES_DIR.iterdir()):
         if not cat_dir.is_dir() or cat_dir.name.startswith("_"):
             continue
-        pngs = {f.name for f in cat_dir.glob("*.png")}
+        pngs: set[str] = set()
+        # Scan flat PNGs
+        for f in cat_dir.glob("*.png"):
+            pngs.add(f.name)
+        # Scan subfolder PNGs (towers/rubber_bullet/base.png -> "rubber_bullet/base.png")
+        for sub_dir in sorted(cat_dir.iterdir()):
+            if sub_dir.is_dir() and not sub_dir.name.startswith("_"):
+                for f in sub_dir.glob("*.png"):
+                    pngs.add(f"{sub_dir.name}/{f.name}")
         result[cat_dir.name] = pngs
     return result
 
@@ -201,7 +239,6 @@ def status_icon(exists: bool) -> str:
 
 
 def generate_checklist(disk: dict[str, set[str]]) -> str:
-    """Generate full ASSET_CHECKLIST.md content from registry + disk scan."""
     lines: list[str] = []
     total_expected = 0
     total_done = 0
@@ -226,7 +263,6 @@ def generate_checklist(disk: dict[str, set[str]]) -> str:
     tile_done = 0
     tile_total = 0
     for i, (tid, name, variants) in enumerate(TILE_IDS, 1):
-        # Check for any matching files
         matching = [f for f in disk.get("tiles", set()) if f.startswith(f"tile_{tid}")]
         exists = len(matching) > 0
         tile_total += 1
@@ -241,94 +277,133 @@ def generate_checklist(disk: dict[str, set[str]]) -> str:
     w("---")
     w()
 
-    # -- Towers --
-    w("## Towers (32x32)")
+    # -- Towers (Base + Turret) --
+    w("## Towers -- Base + Turret Architecture")
     w()
-    w("Each tower needs: idle + active states.")
+    w("Each tower needs: 1 base platform (64x64) + 8 turret directions (48x48).")
     w()
-    w("| # | Tower | idle | active | Status |")
-    w("|---|-------|------|--------|--------|")
+    w("| # | Tower | Base | Turret Dirs | Status |")
+    w("|---|-------|------|-------------|--------|")
     tower_done = 0
     tower_total = 0
     for i, (tid, name) in enumerate(TOWER_IDS, 1):
-        idle_file = f"tower_{tid}_idle.png"
-        active_file = f"tower_{tid}_active.png"
-        idle_ok = file_exists("towers", idle_file, disk)
-        active_ok = file_exists("towers", active_file, disk)
-        tower_total += 2
-        if idle_ok:
+        base_file = f"{tid}/base.png"
+        base_ok = file_exists("towers", base_file, disk)
+        tower_total += 1
+        if base_ok:
             tower_done += 1
-        if active_ok:
-            tower_done += 1
-        both = idle_ok and active_ok
-        status = status_icon(both)
-        if idle_ok and not active_ok:
-            status = "[~] idle done, need active"
-        elif not idle_ok and active_ok:
-            status = "[~] active done, need idle"
-        w(f"| {i} | {name} | {status_icon(idle_ok)} | {status_icon(active_ok)} | {status} |")
+
+        turret_count = 0
+        for d in TURRET_DIRS:
+            turret_file = f"{tid}/turret_{d}.png"
+            tower_total += 1
+            if file_exists("towers", turret_file, disk):
+                turret_count += 1
+                tower_done += 1
+
+        all_ok = base_ok and turret_count == 8
+        status = status_icon(all_ok)
+        if not all_ok and (base_ok or turret_count > 0):
+            parts = []
+            if base_ok:
+                parts.append("base")
+            if turret_count > 0:
+                parts.append(f"{turret_count}/8 turrets")
+            status = f"[~] {', '.join(parts)}"
+        w(f"| {i} | {name} | {status_icon(base_ok)} | {turret_count}/8 | {status} |")
+
+    legacy_found = 0
+
     total_expected += tower_total
     total_done += tower_done
     w()
-    w(f"**Progress: {tower_done}/{tower_total} tower sprites**")
+    w(f"**Progress: {tower_done}/{tower_total} tower sprites** (base+turret)")
+    if legacy_found > 0:
+        w(f"*Legacy idle/active files found: {legacy_found}*")
     w()
 
     # Tier 5
     w("### Tier 5 Variants (Phase 4)")
     w()
-    w("| # | Tier 5 Tower | Path | File | Status |")
-    w("|---|-------------|------|------|--------|")
+    w("Each tier 5 variant needs 8 turret directions (like the base tier).")
+    w()
+    w("| # | Tier 5 Tower | Path | Base | Turret Dirs | Status |")
+    w("|---|-------------|------|------|-------------|--------|")
     t5_done = 0
     t5_total = 0
     for i, (tid, t5name, path) in enumerate(TOWER_TIER5, 1):
-        fname = f"tower_{tid}.png"
-        exists = file_exists("towers", fname, disk)
+        # tid is like "rubber_bullet_tier5a" -> tower_id = "rubber_bullet", variant = "tier5a"
+        parts = tid.rsplit("_", 1)
+        tower_id = parts[0].rsplit("_", 1)[0]  # e.g. "rubber_bullet"
+        variant = tid.replace(tower_id + "_", "")  # e.g. "tier5a"
+        # Base for this variant
+        base_file = f"{tower_id}/{variant}_base.png"
+        base_ok = file_exists("towers", base_file, disk)
         t5_total += 1
-        if exists:
+        if base_ok:
             t5_done += 1
-        w(f"| {i} | {t5name} | {path} | `towers/{fname}` | {status_icon(exists)} |")
+        # Turret directions for this variant
+        turret_count = 0
+        for d in TURRET_DIRS:
+            turret_file = f"{tower_id}/{variant}_turret_{d}.png"
+            t5_total += 1
+            if file_exists("towers", turret_file, disk):
+                turret_count += 1
+                t5_done += 1
+        all_ok = base_ok and turret_count == 8
+        status = status_icon(all_ok)
+        if not all_ok and (base_ok or turret_count > 0):
+            parts_done = []
+            if base_ok:
+                parts_done.append("base")
+            if turret_count > 0:
+                parts_done.append(f"{turret_count}/8 turrets")
+            status = f"[~] {', '.join(parts_done)}"
+        elif not all_ok:
+            status = "[ ]"
+        w(f"| {i} | {t5name} | {path} | {status_icon(base_ok)} | {turret_count}/8 | {status} |")
     total_expected += t5_total
     total_done += t5_done
     w()
-    w(f"**Progress: {t5_done}/{t5_total} tier 5 sprites**")
+    w(f"**Progress: {t5_done}/{t5_total} tier 5 turret sprites**")
     w()
     w("---")
     w()
 
-    # -- Enemies --
-    w("## Standard Enemies (16x16)")
+    # -- Enemies (8-direction walk cycles) --
+    w("## Standard Enemies (32x32)")
     w()
-    w("Each enemy needs: 4-direction walk cycle (4 frames each = 16 frames per enemy).")
+    w("Each enemy needs: 8-direction walk cycle (4 frames each = 32 frames per enemy).")
     w()
     w("| # | Enemy | Size | SE_01 | Total Frames | Status |")
     w("|---|-------|------|-------|--------------|--------|")
     enemy_frame_done = 0
     enemy_frame_total = 0
     for i, (eid, name, size) in enumerate(ENEMY_IDS, 1):
-        se01 = f"enemy_{eid}_se_01.png"
+        se01 = f"{eid}/walk_se_01.png"
         se01_ok = file_exists("enemies", se01, disk)
-        # Count all frames
         all_frames = []
         for d in ENEMY_DIRS:
             for f in ENEMY_FRAMES:
-                fname = f"enemy_{eid}_{d}_{f}.png"
+                fname = f"{eid}/walk_{d}_{f}.png"
                 all_frames.append(fname)
                 enemy_frame_total += 1
                 if file_exists("enemies", fname, disk):
                     enemy_frame_done += 1
         existing = [f for f in all_frames if file_exists("enemies", f, disk)]
         count = len(existing)
-        status = status_icon(count == 16)
-        if 0 < count < 16:
+        expected = 32  # 8 dirs x 4 frames
+        status = status_icon(count == expected)
+        if 0 < count < expected:
             dirs_done = set()
             for f in existing:
-                parts = f.replace(f"enemy_{eid}_", "").replace(".png", "").rsplit("_", 1)
+                parts = f.split("/")[-1].replace("walk_", "").replace(".png", "").rsplit("_", 1)
                 if len(parts) == 2:
                     dirs_done.add(parts[0].upper())
-            status = f"[~] {count}/16 ({', '.join(sorted(dirs_done))})"
+            status = f"[~] {count}/{expected} ({', '.join(sorted(dirs_done))})"
         elif count == 0:
             status = "[ ]"
-        w(f"| {i} | {name} | {size} | {status_icon(se01_ok)} | {count}/16 | {status} |")
+        w(f"| {i} | {name} | {size} | {status_icon(se01_ok)} | {count}/{expected} | {status} |")
     total_expected += enemy_frame_total
     total_done += enemy_frame_done
     w()
@@ -347,7 +422,7 @@ def generate_checklist(disk: dict[str, set[str]]) -> str:
     for i, (bid, name, states_str) in enumerate(BOSS_IDS, 1):
         states = states_str.split(",")
         found = [f for f in disk.get("bosses", set()) if f.startswith(f"boss_{bid}_")]
-        expected = len(states) * 4  # 4 frames per state
+        expected = len(states) * 4
         boss_total += expected
         boss_done += len(found)
         status = status_icon(len(found) >= expected)
@@ -433,6 +508,57 @@ def generate_checklist(disk: dict[str, set[str]]) -> str:
     total_done += fx_done
     w()
     w(f"**Progress: {fx_done}/{fx_total} effect frames**")
+    w()
+    w("---")
+    w()
+
+    # -- City Buildings --
+    w("## City Buildings (background)")
+    w()
+    w("| # | Building | Size | File | Status |")
+    w("|---|----------|------|------|--------|")
+    bldg_done = 0
+    bldg_total = 0
+    for i, (bid, name, size) in enumerate(BUILDING_IDS, 1):
+        fname = f"building_{bid}.png"
+        exists = file_exists("buildings", fname, disk)
+        bldg_total += 1
+        if exists:
+            bldg_done += 1
+        w(f"| {i} | {name} | {size} | `buildings/{fname}` | {status_icon(exists)} |")
+    total_expected += bldg_total
+    total_done += bldg_done
+    w()
+    w(f"**Progress: {bldg_done}/{bldg_total} building sprites**")
+    w()
+    w("---")
+    w()
+
+    # -- Animated Details --
+    w("## Animated Details")
+    w()
+    w("| # | Detail | Size | Frames | Found | Status |")
+    w("|---|--------|------|--------|-------|--------|")
+    anim_done = 0
+    anim_total = 0
+    for i, (aid, name, size, frames) in enumerate(ANIMATED_IDS, 1):
+        found = 0
+        for f in range(1, frames + 1):
+            fname = f"anim_{aid}_{f:02d}.png"
+            anim_total += 1
+            if file_exists("animated", fname, disk):
+                found += 1
+                anim_done += 1
+        status = status_icon(found == frames)
+        if 0 < found < frames:
+            status = f"[~] {found}/{frames}"
+        elif found == 0:
+            status = "[ ]"
+        w(f"| {i} | {name} | {size} | {frames} | {found}/{frames} | {status} |")
+    total_expected += anim_total
+    total_done += anim_done
+    w()
+    w(f"**Progress: {anim_done}/{anim_total} animated frames**")
     w()
     w("---")
     w()
@@ -529,12 +655,14 @@ def generate_checklist(disk: dict[str, set[str]]) -> str:
     w("| Category | Done | Total |")
     w("|----------|------|-------|")
     w(f"| Tiles | {sum(1 for t,_,_ in TILE_IDS if any(f.startswith(f'tile_{t}') for f in disk.get('tiles', set())))} | {len(TILE_IDS)} |")
-    w(f"| Towers (base) | {tower_done} | {tower_total} |")
-    w(f"| Towers (tier 5) | {t5_done} | {t5_total} |")
+    w(f"| Towers (base+turret) | {tower_done} | {tower_total} |")
+    w(f"| Towers (tier 5 turrets) | {t5_done} | {t5_total} |")
     w(f"| Enemy frames | {enemy_frame_done} | {enemy_frame_total} |")
     w(f"| Boss frames | {boss_done} | {boss_total} |")
     w(f"| Projectiles | {proj_done} | {proj_total} |")
     w(f"| Effect frames | {fx_done} | {fx_total} |")
+    w(f"| City buildings | {bldg_done} | {bldg_total} |")
+    w(f"| Animated details | {anim_done} | {anim_total} |")
     w(f"| UI icons | {ui_done} | {ui_total} |")
     w(f"| Props | {prop_done} | {prop_total} |")
     w(f"| **TOTAL** | **{total_done}** | **{total_expected}** |")
@@ -547,12 +675,11 @@ def generate_checklist(disk: dict[str, set[str]]) -> str:
 # Overview sheet generator
 # ---------------------------------------------------------------------------
 
-# Colors for the overview sheets
-BG_COLOR = (24, 24, 28)         # #18181C
-LABEL_COLOR = (200, 200, 208)   # light gray text
-HEADER_COLOR = (200, 160, 64)   # amber for section headers
-BORDER_COLOR = (58, 58, 62)     # #3A3A3E subtle border
-SCALE = 2                       # render at 2x resolution
+BG_COLOR = (24, 24, 28)
+LABEL_COLOR = (200, 200, 208)
+HEADER_COLOR = (200, 160, 64)
+BORDER_COLOR = (58, 58, 62)
+SCALE = 2
 CELL_PAD = 6 * SCALE
 LABEL_H = 16 * SCALE
 HEADER_H = 24 * SCALE
@@ -561,7 +688,6 @@ HEADER_FONT_SIZE = 14 * SCALE
 
 
 def _load_font(size: int) -> ImageFont.FreeTypeFont:
-    """Try to load a monospace font at the given size."""
     for path in [
         "/System/Library/Fonts/Menlo.ttc",
         "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
@@ -574,20 +700,18 @@ def _load_font(size: int) -> ImageFont.FreeTypeFont:
 
 
 def _load_category_entries(category: str, disk: dict[str, set[str]]) -> list[tuple[str, Image.Image]]:
-    """Load all sprite images for a category, scaled 2x with nearest neighbor."""
     cat_dir = SPRITES_DIR / category
     if not cat_dir.is_dir():
         return []
-
     pngs = sorted(f for f in disk.get(category, set()))
     entries: list[tuple[str, Image.Image]] = []
-    for fname in pngs:
-        fpath = cat_dir / fname
+    for rel_path in pngs:
+        fpath = cat_dir / rel_path
         try:
             img = Image.open(fpath).convert("RGBA")
-            # Scale sprites 2x with nearest neighbor (pixel art)
             img = img.resize((img.width * SCALE, img.height * SCALE), Image.NEAREST)
-            entries.append((fname.replace(".png", ""), img))
+            label = rel_path.replace(".png", "").replace("/", "_")
+            entries.append((label, img))
         except Exception:
             continue
     return entries
@@ -601,7 +725,6 @@ def _draw_grid(
     offset_y: int = 0,
     max_cols: int = 8,
 ) -> tuple[int, int]:
-    """Draw a grid of labeled sprites on the sheet. Returns (width_used, height_used)."""
     if not entries:
         return (0, 0)
 
@@ -620,18 +743,15 @@ def _draw_grid(
         x0 = CELL_PAD + col * cell_w
         y0 = offset_y + CELL_PAD + row * cell_h
 
-        # Border
         draw.rectangle(
             [x0, y0, x0 + cell_w - 1, y0 + cell_h - 1],
             outline=BORDER_COLOR,
         )
 
-        # Center sprite in cell
         sx = x0 + (cell_w - img.width) // 2
         sy = y0 + CELL_PAD
         sheet.paste(img, (sx, sy), img)
 
-        # Label below sprite
         max_label_chars = cell_w // (FONT_SIZE // 2 + 1)
         display_label = label[:max_label_chars]
         lx = x0 + CELL_PAD
@@ -644,10 +764,6 @@ def _draw_grid(
 
 
 def generate_overview(category: str, disk: dict[str, set[str]]) -> Path | None:
-    """Generate a labeled grid overview PNG for a sprite category at 2x resolution.
-
-    Returns the output path, or None if no sprites found.
-    """
     entries = _load_category_entries(category, disk)
     if not entries:
         return None
@@ -677,9 +793,11 @@ def generate_overview(category: str, disk: dict[str, set[str]]) -> Path | None:
 
 
 def generate_total_overview(disk: dict[str, set[str]]) -> Path | None:
-    """Generate a combined overview of ALL categories at 2x resolution."""
-    # Categories in display order
-    category_order = ["towers", "enemies", "projectiles", "effects", "tiles", "bosses", "props", "ui"]
+    category_order = [
+        "towers", "enemies", "projectiles", "effects",
+        "buildings", "animated",
+        "tiles", "bosses", "props", "ui",
+    ]
     categories_with_sprites = [c for c in category_order if disk.get(c)]
 
     if not categories_with_sprites:
@@ -688,7 +806,6 @@ def generate_total_overview(disk: dict[str, set[str]]) -> Path | None:
     font = _load_font(FONT_SIZE)
     header_font = _load_font(HEADER_FONT_SIZE)
 
-    # First pass: measure total size needed
     sections: list[tuple[str, list[tuple[str, Image.Image]]]] = []
     total_height = CELL_PAD
     max_width = 0
@@ -721,18 +838,15 @@ def generate_total_overview(disk: dict[str, set[str]]) -> Path | None:
 
     y_offset = CELL_PAD
     for cat, entries in sections:
-        # Section header
         label = cat.upper()
         count = len(entries)
         header_text = f"{label} ({count})"
         draw.text((CELL_PAD, y_offset), header_text, fill=HEADER_COLOR, font=header_font)
         y_offset += HEADER_H
 
-        # Draw grid
         _, section_h = _draw_grid(sheet, draw, entries, font, offset_y=y_offset)
         y_offset += section_h + CELL_PAD
 
-    # Crop to actual content
     sheet = sheet.crop((0, 0, max_width, y_offset))
 
     OVERVIEW_DIR.mkdir(parents=True, exist_ok=True)
@@ -758,7 +872,6 @@ def main() -> None:
 
     disk = scan_sprites()
 
-    # Print summary
     print("=== Goligee Asset Sync ===")
     for cat in sorted(disk.keys()):
         print(f"  {cat}: {len(disk[cat])} sprites")
@@ -783,7 +896,6 @@ def main() -> None:
             else:
                 print(f"Skipped: {cat} (no sprites)")
 
-        # Generate combined total overview
         out = generate_total_overview(disk)
         if out:
             print(f"Generated: {out.relative_to(PROJECT_ROOT)}")

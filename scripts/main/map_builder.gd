@@ -18,6 +18,9 @@ const WALL := Vector2i(5, 0)
 const WALL_RUBBLE := Vector2i(6, 0)
 
 const TILE_COUNT := 7
+const NOISE_STRENGTH := 0.0  # disabled for clean, flat tiles
+const EDGE_THICKNESS_PX := 1.0
+const EDGE_DARKEN := 0.2
 
 # 3-face isometric colors per tile type
 # [top_face, left_face, right_face]
@@ -155,33 +158,22 @@ static func _draw_isometric_tile(img: Image, tile_index: int, face_colors: Array
 	var ox := tile_index * TILE_W
 	var cx := TILE_W / 2.0
 	var cy := TILE_H / 2.0
-	var top_color: Color = face_colors[0]
-	var left_color: Color = face_colors[1]
-	var right_color: Color = face_colors[2]
+	var base_color: Color = face_colors[0]
+	var min_axis: float = minf(cx, cy)
+	var edge_threshold: float = 1.0 - (EDGE_THICKNESS_PX / min_axis)
 
 	for y in TILE_H:
 		for x in TILE_W:
-			# Isometric diamond: |x - cx| / cx + |y - cy| / cy <= 1
 			var dx := absf(x - cx + 0.5) / cx
 			var dy := absf(y - cy + 0.5) / cy
 			if dx + dy > 1.0:
 				continue
 
-			# 3-face shading based on pixel position relative to tile center
-			var color: Color
-			if y < int(cy):
-				# Top face (the surface you look down at)
-				color = top_color
-			elif x < int(cx):
-				# Left face (shadow side)
-				color = left_color
-			else:
-				# Right face (mid-tone)
-				color = right_color
+			# Flat tile fill (no faceted triangles)
+			var color: Color = base_color
 
-			# Surface noise: per-pixel brightness variation ±6%
-			var noise_val := _pixel_hash(noise_seed, x, y)
-			var brightness_offset := (noise_val % 13 - 6) / 100.0
+			# Surface noise disabled for simple, clean tiles.
+			var brightness_offset := 0.0
 			color = Color(
 				clampf(color.r + brightness_offset, 0.0, 1.0),
 				clampf(color.g + brightness_offset, 0.0, 1.0),
@@ -189,14 +181,9 @@ static func _draw_isometric_tile(img: Image, tile_index: int, face_colors: Array
 				1.0
 			)
 
-			# Subtle grid lines: barely perceptible hairlines at diamond edges
-			if dx + dy > 0.94:
-				color = color.darkened(0.08)
-
-			# Crack details for rubble/worn variants (tile_index 2, 4, 6)
-			if tile_index in [2, 4, 6]:
-				if _is_crack_pixel(x, y, noise_seed):
-					color = color.darkened(0.15)
+			# Thin edge lines between diamonds.
+			if dx + dy > edge_threshold:
+				color = color.darkened(EDGE_DARKEN)
 
 			img.set_pixel(ox + x, y, color)
 
@@ -213,9 +200,14 @@ static func _is_crack_pixel(x: int, y: int, seed_val: int) -> bool:
 
 
 static func _pixel_hash(seed_val: int, x: int, y: int) -> int:
-	# Deterministic hash for per-pixel variation
-	var v := (seed_val * 2654435761 + x * 37 + y * 13) & 0xFFFFFF
-	return absi(v)
+	# Deterministic hash for per-pixel variation with better mixing
+	var h := seed_val
+	h ^= x * 0x27d4eb2d
+	h ^= y * 0x165667b1
+	h = (h ^ (h >> 15)) * 0x85ebca6b
+	h = (h ^ (h >> 13)) * 0xc2b2ae35
+	h = h ^ (h >> 16)
+	return absi(h)
 
 
 static func _tile_hash(x: int, y: int, seed_val: int) -> int:

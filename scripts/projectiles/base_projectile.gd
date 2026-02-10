@@ -46,17 +46,17 @@ func _ready() -> void:
 
 func _apply_themed_sprite() -> void:
 	match damage_type:
-		Enums.DamageType.ICE:
+		Enums.DamageType.HYDRAULIC:
 			sprite.texture = EntitySprites.create_ice_shard()
-		Enums.DamageType.PHYSICAL:
+		Enums.DamageType.KINETIC:
 			sprite.texture = EntitySprites.create_cannonball()
 		_:
 			var color := Color("#F0D0D8")
-			if damage_type == Enums.DamageType.FIRE:
+			if damage_type == Enums.DamageType.CHEMICAL:
 				color = Color("#E08040")
-			elif damage_type == Enums.DamageType.POISON:
+			elif damage_type == Enums.DamageType.SONIC:
 				color = Color("#80E060")
-			elif damage_type == Enums.DamageType.LIGHTNING:
+			elif damage_type == Enums.DamageType.ELECTRIC:
 				color = Color("#E0E060")
 			sprite.texture = EntitySprites.create_projectile_streak(color)
 

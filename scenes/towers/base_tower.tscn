@@ -10,6 +10,13 @@ script = ExtResource("1_tower")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 
+[node name="TurretSprite" type="Sprite2D" parent="."]
+position = Vector2(0, -8)
+z_index = 1
+
+[node name="MuzzlePoint" type="Marker2D" parent="."]
+position = Vector2(0, -12)
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 
 [node name="RangeArea" type="Area2D" parent="."]

@@ -6,11 +6,90 @@ signal theme_changed()
 
 var current_theme: ThemeData
 
+# 8-direction turret order matches BaseTower.DIRS.
+const TOWER_TURRET_DIRS := ["s", "sw", "w", "nw", "n", "ne", "e", "se"]
+
+# Temporary asset folder aliases to keep older naming conventions working.
+const TOWER_ASSET_ALIASES := {
+	"surveillance_hub": "surveillance",
+	"lrad_cannon": "lrad",
+	"microwave_emitter": "microwave",
+}
+
 
 func apply_theme(theme: ThemeData) -> void:
 	current_theme = theme
 	apply_clear_color()
 	theme_changed.emit()
+
+
+func populate_tower_skins_from_assets(theme: ThemeData, tower_list: Array[TowerData]) -> void:
+	"""Populate tower skins from on-disk sprites if present."""
+	if not theme:
+		return
+	if not theme.tower_skins:
+		theme.tower_skins = {}
+
+	for tower_data in tower_list:
+		if not tower_data or not tower_data.tower_id:
+			continue
+		if theme.tower_skins.has(tower_data.tower_id):
+			continue
+
+		var skin := _load_tower_skin_from_assets(tower_data)
+		if skin:
+			theme.tower_skins[tower_data.tower_id] = skin
+
+
+func _load_tower_skin_from_assets(tower_data: TowerData) -> TowerSkinData:
+	var tower_id := tower_data.tower_id
+	var folder_id := tower_id
+	var base_path := "res://assets/sprites/towers/%s/base.png" % folder_id
+	if not ResourceLoader.exists(base_path):
+		var alias := TOWER_ASSET_ALIASES.get(tower_id, "")
+		if alias != "":
+			folder_id = alias
+			base_path = "res://assets/sprites/towers/%s/base.png" % folder_id
+
+	if not ResourceLoader.exists(base_path):
+		return null
+
+	var base_tex := load(base_path) as Texture2D
+	if not base_tex:
+		return null
+
+	var turret_textures: Array[Texture2D] = []
+	for dir in TOWER_TURRET_DIRS:
+		var turret_path := "res://assets/sprites/towers/%s/turret_%s.png" % [folder_id, dir]
+		if not ResourceLoader.exists(turret_path):
+			return null
+		var turret_tex := load(turret_path) as Texture2D
+		if not turret_tex:
+			return null
+		turret_textures.append(turret_tex)
+
+	var skin := TowerSkinData.new()
+	skin.display_name = tower_data.tower_name
+	skin.description = tower_data.description
+	skin.base_texture = base_tex
+	skin.turret_textures = turret_textures
+
+	var icon := _load_tower_icon(tower_id, folder_id)
+	if icon:
+		skin.icon = icon
+
+	return skin
+
+
+func _load_tower_icon(tower_id: String, folder_id: String) -> Texture2D:
+	var primary := "res://assets/sprites/ui/icon_tower_%s.png" % tower_id
+	if ResourceLoader.exists(primary):
+		return load(primary) as Texture2D
+	if folder_id != tower_id:
+		var alias := "res://assets/sprites/ui/icon_tower_%s.png" % folder_id
+		if ResourceLoader.exists(alias):
+			return load(alias) as Texture2D
+	return null
 
 
 func get_palette() -> ThemePalette:

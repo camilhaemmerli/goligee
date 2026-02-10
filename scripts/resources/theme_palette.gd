@@ -66,12 +66,12 @@ extends Resource
 
 func get_damage_type_color(damage_type: Enums.DamageType) -> Color:
 	match damage_type:
-		Enums.DamageType.PHYSICAL: return damage_physical
-		Enums.DamageType.FIRE: return damage_fire
-		Enums.DamageType.ICE: return damage_ice
-		Enums.DamageType.LIGHTNING: return damage_lightning
-		Enums.DamageType.POISON: return damage_poison
-		Enums.DamageType.MAGIC: return damage_magic
-		Enums.DamageType.HOLY: return damage_holy
-		Enums.DamageType.DARK: return damage_dark
+		Enums.DamageType.KINETIC: return damage_physical
+		Enums.DamageType.CHEMICAL: return damage_fire
+		Enums.DamageType.HYDRAULIC: return damage_ice
+		Enums.DamageType.ELECTRIC: return damage_lightning
+		Enums.DamageType.SONIC: return damage_poison
+		Enums.DamageType.DIRECTED_ENERGY: return damage_magic
+		Enums.DamageType.CYBER: return damage_holy
+		Enums.DamageType.PSYCHOLOGICAL: return damage_dark
 		_: return damage_physical

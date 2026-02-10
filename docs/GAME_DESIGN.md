@@ -157,11 +157,11 @@ Each tower has **3 upgrade paths with 5 tiers each**.
 | Shield Wall        | 150 | 0.8   | 15    | Heavy/Ground | --                   | 15   |
 | Molotov Thrower    | 40  | 1.8   | 0     | Light/Ground | Chemical immune, Hydraulic 2x | 10 |
 | Drone Operator     | 45  | 1.5   | 0     | Light/Flying | Flight               | 12   |
-| Flash Mob          | 80  | 0.6   | 0     | Unarmored    | Splits on death      | 6    |
+| Goth Protestor     | 80  | 1.4   | 0     | Light/Ground | Chemical immune      | 8    |
 | Street Medic       | 50  | 1.0   | 0     | Light/Ground | Self-shield every 8s | 14   |
 | Armored Van        | 300 | 0.5   | 30    | Fortified    | Regen 1%/s           | 25   |
 | Infiltrator        | 70  | 1.6   | 0     | Unarmored    | Stealth + phase      | 18   |
-| Social Media Swarm | 15  | 2.2   | 0     | Unarmored    | Pack of 8-12         | 2ea  |
+| Blonde Protestor   | 35  | 2.0   | 0     | Unarmored    | Speed burst at 25%   | 6    |
 | Tunnel Rat         | 120 | 1.0   | 10    | Medium/Ground| Burrow at 50% HP     | 16   |
 | Union Boss         | 200 | 0.7   | 20    | Heavy/Ground | Slows nearby towers  | 22   |
 
@@ -212,9 +212,9 @@ Gold per enemy   = base_gold * (1.0 + wave * 0.05)
 | 1    | 10 Rioters                                      | Teach basics         |
 | 3    | 8 Rioters + 5 Masked Protestors                 | Introduce armor      |
 | 5    | 12 Masked Protestors + 3 Drone Operators         | Introduce flying     |
-| 7    | 20 Social Media Swarm                            | Teach AoE value      |
+| 7    | 20 Blonde Protestors                             | Teach AoE value      |
 | 10   | **BOSS: Shield Wall Commander** + 10 Shield Walls| First boss test      |
-| 15   | 15 Flash Mobs (split on death)                   | Test sustained DPS   |
+| 15   | 15 Goth Protestors + 10 Masked Protestors        | Test sustained DPS   |
 | 18   | 10 Infiltrators                                  | Force detection      |
 | 20   | **BOSS: The Demagogue** + mixed                  | Mid-game skill check |
 | 30   | **BOSS: The Hacktivist** + bot horde             | Strategic boss       |
@@ -290,12 +290,14 @@ Multi-layered feedback that makes every action feel impactful.
 | Layer         | Examples                                                              |
 |---------------|-----------------------------------------------------------------------|
 | Per-Shot      | Tower recoil (1-2px), muzzle flash, projectile trails                 |
-| Per-Hit       | Type-specific impacts (chemical cloud burst, water splash, spark arc)  |
-| Per-Kill      | Budget coins fly to HUD, ragdoll stumble, floating damage numbers     |
+| Per-Hit       | Type-specific impacts, hit flinch (1.5px knockback), white flash      |
+| Per-Kill      | Death anim, corpse lingers 2.5s then fades, budget coins fly to HUD  |
 | Per-Wave      | Screen-wide amber pulse, budget tally, streak banner                  |
 | Per-Milestone | Tier 5 unlock fanfare, boss defeat slow-mo (0.5s), particle cascade  |
 
 - Damage numbers color-coded by type (coral for Chemical, cool blue for Hydraulic, etc.)
+- **Hit reaction**: micro-knockback (1.5px opposite movement dir, 0.1s), optional `hit_{dir}` animation, stacks with white flash + damage numbers + impact sparks
+- **Death corpse**: plays `death_{dir}` animation if available, tints dark (#3A3A3E), z_index -1 so living enemies walk over, lingers 2.5s then fades out 0.5s; corpse cap of 30 (oldest auto-removed)
 - Screen shake scales with damage dealt (light for rubber bullets, heavy for tear gas)
 - Boss kills trigger brief slow-motion with radial particle burst
 

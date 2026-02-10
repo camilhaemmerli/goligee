@@ -2,14 +2,14 @@ class_name Enums
 
 ## Damage types dealt by towers and projectiles.
 enum DamageType {
-	PHYSICAL,
-	FIRE,
-	ICE,
-	LIGHTNING,
-	POISON,
-	MAGIC,
-	HOLY,
-	DARK,
+	KINETIC,
+	CHEMICAL,
+	HYDRAULIC,
+	ELECTRIC,
+	SONIC,
+	DIRECTED_ENERGY,
+	CYBER,
+	PSYCHOLOGICAL,
 }
 
 ## Armor categories that determine base damage multipliers.

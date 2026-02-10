@@ -1,150 +1,186 @@
 # Goligee -- AI Prompt Templates
 
-> Copy-paste-ready prompts for generating game sprites with PixelLab, Retro Diffusion, or Gemini.
+> Copy-paste-ready prompts for generating game sprites with PixelLab.
 > Palette hex values baked in. See `moodboard/COLOR_PALETTE.md` for full reference.
+> Prompts are **composable layers** -- see below. Code lives in `tools/generate_assets.py`.
 
 ---
 
-## Base Prompt (prepend to everything)
+## Composable Prompt Layers
+
+Instead of one monolithic base prompt, we decompose into four layers that compose per-category. This avoids redundancy and prevents theme/scene words from bleeding into character sprites.
+
+### Layer 1: STYLE (all generators)
 
 ```
 16-bit isometric pixel art, isometric 3/4 view,
-light source from top-left casting shadows to bottom-right,
-left faces brightest, right faces mid-tone, bottom faces darkest,
-satirical riot control police state setting,
-Soviet brutalist architecture influence, panelka apartment blocks,
-raw concrete angular geometry, crumbling prefab facades,
-broken windows and rusted playgrounds,
-comically exaggerated militarized police equipment,
-dark night scene lit by harsh overhead floodlights from top-left,
-cold concrete and gunmetal gray palette with warning amber and emergency red accents,
-desaturated muted tones, oppressive authoritarian dystopia,
-post-Soviet urban decay, graffiti and grime, razor barbed wire,
-clean pixel grid, no anti-aliasing, detailed 16-bit shading
+clean pixel grid, no anti-aliasing, detailed shading
 ```
 
-> **Important prompt lessons:**
-> - For character sprites: use SHORT character-only prompts, avoid scene/environment words
-> - `no_background` API flag alone is unreliable -- you must also avoid mentioning buildings/ground/scenes in the prompt text
-> - The `BASE_PROMPT` above is for **scene/environment** assets (tiles, props, backgrounds)
-> - For **character sprites**, use the stripped-down character template below instead
+### Layer 2: LIGHTING (scene + sprite generators, NOT characters)
+
+```
+light source from top-left casting shadows to bottom-right,
+left faces brightest, right faces mid-tone, bottom faces darkest
+```
+
+### Layer 3: THEME (scene generators ONLY -- tiles, buildings, tilesets)
+
+```
+satirical riot control police state setting,
+Soviet brutalist architecture, raw concrete angular geometry,
+dark night scene lit by harsh overhead floodlights,
+oppressive authoritarian dystopia, post-Soviet urban decay
+```
+
+### Layer 4: NEGATIVE (all transparent-bg generators)
+
+```
+background, scene, environment, building, architecture, street,
+urban, night sky, ground, floor, landscape
+```
+
+### Composed Per-Category Prompts
+
+| Prompt | Composition | Used by |
+|--------|-------------|---------|
+| `SCENE_PROMPT` | STYLE + LIGHTING + THEME | Tiles, buildings, tilesets |
+| `SPRITE_PROMPT` | STYLE + LIGHTING + "single isolated game sprite on transparent background" | Turrets, projectiles, effects, animated details, props |
+| `CHAR_PROMPT` | STYLE + "dark muted colors, warm accents" | Enemies, bosses |
+| `UI_PROMPT` | "pixel art game icon, clean sharp edges, no anti-aliasing, dark theme, transparent background" | UI icons |
+
+> **Key design decisions:**
+> - **No color words in base prompts.** The palette swatch image (`color_image`) pins colors. Per-asset descriptions can still mention specific accents (e.g., "electric blue glow").
+> - **Characters stay SHORT.** Scene/environment words cause background bleed even with `no_background=True`.
+> - **NEGATIVE is applied** to all generators producing transparent-bg sprites (turrets, projectiles, effects, bosses).
 
 ---
 
-## Towers (32x32)
+## Tower Turrets (48x48, weapon head only)
 
-### Template
+Each tower is split into a **base platform** (static) and a **turret head** (8 directions).
+Generate the turret SE reference first, then use `/generate-8-rotations-v2` for all 8 directions.
+
+### Turret Template
+
+Uses `SPRITE_PROMPT` + turret description. Negative prompt = `NEGATIVE`.
 
 ```
-{base_prompt}, riot control equipment, mounted on concrete platform,
-isometric 3/4 view, metallic industrial design, single game sprite,
-transparent background, tower light #606068, tower mid #484850,
-tower dark #2A2A30, active glow #5080A0,
-{specific_description}
+{SPRITE_PROMPT}, {turret_description}
 ```
 
 ### Rubber Bullet Turret
 
 ```
-{tower_template},
+{turret_template},
 rotating mounted turret with dual barrels, ammo belt feed,
 compact military design, muzzle suppressor, kinetic weapon,
 silver metallic barrel #9A9AA0, warning stripes #C8A040
 ```
 
-**Active state**: Add `muzzle flash #F0E0C0, shell casings ejecting, barrel recoil`
-
 ### Tear Gas Launcher
 
 ```
-{tower_template},
+{turret_template},
 multi-tube grenade launcher rack, 6 angled launch tubes,
 chemical weapon, hazmat yellow markings #C8A040,
-chemical green accent #70A040, vented housing, gas mask motif
+chemical green accent #70A040, vented housing
 ```
-
-**Active state**: Add `gas cloud #70A040 at 50% opacity, launched canister trail`
 
 ### Taser Grid
 
 ```
-{tower_template},
-tesla coil tower design, twin conductor prongs on top,
-electrical arcs between prongs, insulated base housing,
-electric blue glow #50A0D0, warning high voltage signage
+{turret_template},
+tesla coil prongs, twin conductor tips,
+electrical arc gap between prongs,
+electric blue glow #50A0D0, insulated connectors
 ```
-
-**Active state**: Add `electric arc #50A0D0, chain lightning #80C8F0, sparks #C0E8F8`
 
 ### Water Cannon
 
 ```
-{tower_template},
-industrial fire hose nozzle on swivel mount, large water tank base,
-pressurized hydraulic system, pipe fittings and gauges,
+{turret_template},
+industrial fire hose nozzle on swivel mount,
+pressurized hydraulic fittings, chrome barrel,
 cool blue accent #6090B0, chrome nozzle #9A9AA0
 ```
-
-**Active state**: Add `water stream spray #90B8D0, splash particles #C0D8E8`
 
 ### Surveillance Hub
 
 ```
-{tower_template},
-satellite dish with camera cluster, radar spinner on top,
-multiple CCTV cameras pointing outward, antenna array,
-screen glow #A0D8A0, red recording light #D04040, dark housing
+{turret_template},
+satellite dish with camera cluster, small radar spinner,
+CCTV camera pointing forward, antenna,
+screen glow #A0D8A0, red recording light #D04040
 ```
-
-**Active state**: Add `scanning beam sweep #A0D8A0, data particles, rotating dish`
 
 ### Pepper Spray Emitter
 
 ```
-{tower_template},
-industrial aerosol nozzle array, chemical tank with warning labels,
-pressurized canister design, spray cone emitter head,
-chemical green #70A040, hazmat orange #D06030, warning stripes
+{turret_template},
+aerosol spray nozzle head, pressurized canister tip,
+spray cone emitter face,
+chemical green #70A040, hazmat orange #D06030
 ```
-
-**Active state**: Add `continuous spray cone #90C060, mist particles #B8E080`
 
 ### LRAD Cannon
 
 ```
-{tower_template},
-large parabolic speaker dish, concentric ring emitter face,
-sound wave visual emanating forward, military audio device,
-amber warning glow #D8A040, dark metal housing #2A2A30
+{turret_template},
+parabolic speaker dish, concentric ring emitter face,
+military audio device barrel,
+amber warning glow #D8A040, dark metal #2A2A30
 ```
-
-**Active state**: Add `visible sonic waves #D8A040, distortion ripples, vibration lines`
 
 ### Microwave Emitter
 
 ```
-{tower_template},
-flat panel directed energy weapon, heat emitter grid face,
-sci-fi energy weapon design, cooling fins on sides,
-purple directed energy glow #8060A0, heat shimmer,
-emitter face pattern, industrial mounting bracket
+{turret_template},
+flat panel directed energy emitter, heat grid face,
+cooling fins on sides, sci-fi energy barrel,
+purple glow #8060A0, emitter pattern
 ```
-
-**Active state**: Add `heat beam #D06030, shimmer distortion, target glow #E8A040`
 
 ---
 
-## Standard Enemies (16x16)
+## Tower Bases (64x64, static platform)
+
+Generated via `/map-objects` endpoint with `view="low top-down"`. One per tower type.
+
+### Base Template
+
+Uses `SPRITE_PROMPT` + "tower platform base" + base description.
+
+```
+{SPRITE_PROMPT}, tower platform base, isometric 3/4 view, {base_description}
+```
+
+### Per-Tower Base Descriptions
+
+| Tower | Base Description |
+|-------|------------------|
+| Rubber Bullet | `compact gun emplacement, ammo crate beside, metallic platform` |
+| Tear Gas | `chemical storage rack, hazmat warning labels, ventilated housing` |
+| Taser Grid | `insulated electrical platform, high voltage warning signs, rubber base` |
+| Water Cannon | `large water tank platform, pipe fittings and pressure gauges, hydraulic base` |
+| Surveillance | `electronics housing with antenna mounts, dark server rack base` |
+| Pepper Spray | `chemical tank platform, pressurized canister housing, warning stripes` |
+| LRAD | `heavy duty speaker mount platform, power generator base` |
+| Microwave | `cooling vent platform, power conduit housing, heat-resistant base` |
+
+---
+
+## Standard Enemies (32x32, 8-direction walk cycles)
+
+Each enemy is created as a **persistent PixelLab character** via `/create-character-with-8-directions`,
+then animated via `/characters/animations` with `walking-4-frames` template.
 
 ### Template
 
-> **Note:** Do NOT use the full base prompt for characters -- it causes background bleed.
-> Use this minimal character template instead:
+Uses `CHAR_PROMPT` (short, no scene words). Created via `/create-character-with-8-directions`.
 
 ```
-pixel art character sprite, isometric 3/4 view, facing south-east,
-walking pose, dark muted colors, gunmetal gray and warm accents,
-16-bit style, {specific_description}
+{CHAR_PROMPT}, {enemy_description}
 ```
 
 ### Rioter
@@ -213,7 +249,7 @@ light armor, healing aura shimmer #88C888
 ### Armored Van
 
 ```
-{enemy_template} but 24x16 size,
+{enemy_template} at 32x32 size,
 improvised armored vehicle, welded metal plates on van,
 barricade ram front, small viewport slits,
 fortified armor #28282C, heavy dark silhouette, slow massive
@@ -261,11 +297,11 @@ heavy armor #A84030, boss aura, authority stance
 
 ### Template
 
+Uses `CHAR_PROMPT` (short). Negative prompt = `NEGATIVE`. `transparent_background=True`.
+
 ```
-{base_prompt}, boss character, imposing large figure,
-isometric 3/4 view, 48x48 pixel sprite, detailed for size,
-transparent background, boss tint #802818,
-{specific_description}
+{CHAR_PROMPT}, boss character, imposing large figure,
+detailed for size, single game sprite, {boss_description}
 ```
 
 ### The Demagogue
@@ -325,11 +361,10 @@ stealth shimmer, multiple ghost positions overlapping
 
 ### Template
 
+Uses `SCENE_PROMPT`. Generated via `/create-isometric-tile`.
+
 ```
-{base_prompt}, isometric floor tile, 2:1 diamond ratio,
-32x16 pixels, three-face shading (top lightest, right mid, left darkest),
-seamless tiling edges, transparent background,
-{specific_description}
+{SCENE_PROMPT}, isometric floor tile, seamless tiling edges, {tile_description}
 ```
 
 ### Ground -- Cracked Asphalt
@@ -412,10 +447,10 @@ destroyed building remnants, dust particles
 
 ### Template
 
+Uses `SPRITE_PROMPT`. Negative prompt = `NEGATIVE`.
+
 ```
-{base_prompt}, game projectile sprite, small,
-transparent background, motion blur suggestion,
-{specific_description}
+{SPRITE_PROMPT}, game projectile sprite, small, motion blur suggestion, {projectile_description}
 ```
 
 ### Rubber Bullet
@@ -488,9 +523,10 @@ terminal green #A0D8A0, circular ripple, data ping
 
 ### Template
 
+Uses `SPRITE_PROMPT`. Negative prompt = `NEGATIVE`.
+
 ```
-{base_prompt}, game effect sprite, transparent background,
-animation frame, {specific_description}
+{SPRITE_PROMPT}, game effect sprite, animation frame, {effect_description}
 ```
 
 ### Explosion -- Kinetic Impact
@@ -578,13 +614,14 @@ shield blue #3868A0, edge glow #5080A0, hex pattern
 
 ---
 
-## UI Icons (16x16)
+## UI Icons (32x32)
 
 ### Template
 
+Uses `UI_PROMPT` constant. `transparent_background=True`.
+
 ```
-pixel art game icon, 16x16, clean sharp edges, no anti-aliasing,
-transparent background, dark theme, {specific_description}
+{UI_PROMPT}, {icon_description}
 ```
 
 ### Tower Icons (for build menu)
@@ -631,10 +668,10 @@ green when high #88C888, official insignia style
 
 ### Template
 
+Uses `SPRITE_PROMPT`. Generated via `/map-objects` with `view="low top-down"`.
+
 ```
-{base_prompt}, environment prop, isometric 3/4 view,
-transparent background, urban debris/fixture,
-{specific_description}
+{SPRITE_PROMPT}, environment prop, urban debris, {prop_description}
 ```
 
 ### Concrete Barricade
@@ -679,6 +716,101 @@ mixed grays #484440 #3A3838, dust particles
 
 ---
 
+## City Buildings (128x128 to 256x192)
+
+Generated via `/map-objects` endpoint with `remove_background()` post-processing.
+These are decorative background elements placed behind the play field.
+
+### Template
+
+Uses `SCENE_PROMPT` (buildings ARE scenes, so theme words are appropriate).
+
+```
+{SCENE_PROMPT}, building sprite, {building_description}
+```
+
+### Panelka Tall
+
+```
+{building_template},
+tall Soviet apartment block, panelka prefab concrete,
+8-10 floors, broken windows, crumbling facade, laundry lines,
+balconies with junk, satellite dishes, graffiti,
+concrete gray #3A3A3E to #585860
+```
+
+### Panelka Wide
+
+```
+{building_template},
+wide Soviet apartment block, panelka prefab,
+5 floors, long horizontal facade, repeating window pattern,
+some windows lit with warm amber #C8A040, peeling plaster
+```
+
+### Panelka Ruined
+
+```
+{building_template},
+partially collapsed apartment block, exposed rebar,
+rubble at base, fire damage on upper floors,
+dark scorch marks #2A2828, broken structure
+```
+
+### Government Building
+
+```
+{building_template},
+imposing government building, Soviet neoclassical style,
+columns and heavy stone facade, propaganda banners,
+floodlit from below, institutional authority,
+guarded entrance, iron fence, official insignia
+```
+
+### Guard Booth
+
+```
+{building_template} at 64x64,
+small guard checkpoint booth, bulletproof glass,
+barrier arm, CCTV camera on top,
+institutional gray #484850, red warning light #D04040
+```
+
+---
+
+## Animated Details (32-64px, 4-frame loops)
+
+Reference frame uses `SPRITE_PROMPT`. Animated via `/animate-with-text-v2` endpoint.
+
+### Burning Barrel
+
+```
+pixel art animated sprite, burning oil drum barrel,
+fire flickering from top, orange flames #D06030 #E8A040,
+dark metal barrel #2A2A30, smoke wisps rising,
+4 frame animation loop, transparent background
+```
+
+### Waving Flag
+
+```
+pixel art animated sprite, tattered protest flag on pole,
+cloth waving in wind, faded red fabric #903020,
+metal pole #9A9AA0, 4 frame wave cycle,
+transparent background
+```
+
+### Flickering Neon Sign
+
+```
+pixel art animated sprite, broken neon sign,
+buzzing on/off cycle, cyrillic text suggestion,
+neon glow #D8A040, dark housing #1E1E22,
+4 frame flicker loop, transparent background
+```
+
+---
+
 ## Tips for Best Results
 
 1. **Always generate at 2x or 4x target resolution** then downscale with nearest-neighbor -- produces cleaner pixels
@@ -688,9 +820,10 @@ mixed grays #484440 #3A3838, dust particles
 5. **Test in-engine early** -- a sprite that looks good in isolation may not read well at game zoom level
 6. **Batch by category** -- do all towers, then all enemies, etc. Context switching hurts consistency
 
-### Prompt Lessons (from production)
+### Prompt Architecture Lessons (from production)
 
-7. **Character sprites need SHORT prompts** -- the full base prompt describes scenes/buildings which causes background bleed even with `no_background=True`. Use the minimal character template for characters.
-8. **Avoid scene words in character prompts** -- words like "urban", "building", "night scene", "institutional" cause PixelLab to render environments behind the character. Keep it to physical character description only.
-9. **`no_background` API flag is unreliable alone** -- must be paired with prompt discipline. The flag hints, but the prompt text dominates.
-10. **Base prompt is for environment/scene assets** (tiles, props, backgrounds). Character template is for isolated character sprites.
+7. **No color words in base prompts.** The palette swatch image (`color_image`) pins the palette. Verbal color words in prompts can conflict with/override the swatch. Use colors only in per-asset descriptions where needed (e.g., "electric blue glow" for taser).
+8. **Character sprites need SHORT prompts** -- CHAR_PROMPT is just STYLE + "dark muted colors, warm accents". Scene/environment words cause background bleed even with `no_background=True`.
+9. **`no_background` API flag is unreliable alone** -- must be paired with prompt discipline. The flag hints, but prompt text dominates.
+10. **NEGATIVE prompt is essential** for transparent-bg sprites -- apply to turrets, projectiles, effects, and bosses.
+11. **SCENE_PROMPT is for environment assets only** (tiles, buildings, tilesets). Never use for isolated sprites or characters.
