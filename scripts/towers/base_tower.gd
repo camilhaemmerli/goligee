@@ -100,8 +100,8 @@ func _apply_theme_skin() -> void:
 		# Align the diamond ground (bottom of 64x64) with the tile center
 		sprite.offset.y = -16
 		turret_sprite.visible = true
-		turret_sprite.position.y = skin.turret_y_offset
-		muzzle_point.position.y = skin.turret_y_offset - 4.0
+		turret_sprite.position.y = skin.turret_y_offset + sprite.offset.y
+		muzzle_point.position.y = skin.turret_y_offset + sprite.offset.y - 4.0
 		if skin.turret_textures.size() == 8:
 			_turret_textures = skin.turret_textures
 			turret_sprite.texture = _turret_textures[7]  # Default: SE

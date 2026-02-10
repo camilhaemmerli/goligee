@@ -63,7 +63,7 @@ func _on_build_mode_entered(tower_data: TowerData) -> void:
 		_ghost_turret.modulate = Color(1, 1, 1, 0.45)
 		if skin.turret_textures.size() > 0:
 			_ghost_turret.texture = skin.turret_textures[7]  # SE default
-		_ghost_turret.position.y = skin.turret_y_offset
+		_ghost_turret.position.y = skin.turret_y_offset + _ghost_base.offset.y
 		_ghost_turret.z_index = 2
 		_ghost.add_child(_ghost_turret)
 	else:
