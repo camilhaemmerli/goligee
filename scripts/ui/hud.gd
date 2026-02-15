@@ -9,12 +9,13 @@ var _incident: int = 0
 var _active_count: int = 0
 
 # Budget display (top-left)
-var _budget_panel: PanelContainer
+var _budget_container: Control
 var _budget_value_label: Label
 var _budget_change_label: Label
 var _budget_tween: Tween
 
-# Approval bar (top-left, below budget)
+# Approval bar (bottom-right)
+var _approval_container: Control
 var _approval_bar_bg: ColorRect
 var _approval_bar_fill: ColorRect
 var _approval_label: Label
@@ -31,9 +32,10 @@ var _wave_progress_ring: Control  # custom draw arc
 var _wave_total: int = 0
 var _wave_gone: int = 0
 
-# Speed controls (top-right, below wave circle)
-var _speed_container: HBoxContainer
-var _speed_buttons: Array[Button] = []
+# Speed toggle (single button, cycles 1x→2x→3x)
+var _speed_btn: Button
+var _current_speed_idx: int = 0
+var _speed_pulse_tween: Tween
 
 # Center banners
 var _wave_banner: Label
@@ -118,62 +120,63 @@ func _ready() -> void:
 # ---------------------------------------------------------------------------
 
 func _create_budget_display() -> void:
-	_budget_panel = PanelContainer.new()
-	var sb := _make_panel_stylebox(6)
-	_budget_panel.add_theme_stylebox_override("panel", sb)
-	_budget_panel.position = Vector2(8, 4)
-	_budget_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", -1)
-	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_budget_panel.add_child(vbox)
+	_budget_container = Control.new()
+	_budget_container.position = Vector2(8, 4)
+	_budget_container.custom_minimum_size = Vector2(160, 44)
+	_budget_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_budget_container)
 
 	var header := Label.new()
 	header.text = "TAXPAYER BUDGET"
-	header.add_theme_font_size_override("font_size", 7)
-	header.add_theme_color_override("font_color", COL_MUTED)
+	header.add_theme_font_size_override("font_size", 9)
+	header.add_theme_color_override("font_color", Color.WHITE)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(header)
+	_budget_container.add_child(header)
 
 	_budget_value_label = Label.new()
 	_budget_value_label.text = "$0"
-	_budget_value_label.add_theme_font_size_override("font_size", 22)
-	_budget_value_label.add_theme_color_override("font_color", COL_GOLD)
+	_budget_value_label.position = Vector2(0, 12)
+	_budget_value_label.add_theme_font_size_override("font_size", 28)
+	_budget_value_label.add_theme_color_override("font_color", Color.WHITE)
 	if _blackletter_font:
 		_budget_value_label.add_theme_font_override("font", _blackletter_font)
 	_budget_value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(_budget_value_label)
-
-	add_child(_budget_panel)
+	_budget_container.add_child(_budget_value_label)
 
 	# Floating change label
 	_budget_change_label = Label.new()
-	_budget_change_label.position = Vector2(8, 52)
-	_budget_change_label.add_theme_font_size_override("font_size", 9)
+	_budget_change_label.position = Vector2(8, 58)
+	_budget_change_label.add_theme_font_size_override("font_size", 10)
 	_budget_change_label.modulate.a = 0.0
 	_budget_change_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_budget_change_label)
 
 
 # ---------------------------------------------------------------------------
-# Approval bar (top-left, below budget)
+# Approval bar (bottom-right)
 # ---------------------------------------------------------------------------
 
 func _create_approval_bar() -> void:
-	var container := Control.new()
-	container.position = Vector2(8, 60)
-	container.custom_minimum_size = Vector2(APPROVAL_BAR_W + 4, 28)
-	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(container)
+	_approval_container = Control.new()
+	_approval_container.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_approval_container.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_approval_container.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_approval_container.offset_right = -8.0
+	_approval_container.offset_bottom = -36.0
+	_approval_container.offset_left = -8.0 - APPROVAL_BAR_W - 4.0
+	_approval_container.offset_top = -36.0 - 28.0
+	_approval_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_approval_container)
 
 	var header := Label.new()
 	header.text = "APPROVAL RATING"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	header.add_theme_font_size_override("font_size", 6)
 	header.add_theme_color_override("font_color", COL_MUTED)
 	header.position = Vector2(0, 0)
+	header.size = Vector2(APPROVAL_BAR_W + 4, 10)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(header)
+	_approval_container.add_child(header)
 
 	# Bar background with border
 	var bar_border := ColorRect.new()
@@ -181,21 +184,21 @@ func _create_approval_bar() -> void:
 	bar_border.position = Vector2(0, 11)
 	bar_border.size = Vector2(APPROVAL_BAR_W + 4, APPROVAL_BAR_H + 4)
 	bar_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(bar_border)
+	_approval_container.add_child(bar_border)
 
 	_approval_bar_bg = ColorRect.new()
 	_approval_bar_bg.color = COL_BAR_BG
 	_approval_bar_bg.position = Vector2(2, 13)
 	_approval_bar_bg.size = Vector2(APPROVAL_BAR_W, APPROVAL_BAR_H)
 	_approval_bar_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(_approval_bar_bg)
+	_approval_container.add_child(_approval_bar_bg)
 
 	_approval_bar_fill = ColorRect.new()
 	_approval_bar_fill.color = COL_APPROVAL_FULL
 	_approval_bar_fill.position = Vector2(2, 13)
 	_approval_bar_fill.size = Vector2(APPROVAL_BAR_W, APPROVAL_BAR_H)
 	_approval_bar_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(_approval_bar_fill)
+	_approval_container.add_child(_approval_bar_fill)
 
 	_approval_label = Label.new()
 	_approval_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -204,7 +207,7 @@ func _create_approval_bar() -> void:
 	_approval_label.add_theme_font_size_override("font_size", 8)
 	_approval_label.add_theme_color_override("font_color", Color.WHITE)
 	_approval_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(_approval_label)
+	_approval_container.add_child(_approval_label)
 
 
 # ---------------------------------------------------------------------------
@@ -252,22 +255,22 @@ func _create_wave_circle() -> void:
 	_wave_number_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wave_circle_container.add_child(_wave_number_label)
 
-	# Manifestation name above wave name (right-aligned)
+	# Manifestation name below circle (right-aligned to circle right edge)
 	_manifestation_name_label = Label.new()
 	_manifestation_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_manifestation_name_label.position = Vector2(-68, CIRCLE_SIZE + 2)
-	_manifestation_name_label.size = Vector2(144, 10)
+	_manifestation_name_label.position = Vector2(-60, CIRCLE_SIZE + 2)
+	_manifestation_name_label.size = Vector2(136, 10)
 	_manifestation_name_label.add_theme_font_size_override("font_size", 6)
 	_manifestation_name_label.add_theme_color_override("font_color", COL_MUTED)
 	_manifestation_name_label.clip_text = true
 	_manifestation_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wave_circle_container.add_child(_manifestation_name_label)
 
-	# Wave name below manifestation name (right-aligned)
+	# Wave name below manifestation name
 	_wave_name_label = Label.new()
 	_wave_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_wave_name_label.position = Vector2(-68, CIRCLE_SIZE + 12)
-	_wave_name_label.size = Vector2(144, 12)
+	_wave_name_label.position = Vector2(-60, CIRCLE_SIZE + 12)
+	_wave_name_label.size = Vector2(136, 12)
 	_wave_name_label.add_theme_font_size_override("font_size", 7)
 	_wave_name_label.add_theme_color_override("font_color", COL_AMBER)
 	_wave_name_label.clip_text = true
@@ -276,40 +279,60 @@ func _create_wave_circle() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Speed controls (top-right, below wave circle)
+# Speed toggle (single cycling button, top-right below circle)
 # ---------------------------------------------------------------------------
 
+const _SPEED_LABELS := ["1x", "2x", "3x"]
+const _SPEED_VALUES: Array[int] = [0, 1, 2]  # Enums.GameSpeed indices
+
 func _create_speed_controls() -> void:
-	_speed_container = HBoxContainer.new()
-	_speed_container.position = Vector2(896, 84)
-	_speed_container.add_theme_constant_override("separation", 2)
+	_speed_btn = Button.new()
+	_speed_btn.text = "1x"
+	_speed_btn.custom_minimum_size = Vector2(40, 22)
+	_speed_btn.position = Vector2(920, 88)
+	_speed_btn.pressed.connect(_on_speed_toggle_pressed)
 
-	for pair: Array in [["1x", Enums.GameSpeed.NORMAL], ["2x", Enums.GameSpeed.FAST], ["3x", Enums.GameSpeed.ULTRA]]:
-		var btn := Button.new()
-		btn.text = pair[0]
-		btn.custom_minimum_size = Vector2(24, 16)
-		btn.pressed.connect(GameManager.set_speed.bind(pair[1]))
+	_apply_speed_btn_style()
 
-		# Brutalist styling
-		for state in ["normal", "hover", "pressed", "disabled"]:
-			var sb := StyleBoxFlat.new()
-			sb.bg_color = COL_PANEL_BG if state != "pressed" else COL_RUST
-			sb.bg_color = sb.bg_color if state != "hover" else Color("#252528")
-			sb.border_color = COL_CARD_BORDER
-			sb.set_border_width_all(1)
-			sb.set_corner_radius_all(0)
-			sb.content_margin_left = 2
-			sb.content_margin_right = 2
-			sb.content_margin_top = 1
-			sb.content_margin_bottom = 1
-			btn.add_theme_stylebox_override(state, sb)
+	_speed_btn.add_theme_font_size_override("font_size", 11)
+	_speed_btn.add_theme_color_override("font_color", Color.WHITE)
+	if _blackletter_font:
+		_speed_btn.add_theme_font_override("font", _blackletter_font)
+	add_child(_speed_btn)
 
-		btn.add_theme_font_size_override("font_size", 8)
-		btn.add_theme_color_override("font_color", Color.WHITE)
-		_speed_buttons.append(btn)
-		_speed_container.add_child(btn)
+	# Start pulsating
+	_start_speed_pulse()
 
-	add_child(_speed_container)
+
+func _apply_speed_btn_style() -> void:
+	for state_name in ["normal", "hover", "pressed"]:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = COL_RUST if state_name != "hover" else Color("#C04820")
+		sb.border_color = Color("#1A1A1E")
+		sb.set_border_width_all(1)
+		sb.set_corner_radius_all(6)
+		sb.content_margin_left = 6
+		sb.content_margin_right = 6
+		sb.content_margin_top = 3
+		sb.content_margin_bottom = 3
+		_speed_btn.add_theme_stylebox_override(state_name, sb)
+
+
+func _start_speed_pulse() -> void:
+	if _speed_pulse_tween:
+		_speed_pulse_tween.kill()
+	_speed_pulse_tween = create_tween().set_loops()
+	_speed_pulse_tween.tween_property(_speed_btn, "modulate", Color(1.3, 0.7, 0.7), 0.6)
+	_speed_pulse_tween.tween_property(_speed_btn, "modulate", Color.WHITE, 0.6)
+
+
+func _on_speed_toggle_pressed() -> void:
+	_current_speed_idx = (_current_speed_idx + 1) % 3
+	_speed_btn.text = _SPEED_LABELS[_current_speed_idx]
+	match _current_speed_idx:
+		0: GameManager.set_speed(Enums.GameSpeed.NORMAL)
+		1: GameManager.set_speed(Enums.GameSpeed.FAST)
+		2: GameManager.set_speed(Enums.GameSpeed.ULTRA)
 
 
 # ---------------------------------------------------------------------------
@@ -437,9 +460,9 @@ func _create_kill_counter() -> void:
 	_kill_counter_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_kill_counter_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_kill_counter_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_kill_counter_label.offset_right = -4.0
-	_kill_counter_label.offset_bottom = -32.0
-	_kill_counter_label.offset_left = -120.0
+	_kill_counter_label.offset_right = -8.0
+	_kill_counter_label.offset_bottom = -68.0
+	_kill_counter_label.offset_left = -160.0
 	_kill_counter_label.add_theme_font_size_override("font_size", 8)
 	_kill_counter_label.add_theme_color_override("font_color", COL_GREEN)
 	_kill_counter_label.visible = false
@@ -489,19 +512,6 @@ func _create_game_over_overlay() -> void:
 # Helpers
 # ---------------------------------------------------------------------------
 
-func _make_panel_stylebox(padding: int = 6) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(COL_PANEL_BG.r, COL_PANEL_BG.g, COL_PANEL_BG.b, 0.9)
-	sb.border_color = COL_PANEL_BORDER
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(0)
-	sb.content_margin_left = padding
-	sb.content_margin_right = padding
-	sb.content_margin_top = padding
-	sb.content_margin_bottom = padding
-	return sb
-
-
 func _update_budget_display(old_amount: int, new_amount: int) -> void:
 	_budget_value_label.text = "$" + str(new_amount)
 
@@ -509,9 +519,9 @@ func _update_budget_display(old_amount: int, new_amount: int) -> void:
 	if _budget_tween:
 		_budget_tween.kill()
 	_budget_tween = create_tween()
-	_budget_panel.pivot_offset = _budget_panel.size / 2.0
-	_budget_tween.tween_property(_budget_panel, "scale", Vector2(1.12, 1.12), 0.08)
-	_budget_tween.tween_property(_budget_panel, "scale", Vector2(1.0, 1.0), 0.08)
+	_budget_container.pivot_offset = _budget_container.custom_minimum_size / 2.0
+	_budget_tween.tween_property(_budget_container, "scale", Vector2(1.12, 1.12), 0.08)
+	_budget_tween.tween_property(_budget_container, "scale", Vector2(1.0, 1.0), 0.08)
 
 	# Float change text
 	var diff := new_amount - old_amount
@@ -519,10 +529,10 @@ func _update_budget_display(old_amount: int, new_amount: int) -> void:
 		_budget_change_label.text = ("+" if diff > 0 else "") + str(diff)
 		_budget_change_label.add_theme_color_override("font_color", COL_GREEN if diff > 0 else COL_RED)
 		_budget_change_label.modulate.a = 1.0
-		_budget_change_label.position.y = 52.0
+		_budget_change_label.position.y = 58.0
 		var ft := create_tween()
 		ft.set_parallel(true)
-		ft.tween_property(_budget_change_label, "position:y", 38.0, 0.6)
+		ft.tween_property(_budget_change_label, "position:y", 44.0, 0.6)
 		ft.tween_property(_budget_change_label, "modulate:a", 0.0, 0.6).set_delay(0.2)
 
 
@@ -716,37 +726,15 @@ func _on_enemies_remaining(count: int) -> void:
 
 
 func _on_speed_changed(speed: Enums.GameSpeed) -> void:
-	# Highlight active speed button
-	for i in _speed_buttons.size():
-		var btn := _speed_buttons[i]
-		var is_active := false
-		match i:
-			0: is_active = speed == Enums.GameSpeed.NORMAL
-			1: is_active = speed == Enums.GameSpeed.FAST
-			2: is_active = speed == Enums.GameSpeed.ULTRA
-
-		if is_active:
-			var sb := StyleBoxFlat.new()
-			sb.bg_color = COL_RUST
-			sb.border_color = COL_RUST
-			sb.set_border_width_all(1)
-			sb.set_corner_radius_all(0)
-			sb.content_margin_left = 2
-			sb.content_margin_right = 2
-			sb.content_margin_top = 1
-			sb.content_margin_bottom = 1
-			btn.add_theme_stylebox_override("normal", sb)
-		else:
-			var sb := StyleBoxFlat.new()
-			sb.bg_color = COL_PANEL_BG
-			sb.border_color = COL_CARD_BORDER
-			sb.set_border_width_all(1)
-			sb.set_corner_radius_all(0)
-			sb.content_margin_left = 2
-			sb.content_margin_right = 2
-			sb.content_margin_top = 1
-			sb.content_margin_bottom = 1
-			btn.add_theme_stylebox_override("normal", sb)
+	# Sync toggle label with external speed changes
+	match speed:
+		Enums.GameSpeed.NORMAL:
+			_current_speed_idx = 0
+		Enums.GameSpeed.FAST:
+			_current_speed_idx = 1
+		Enums.GameSpeed.ULTRA:
+			_current_speed_idx = 2
+	_speed_btn.text = _SPEED_LABELS[_current_speed_idx]
 
 
 func _on_game_over(victory: bool) -> void:
