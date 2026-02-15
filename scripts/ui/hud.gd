@@ -24,7 +24,6 @@ var _approval_tween: Tween
 var _wave_circle_container: Control
 var _wave_number_label: Label
 var _wave_name_label: Label
-var _wave_portrait: TextureRect
 var _wave_circle_tex: TextureRect
 var _wave_progress_ring: Control  # custom draw arc
 
@@ -71,6 +70,7 @@ const COL_AMBER := Color("#D8A040")
 const COL_GREEN := Color("#A0D8A0")
 const COL_RED := Color("#D04040")
 const COL_PILL_BG := Color("#08080A")
+const COL_CIRCLE_BG := Color("#D8CFC0")  # light beige
 
 # Approval bar colors
 const COL_APPROVAL_FULL := Color("#A0D8A0")
@@ -221,16 +221,6 @@ func _create_wave_circle() -> void:
 	_wave_circle_container.custom_minimum_size = Vector2(CIRCLE_SIZE + 8, CIRCLE_SIZE + 28)
 	_wave_circle_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_wave_circle_container)
-
-	# Per-wave portrait (left of circle)
-	_wave_portrait = TextureRect.new()
-	_wave_portrait.position = Vector2(-8, 14)
-	_wave_portrait.custom_minimum_size = Vector2(32, 32)
-	_wave_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_wave_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_wave_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	_wave_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_wave_circle_container.add_child(_wave_portrait)
 
 	# Progress ring (drawn behind circle, slightly larger)
 	_wave_progress_ring = Control.new()
@@ -576,10 +566,10 @@ func _make_fallback_circle() -> ImageTexture:
 		for x in SIZE:
 			var dist := Vector2(x, y).distance_to(center)
 			if dist <= radius:
-				img.set_pixel(x, y, COL_RUST)
+				img.set_pixel(x, y, COL_CIRCLE_BG)
 			elif dist <= radius + 1.0:
 				var edge_alpha := 1.0 - (dist - radius)
-				img.set_pixel(x, y, Color(COL_RUST.r, COL_RUST.g, COL_RUST.b, edge_alpha))
+				img.set_pixel(x, y, Color(COL_CIRCLE_BG.r, COL_CIRCLE_BG.g, COL_CIRCLE_BG.b, edge_alpha))
 	return ImageTexture.create_from_image(img)
 
 
@@ -612,10 +602,10 @@ func _make_circle_portrait(portrait_tex: Texture2D) -> ImageTexture:
 						col.a *= (radius - dist + 1.0)
 					img.set_pixel(x, y, col)
 				else:
-					img.set_pixel(x, y, COL_RUST)
+					img.set_pixel(x, y, COL_CIRCLE_BG)
 			elif dist <= radius + 1.0:
 				var edge_alpha := 1.0 - (dist - radius)
-				img.set_pixel(x, y, Color(COL_RUST.r, COL_RUST.g, COL_RUST.b, edge_alpha))
+				img.set_pixel(x, y, Color(COL_CIRCLE_BG.r, COL_CIRCLE_BG.g, COL_CIRCLE_BG.b, edge_alpha))
 
 	return ImageTexture.create_from_image(img)
 
@@ -623,9 +613,7 @@ func _make_circle_portrait(portrait_tex: Texture2D) -> ImageTexture:
 func _update_wave_circle(wave_number: int) -> void:
 	_wave_number_label.text = str(wave_number)
 
-	var wave_name := WaveNames.get_wave_name(wave_number)
-	var leader_id := WaveNames.get_wave_leader(wave_number)
-	_wave_name_label.text = wave_name
+	_wave_name_label.text = WaveNames.get_wave_name(wave_number)
 
 	# Manifestation name
 	_manifestation_name_label.text = WaveNames.get_manifestation_name(wave_number)
@@ -649,13 +637,6 @@ func _update_wave_circle(wave_number: int) -> void:
 		for seq in wave_data.spawn_sequences:
 			_wave_total += seq.count
 	_wave_progress_ring.queue_redraw()
-
-	# Per-wave small portrait (left of circle)
-	var portrait_tex := ThemeManager.get_wave_portrait(leader_id)
-	if portrait_tex:
-		_wave_portrait.texture = portrait_tex
-	else:
-		_wave_portrait.texture = null
 
 	# Bounce tween
 	_wave_circle_tex.pivot_offset = Vector2(30, 30)
