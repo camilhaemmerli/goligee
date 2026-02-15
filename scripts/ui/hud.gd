@@ -16,8 +16,6 @@ var _budget_tween: Tween
 
 # Approval bar (bottom-right)
 var _approval_container: Control
-var _approval_bar_bg: ColorRect
-var _approval_bar_fill: ColorRect
 var _approval_label: Label
 var _approval_tween: Tween
 
@@ -35,7 +33,11 @@ var _wave_gone: int = 0
 # Speed toggle (single button, cycles 1x→2x→3x)
 var _speed_btn: Button
 var _current_speed_idx: int = 0
-var _speed_pulse_tween: Tween
+
+# Approval bar custom draw
+var _approval_draw: Control
+var _approval_ratio: float = 1.0
+var _approval_pulse_phase: float = 0.0
 
 # Center banners
 var _wave_banner: Label
@@ -153,7 +155,7 @@ func _create_budget_display() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Approval bar (bottom-right)
+# Approval bar (bottom-right) — custom drawn with rounded corners + 3D gradient
 # ---------------------------------------------------------------------------
 
 func _create_approval_bar() -> void:
@@ -164,7 +166,7 @@ func _create_approval_bar() -> void:
 	_approval_container.offset_right = -8.0
 	_approval_container.offset_bottom = -36.0
 	_approval_container.offset_left = -8.0 - APPROVAL_BAR_W - 4.0
-	_approval_container.offset_top = -36.0 - 28.0
+	_approval_container.offset_top = -36.0 - 30.0
 	_approval_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_approval_container)
 
@@ -178,32 +180,19 @@ func _create_approval_bar() -> void:
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_approval_container.add_child(header)
 
-	# Bar background with border
-	var bar_border := ColorRect.new()
-	bar_border.color = COL_PANEL_BORDER
-	bar_border.position = Vector2(0, 11)
-	bar_border.size = Vector2(APPROVAL_BAR_W + 4, APPROVAL_BAR_H + 4)
-	bar_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_approval_container.add_child(bar_border)
-
-	_approval_bar_bg = ColorRect.new()
-	_approval_bar_bg.color = COL_BAR_BG
-	_approval_bar_bg.position = Vector2(2, 13)
-	_approval_bar_bg.size = Vector2(APPROVAL_BAR_W, APPROVAL_BAR_H)
-	_approval_bar_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_approval_container.add_child(_approval_bar_bg)
-
-	_approval_bar_fill = ColorRect.new()
-	_approval_bar_fill.color = COL_APPROVAL_FULL
-	_approval_bar_fill.position = Vector2(2, 13)
-	_approval_bar_fill.size = Vector2(APPROVAL_BAR_W, APPROVAL_BAR_H)
-	_approval_bar_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_approval_container.add_child(_approval_bar_fill)
+	# Custom draw control for the bar
+	_approval_draw = Control.new()
+	_approval_draw.position = Vector2(0, 12)
+	_approval_draw.custom_minimum_size = Vector2(APPROVAL_BAR_W + 4, APPROVAL_BAR_H + 4)
+	_approval_draw.size = Vector2(APPROVAL_BAR_W + 4, APPROVAL_BAR_H + 4)
+	_approval_draw.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_approval_draw.draw.connect(_draw_approval_bar)
+	_approval_container.add_child(_approval_draw)
 
 	_approval_label = Label.new()
 	_approval_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_approval_label.position = Vector2(2, 12)
-	_approval_label.size = Vector2(APPROVAL_BAR_W, APPROVAL_BAR_H + 2)
+	_approval_label.size = Vector2(APPROVAL_BAR_W, APPROVAL_BAR_H + 4)
 	_approval_label.add_theme_font_size_override("font_size", 8)
 	_approval_label.add_theme_color_override("font_color", Color.WHITE)
 	_approval_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -279,51 +268,42 @@ func _create_wave_circle() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Speed toggle (single cycling button, top-right below circle)
+# Speed toggle (discreet grey button, bottom-center)
 # ---------------------------------------------------------------------------
 
 const _SPEED_LABELS := ["1x", "2x", "3x"]
-const _SPEED_VALUES: Array[int] = [0, 1, 2]  # Enums.GameSpeed indices
 
 func _create_speed_controls() -> void:
 	_speed_btn = Button.new()
 	_speed_btn.text = "1x"
-	_speed_btn.custom_minimum_size = Vector2(40, 22)
-	_speed_btn.position = Vector2(920, 88)
+	_speed_btn.custom_minimum_size = Vector2(32, 16)
+	_speed_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_speed_btn.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_speed_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_speed_btn.offset_left = -16.0
+	_speed_btn.offset_right = 16.0
+	_speed_btn.offset_bottom = -4.0
+	_speed_btn.offset_top = -20.0
 	_speed_btn.pressed.connect(_on_speed_toggle_pressed)
 
-	_apply_speed_btn_style()
-
-	_speed_btn.add_theme_font_size_override("font_size", 11)
-	_speed_btn.add_theme_color_override("font_color", Color.WHITE)
-	if _blackletter_font:
-		_speed_btn.add_theme_font_override("font", _blackletter_font)
-	add_child(_speed_btn)
-
-	# Start pulsating
-	_start_speed_pulse()
-
-
-func _apply_speed_btn_style() -> void:
 	for state_name in ["normal", "hover", "pressed"]:
 		var sb := StyleBoxFlat.new()
-		sb.bg_color = COL_RUST if state_name != "hover" else Color("#C04820")
-		sb.border_color = Color("#1A1A1E")
+		match state_name:
+			"normal": sb.bg_color = Color("#2A2A30")
+			"hover": sb.bg_color = Color("#3A3A40")
+			"pressed": sb.bg_color = Color("#4A4A50")
+		sb.border_color = Color("#3A3A40")
 		sb.set_border_width_all(1)
-		sb.set_corner_radius_all(6)
-		sb.content_margin_left = 6
-		sb.content_margin_right = 6
-		sb.content_margin_top = 3
-		sb.content_margin_bottom = 3
+		sb.set_corner_radius_all(4)
+		sb.content_margin_left = 4
+		sb.content_margin_right = 4
+		sb.content_margin_top = 1
+		sb.content_margin_bottom = 1
 		_speed_btn.add_theme_stylebox_override(state_name, sb)
 
-
-func _start_speed_pulse() -> void:
-	if _speed_pulse_tween:
-		_speed_pulse_tween.kill()
-	_speed_pulse_tween = create_tween().set_loops()
-	_speed_pulse_tween.tween_property(_speed_btn, "modulate", Color(1.3, 0.7, 0.7), 0.6)
-	_speed_pulse_tween.tween_property(_speed_btn, "modulate", Color.WHITE, 0.6)
+	_speed_btn.add_theme_font_size_override("font_size", 8)
+	_speed_btn.add_theme_color_override("font_color", COL_MUTED)
+	add_child(_speed_btn)
 
 
 func _on_speed_toggle_pressed() -> void:
@@ -537,33 +517,102 @@ func _update_budget_display(old_amount: int, new_amount: int) -> void:
 
 
 func _update_approval_bar(lives: int) -> void:
-	var ratio := float(lives) / float(_max_approval) if _max_approval > 0 else 0.0
-	ratio = clampf(ratio, 0.0, 1.0)
-	var target_w := ratio * APPROVAL_BAR_W
+	var target := float(lives) / float(_max_approval) if _max_approval > 0 else 0.0
+	target = clampf(target, 0.0, 1.0)
 
-	# Color lerp green → red
-	_approval_bar_fill.color = COL_APPROVAL_FULL.lerp(COL_APPROVAL_LOW, 1.0 - ratio)
-
-	# Smooth tween
+	# Smooth tween the ratio
 	if _approval_tween:
 		_approval_tween.kill()
 	_approval_tween = create_tween()
-	_approval_tween.tween_property(_approval_bar_fill, "size:x", target_w, 0.3) \
+	_approval_tween.tween_method(_set_approval_ratio, _approval_ratio, target, 0.3) \
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 
 	_approval_label.text = str(lives) + "/" + str(_max_approval)
 
-	# Pulse red at critical
-	if lives <= 2 and lives > 0:
-		if _lives_pulse_tween:
-			_lives_pulse_tween.kill()
-		_lives_pulse_tween = create_tween().set_loops()
-		_lives_pulse_tween.tween_property(_approval_bar_fill, "modulate", Color(1.5, 0.6, 0.6), 0.3)
-		_lives_pulse_tween.tween_property(_approval_bar_fill, "modulate", Color.WHITE, 0.3)
-	elif _lives_pulse_tween:
-		_lives_pulse_tween.kill()
-		_lives_pulse_tween = null
-		_approval_bar_fill.modulate = Color.WHITE
+
+func _set_approval_ratio(val: float) -> void:
+	_approval_ratio = val
+	_approval_draw.queue_redraw()
+
+
+func _draw_approval_bar() -> void:
+	var w := APPROVAL_BAR_W + 4.0
+	var h := APPROVAL_BAR_H + 4.0
+	var radius := 4.0
+
+	# Background (dark inset)
+	var bg_rect := Rect2(0, 0, w, h)
+	_approval_draw.draw_rect(bg_rect, Color("#0E0E12"), true)  # will be covered by rounded
+	# Draw rounded bg manually via stylebox approach — use draw primitives
+	var bg_points := _rounded_rect_points(0, 0, w, h, radius)
+	_approval_draw.draw_colored_polygon(bg_points, Color("#1A1A20"))
+
+	# Fill bar with 3D red gradient
+	var fill_w := _approval_ratio * (w - 4.0)
+	if fill_w > 1.0:
+		var fx := 2.0
+		var fy := 2.0
+		var fw := fill_w
+		var fh := h - 4.0
+		var fr := minf(radius - 1.0, fw * 0.5)
+
+		# Pulse — subtle brightness oscillation
+		var pulse := 0.03 * sin(_approval_pulse_phase * 3.0)
+
+		# Draw gradient: brighter at top, darker at bottom (3D bevel)
+		var steps := int(fh)
+		for row in steps:
+			var t := float(row) / float(steps)
+			# Top highlight → mid color → bottom shadow
+			var base_r := 0.75 + pulse
+			var base_g := 0.12
+			var base_b := 0.12
+			var highlight := 1.0 - t * 0.5  # 1.0 at top, 0.5 at bottom
+			var col := Color(base_r * highlight, base_g * highlight, base_b * highlight)
+			var ry := fy + row
+			# Clip to rounded rect shape
+			var inset := 0.0
+			if row < fr:
+				inset = fr - sqrt(maxf(fr * fr - (fr - row) * (fr - row), 0.0))
+			elif row > fh - fr:
+				var dy := row - (fh - fr)
+				inset = fr - sqrt(maxf(fr * fr - dy * dy, 0.0))
+			var lx := fx + inset
+			var rw := fw - inset * 2.0
+			if rw > 0.0:
+				_approval_draw.draw_rect(Rect2(lx, ry, rw, 1.0), col)
+
+		# Specular highlight line at top
+		if fw > 4.0:
+			var spec_col := Color(1.0, 0.5, 0.5, 0.3 + pulse * 2.0)
+			_approval_draw.draw_rect(Rect2(fx + fr, fy + 1, fw - fr * 2.0, 1.0), spec_col)
+
+	# Outer rounded border
+	var border_points := _rounded_rect_points(0, 0, w, h, radius)
+	_approval_draw.draw_polyline(border_points, Color("#3A1A1A"), 1.0, true)
+
+
+func _rounded_rect_points(x: float, y: float, w: float, h: float, r: float) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	var segments := 8
+	# Top-left corner
+	for i in range(segments + 1):
+		var angle := PI + float(i) / float(segments) * (PI / 2.0)
+		pts.append(Vector2(x + r + cos(angle) * r, y + r + sin(angle) * r))
+	# Top-right corner
+	for i in range(segments + 1):
+		var angle := -PI / 2.0 + float(i) / float(segments) * (PI / 2.0)
+		pts.append(Vector2(x + w - r + cos(angle) * r, y + r + sin(angle) * r))
+	# Bottom-right corner
+	for i in range(segments + 1):
+		var angle := float(i) / float(segments) * (PI / 2.0)
+		pts.append(Vector2(x + w - r + cos(angle) * r, y + h - r + sin(angle) * r))
+	# Bottom-left corner
+	for i in range(segments + 1):
+		var angle := PI / 2.0 + float(i) / float(segments) * (PI / 2.0)
+		pts.append(Vector2(x + r + cos(angle) * r, y + h - r + sin(angle) * r))
+	pts.append(pts[0])  # close
+	return pts
 
 
 func _make_fallback_circle() -> ImageTexture:
@@ -687,7 +736,7 @@ func _draw_progress_ring() -> void:
 # Process
 # ---------------------------------------------------------------------------
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	var timer := WaveManager.get_between_wave_timer()
 	if timer > 0.0:
 		_send_wave_btn.visible = true
@@ -695,6 +744,10 @@ func _process(_delta: float) -> void:
 		_send_wave_btn.text = "SEND WAVE" + (" +$" + str(bonus) if bonus > 0 else "")
 	else:
 		_send_wave_btn.visible = false
+
+	# Subtle pulse on the approval bar
+	_approval_pulse_phase += delta
+	_approval_draw.queue_redraw()
 
 
 # ---------------------------------------------------------------------------
@@ -803,12 +856,12 @@ func _on_streak_changed(count: int) -> void:
 
 func _on_last_stand_entered() -> void:
 	_last_stand_label.text = "MARTIAL LAW"
-	# Pulse the approval bar red instead of the old info_label
+	# Pulse the approval bar intensely
 	if _lives_pulse_tween:
 		_lives_pulse_tween.kill()
 	_lives_pulse_tween = create_tween().set_loops()
-	_lives_pulse_tween.tween_property(_approval_bar_fill, "modulate", Color(2.0, 0.4, 0.4), 0.4)
-	_lives_pulse_tween.tween_property(_approval_bar_fill, "modulate", Color.WHITE, 0.4)
+	_lives_pulse_tween.tween_property(_approval_draw, "modulate", Color(2.0, 0.6, 0.6), 0.4)
+	_lives_pulse_tween.tween_property(_approval_draw, "modulate", Color.WHITE, 0.4)
 
 
 func _on_send_wave_pressed() -> void:
