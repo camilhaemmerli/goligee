@@ -1,37 +1,88 @@
 class_name HUD
 extends CanvasLayer
-## Compact HUD overlay — single info line at top, minimal footprint.
-
-@onready var info_label: Label = $TopBar/InfoLabel
-@onready var speed_label: Label = $TopBar/SpeedLabel
+## Brutalist-themed HUD overlay — budget, approval bar, wave circle, tower cards.
 
 var _budget: int = 0
 var _approval: int = 0
+var _max_approval: int = 20
 var _incident: int = 0
 var _active_count: int = 0
 
+# Budget display (top-left)
+var _budget_panel: PanelContainer
+var _budget_value_label: Label
+var _budget_change_label: Label
+var _budget_tween: Tween
+
+# Approval bar (top-left, below budget)
+var _approval_bar_bg: ColorRect
+var _approval_bar_fill: ColorRect
+var _approval_label: Label
+var _approval_tween: Tween
+
+# Wave circle (top-right)
+var _wave_circle_container: Control
+var _wave_number_label: Label
+var _wave_name_label: Label
+var _wave_portrait: TextureRect
+var _wave_circle_tex: TextureRect
+var _wave_progress_ring: Control  # custom draw arc
+
+# Wave progress tracking
+var _wave_total: int = 0
+var _wave_gone: int = 0
+
+# Speed controls (top-right, below wave circle)
+var _speed_container: HBoxContainer
+var _speed_buttons: Array[Button] = []
+
+# Center banners
 var _wave_banner: Label
 var _streak_label: Label
 var _last_stand_label: Label
+
+# Bottom
 var _send_wave_btn: Button
-var _wave_preview_label: Label
+var _cancel_build_btn: Button
+
+# Game over
 var _game_over_overlay: ColorRect
 var _game_over_label: Label
 var _restart_btn: Button
 
-var _banner_tween: Tween
-var _lives_pulse_tween: Tween
-
+# Kill counter (bottom-right, above upgrade panel)
 var _kill_counter_label: Label
 var _selected_tower_ref: BaseTower
 
+var _banner_tween: Tween
+var _lives_pulse_tween: Tween
 var _blackletter_font: Font
+var _current_manifestation_leader: String = ""
+var _manifestation_name_label: Label
+
+# Colors
+const COL_PANEL_BG := Color("#1A1A1E")
+const COL_PANEL_BORDER := Color("#121216")
+const COL_CARD_BORDER := Color("#28282C")
+const COL_MUTED := Color("#808898")
+const COL_GOLD := Color("#F2D864")
+const COL_RUST := Color("#A23813")
+const COL_AMBER := Color("#D8A040")
+const COL_GREEN := Color("#A0D8A0")
+const COL_RED := Color("#D04040")
+const COL_PILL_BG := Color("#08080A")
+
+# Approval bar colors
+const COL_APPROVAL_FULL := Color("#A0D8A0")
+const COL_APPROVAL_LOW := Color("#D04040")
+const COL_BAR_BG := Color("#1E1E22")
+
+const APPROVAL_BAR_W := 140.0
+const APPROVAL_BAR_H := 12.0
 
 
 func _ready() -> void:
 	_blackletter_font = load("res://assets/fonts/PirataOne-Regular.ttf")
-	info_label.add_theme_font_size_override("font_size", 10)
-	speed_label.add_theme_font_size_override("font_size", 10)
 
 	SignalBus.gold_changed.connect(_on_gold_changed)
 	SignalBus.lives_changed.connect(_on_lives_changed)
@@ -47,40 +98,252 @@ func _ready() -> void:
 	SignalBus.tower_deselected.connect(_on_tower_deselected_hud)
 	SignalBus.enemy_killed.connect(_on_enemy_killed_hud)
 	SignalBus.tower_kill_milestone.connect(_on_tower_kill_milestone)
+	SignalBus.enemy_reached_end.connect(_on_enemy_leaked_hud)
+	SignalBus.build_mode_entered.connect(_on_build_mode_entered_hud)
+	SignalBus.build_mode_exited.connect(_on_build_mode_exited_hud)
 
-	_create_engagement_ui()
-	_refresh_info()
+	_create_budget_display()
+	_create_approval_bar()
+	_create_wave_circle()
+	_create_speed_controls()
+	_create_center_banners()
+	_create_send_wave_btn()
+	_create_game_over_overlay()
+	_create_kill_counter()
+	_create_cancel_build_btn()
 
 
-func _refresh_info() -> void:
-	info_label.text = (
-		"$" + str(_budget)
-		+ "  " + str(_approval) + "%"
-		+ "  INC " + str(_incident)
-		+ "  " + str(_active_count) + " active"
-	)
+# ---------------------------------------------------------------------------
+# Budget display (top-left)
+# ---------------------------------------------------------------------------
+
+func _create_budget_display() -> void:
+	_budget_panel = PanelContainer.new()
+	var sb := _make_panel_stylebox(6)
+	_budget_panel.add_theme_stylebox_override("panel", sb)
+	_budget_panel.position = Vector2(8, 4)
+	_budget_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", -1)
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_budget_panel.add_child(vbox)
+
+	var header := Label.new()
+	header.text = "TAXPAYER BUDGET"
+	header.add_theme_font_size_override("font_size", 7)
+	header.add_theme_color_override("font_color", COL_MUTED)
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(header)
+
+	_budget_value_label = Label.new()
+	_budget_value_label.text = "$0"
+	_budget_value_label.add_theme_font_size_override("font_size", 22)
+	_budget_value_label.add_theme_color_override("font_color", COL_GOLD)
+	if _blackletter_font:
+		_budget_value_label.add_theme_font_override("font", _blackletter_font)
+	_budget_value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(_budget_value_label)
+
+	add_child(_budget_panel)
+
+	# Floating change label
+	_budget_change_label = Label.new()
+	_budget_change_label.position = Vector2(8, 52)
+	_budget_change_label.add_theme_font_size_override("font_size", 9)
+	_budget_change_label.modulate.a = 0.0
+	_budget_change_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_budget_change_label)
 
 
-func _create_engagement_ui() -> void:
-	# Wave banner (centered)
+# ---------------------------------------------------------------------------
+# Approval bar (top-left, below budget)
+# ---------------------------------------------------------------------------
+
+func _create_approval_bar() -> void:
+	var container := Control.new()
+	container.position = Vector2(8, 60)
+	container.custom_minimum_size = Vector2(APPROVAL_BAR_W + 4, 28)
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(container)
+
+	var header := Label.new()
+	header.text = "APPROVAL RATING"
+	header.add_theme_font_size_override("font_size", 6)
+	header.add_theme_color_override("font_color", COL_MUTED)
+	header.position = Vector2(0, 0)
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(header)
+
+	# Bar background with border
+	var bar_border := ColorRect.new()
+	bar_border.color = COL_PANEL_BORDER
+	bar_border.position = Vector2(0, 11)
+	bar_border.size = Vector2(APPROVAL_BAR_W + 4, APPROVAL_BAR_H + 4)
+	bar_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(bar_border)
+
+	_approval_bar_bg = ColorRect.new()
+	_approval_bar_bg.color = COL_BAR_BG
+	_approval_bar_bg.position = Vector2(2, 13)
+	_approval_bar_bg.size = Vector2(APPROVAL_BAR_W, APPROVAL_BAR_H)
+	_approval_bar_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(_approval_bar_bg)
+
+	_approval_bar_fill = ColorRect.new()
+	_approval_bar_fill.color = COL_APPROVAL_FULL
+	_approval_bar_fill.position = Vector2(2, 13)
+	_approval_bar_fill.size = Vector2(APPROVAL_BAR_W, APPROVAL_BAR_H)
+	_approval_bar_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(_approval_bar_fill)
+
+	_approval_label = Label.new()
+	_approval_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_approval_label.position = Vector2(2, 12)
+	_approval_label.size = Vector2(APPROVAL_BAR_W, APPROVAL_BAR_H + 2)
+	_approval_label.add_theme_font_size_override("font_size", 8)
+	_approval_label.add_theme_color_override("font_color", Color.WHITE)
+	_approval_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(_approval_label)
+
+
+# ---------------------------------------------------------------------------
+# Wave circle (top-right)
+# ---------------------------------------------------------------------------
+
+func _create_wave_circle() -> void:
+	# 60px circle, inset from top-right corner
+	const CIRCLE_SIZE := 60
+	const CIRCLE_HALF := CIRCLE_SIZE / 2
+
+	_wave_circle_container = Control.new()
+	_wave_circle_container.position = Vector2(876, 10)
+	_wave_circle_container.custom_minimum_size = Vector2(CIRCLE_SIZE + 8, CIRCLE_SIZE + 28)
+	_wave_circle_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_wave_circle_container)
+
+	# Per-wave portrait (left of circle)
+	_wave_portrait = TextureRect.new()
+	_wave_portrait.position = Vector2(-8, 14)
+	_wave_portrait.custom_minimum_size = Vector2(32, 32)
+	_wave_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_wave_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_wave_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_wave_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wave_circle_container.add_child(_wave_portrait)
+
+	# Progress ring (drawn behind circle, slightly larger)
+	_wave_progress_ring = Control.new()
+	_wave_progress_ring.position = Vector2(16, 0)
+	_wave_progress_ring.custom_minimum_size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
+	_wave_progress_ring.size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
+	_wave_progress_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wave_progress_ring.draw.connect(_draw_progress_ring)
+	_wave_circle_container.add_child(_wave_progress_ring)
+
+	# Circle background — starts as fallback rust, replaced by portrait on first wave
+	_wave_circle_tex = TextureRect.new()
+	_wave_circle_tex.texture = _make_fallback_circle()
+	_wave_circle_tex.position = Vector2(16, 0)
+	_wave_circle_tex.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_wave_circle_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wave_circle_container.add_child(_wave_circle_tex)
+
+	# Wave number centered in circle
+	_wave_number_label = Label.new()
+	_wave_number_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_wave_number_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_wave_number_label.position = Vector2(16, 0)
+	_wave_number_label.size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
+	_wave_number_label.add_theme_font_size_override("font_size", 20)
+	_wave_number_label.add_theme_color_override("font_color", Color.WHITE)
+	if _blackletter_font:
+		_wave_number_label.add_theme_font_override("font", _blackletter_font)
+	_wave_number_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wave_circle_container.add_child(_wave_number_label)
+
+	# Manifestation name above wave name (right-aligned)
+	_manifestation_name_label = Label.new()
+	_manifestation_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_manifestation_name_label.position = Vector2(-68, CIRCLE_SIZE + 2)
+	_manifestation_name_label.size = Vector2(144, 10)
+	_manifestation_name_label.add_theme_font_size_override("font_size", 6)
+	_manifestation_name_label.add_theme_color_override("font_color", COL_MUTED)
+	_manifestation_name_label.clip_text = true
+	_manifestation_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wave_circle_container.add_child(_manifestation_name_label)
+
+	# Wave name below manifestation name (right-aligned)
+	_wave_name_label = Label.new()
+	_wave_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_wave_name_label.position = Vector2(-68, CIRCLE_SIZE + 12)
+	_wave_name_label.size = Vector2(144, 12)
+	_wave_name_label.add_theme_font_size_override("font_size", 7)
+	_wave_name_label.add_theme_color_override("font_color", COL_AMBER)
+	_wave_name_label.clip_text = true
+	_wave_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wave_circle_container.add_child(_wave_name_label)
+
+
+# ---------------------------------------------------------------------------
+# Speed controls (top-right, below wave circle)
+# ---------------------------------------------------------------------------
+
+func _create_speed_controls() -> void:
+	_speed_container = HBoxContainer.new()
+	_speed_container.position = Vector2(896, 84)
+	_speed_container.add_theme_constant_override("separation", 2)
+
+	for pair: Array in [["1x", Enums.GameSpeed.NORMAL], ["2x", Enums.GameSpeed.FAST], ["3x", Enums.GameSpeed.ULTRA]]:
+		var btn := Button.new()
+		btn.text = pair[0]
+		btn.custom_minimum_size = Vector2(24, 16)
+		btn.pressed.connect(GameManager.set_speed.bind(pair[1]))
+
+		# Brutalist styling
+		for state in ["normal", "hover", "pressed", "disabled"]:
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = COL_PANEL_BG if state != "pressed" else COL_RUST
+			sb.bg_color = sb.bg_color if state != "hover" else Color("#252528")
+			sb.border_color = COL_CARD_BORDER
+			sb.set_border_width_all(1)
+			sb.set_corner_radius_all(0)
+			sb.content_margin_left = 2
+			sb.content_margin_right = 2
+			sb.content_margin_top = 1
+			sb.content_margin_bottom = 1
+			btn.add_theme_stylebox_override(state, sb)
+
+		btn.add_theme_font_size_override("font_size", 8)
+		btn.add_theme_color_override("font_color", Color.WHITE)
+		_speed_buttons.append(btn)
+		_speed_container.add_child(btn)
+
+	add_child(_speed_container)
+
+
+# ---------------------------------------------------------------------------
+# Center banners (wave complete, streak, last stand)
+# ---------------------------------------------------------------------------
+
+func _create_center_banners() -> void:
 	_wave_banner = Label.new()
 	_wave_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_wave_banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_wave_banner.anchors_preset = Control.PRESET_CENTER
+	_wave_banner.set_anchors_preset(Control.PRESET_CENTER)
 	_wave_banner.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_wave_banner.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_wave_banner.add_theme_font_size_override("font_size", 16)
-	_wave_banner.add_theme_color_override("font_color", Color("#A0D8A0"))
+	_wave_banner.add_theme_color_override("font_color", COL_GREEN)
 	if _blackletter_font:
 		_wave_banner.add_theme_font_override("font", _blackletter_font)
 	_wave_banner.modulate.a = 0.0
 	_wave_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_wave_banner)
 
-	# Streak counter
 	_streak_label = Label.new()
 	_streak_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_streak_label.anchors_preset = Control.PRESET_CENTER_TOP
+	_streak_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_streak_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_streak_label.offset_top = 22.0
 	_streak_label.add_theme_font_size_override("font_size", 9)
@@ -88,62 +351,120 @@ func _create_engagement_ui() -> void:
 	_streak_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_streak_label)
 
-	# Last stand
 	_last_stand_label = Label.new()
 	_last_stand_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_last_stand_label.anchors_preset = Control.PRESET_CENTER_TOP
+	_last_stand_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_last_stand_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_last_stand_label.offset_top = 34.0
 	_last_stand_label.add_theme_font_size_override("font_size", 10)
-	_last_stand_label.add_theme_color_override("font_color", Color("#D04040"))
+	_last_stand_label.add_theme_color_override("font_color", COL_RED)
 	if _blackletter_font:
 		_last_stand_label.add_theme_font_override("font", _blackletter_font)
 	_last_stand_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_last_stand_label)
 
-	# Speed buttons
-	var speed_box := HBoxContainer.new()
-	speed_box.add_theme_constant_override("separation", 1)
-	for pair: Array in [["1x", Enums.GameSpeed.NORMAL], ["2x", Enums.GameSpeed.FAST], ["3x", Enums.GameSpeed.ULTRA]]:
-		var btn := Button.new()
-		btn.text = pair[0]
-		btn.custom_minimum_size = Vector2(22, 16)
-		btn.pressed.connect(GameManager.set_speed.bind(pair[1]))
-		speed_box.add_child(btn)
-	$TopBar.add_child(speed_box)
 
-	# Send wave button
+# ---------------------------------------------------------------------------
+# Send wave button
+# ---------------------------------------------------------------------------
+
+func _create_send_wave_btn() -> void:
 	_send_wave_btn = Button.new()
 	_send_wave_btn.text = "SEND WAVE"
-	_send_wave_btn.custom_minimum_size = Vector2(80, 20)
-	_send_wave_btn.anchors_preset = Control.PRESET_CENTER_BOTTOM
+	_send_wave_btn.custom_minimum_size = Vector2(90, 22)
+	_send_wave_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_send_wave_btn.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_send_wave_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_send_wave_btn.offset_top = -52.0
+	_send_wave_btn.offset_top = -54.0
 	_send_wave_btn.offset_bottom = -32.0
-	_send_wave_btn.offset_left = -40.0
-	_send_wave_btn.offset_right = 40.0
+	_send_wave_btn.offset_left = -45.0
+	_send_wave_btn.offset_right = 45.0
 	_send_wave_btn.visible = false
 	_send_wave_btn.pressed.connect(_on_send_wave_pressed)
+
+	# Brutalist button style
+	for state in ["normal", "hover", "pressed"]:
+		var sb := StyleBoxFlat.new()
+		sb.set_corner_radius_all(0)
+		sb.border_color = COL_RUST if state == "normal" else Color("#C04820")
+		sb.set_border_width_all(2)
+		sb.content_margin_left = 8
+		sb.content_margin_right = 8
+		sb.content_margin_top = 2
+		sb.content_margin_bottom = 2
+		match state:
+			"normal": sb.bg_color = Color("#1A1A1E")
+			"hover": sb.bg_color = Color("#252528")
+			"pressed": sb.bg_color = COL_RUST
+		_send_wave_btn.add_theme_stylebox_override(state, sb)
+
+	_send_wave_btn.add_theme_font_size_override("font_size", 9)
+	_send_wave_btn.add_theme_color_override("font_color", Color.WHITE)
+	if _blackletter_font:
+		_send_wave_btn.add_theme_font_override("font", _blackletter_font)
 	add_child(_send_wave_btn)
 
-	# Wave preview (top right)
-	_wave_preview_label = Label.new()
-	_wave_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_wave_preview_label.anchors_preset = Control.PRESET_TOP_RIGHT
-	_wave_preview_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_wave_preview_label.offset_top = 20.0
-	_wave_preview_label.offset_right = -4.0
-	_wave_preview_label.offset_left = -160.0
-	_wave_preview_label.add_theme_font_size_override("font_size", 8)
-	_wave_preview_label.add_theme_color_override("font_color", Color("#808898"))
-	_wave_preview_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_wave_preview_label)
 
-	# Game over overlay
+# ---------------------------------------------------------------------------
+# Cancel build button
+# ---------------------------------------------------------------------------
+
+func _create_cancel_build_btn() -> void:
+	_cancel_build_btn = Button.new()
+	_cancel_build_btn.text = "X"
+	_cancel_build_btn.custom_minimum_size = Vector2(28, 28)
+	_cancel_build_btn.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_cancel_build_btn.grow_horizontal = Control.GROW_DIRECTION_END
+	_cancel_build_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_cancel_build_btn.offset_left = 4.0
+	_cancel_build_btn.offset_bottom = -34.0
+	_cancel_build_btn.offset_top = -62.0
+	_cancel_build_btn.offset_right = 32.0
+	_cancel_build_btn.visible = false
+	_cancel_build_btn.pressed.connect(func(): SignalBus.build_mode_exited.emit())
+
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = COL_PANEL_BG
+	sb.border_color = COL_RUST
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(0)
+	sb.content_margin_left = 4
+	sb.content_margin_right = 4
+	sb.content_margin_top = 2
+	sb.content_margin_bottom = 2
+	_cancel_build_btn.add_theme_stylebox_override("normal", sb)
+
+	add_child(_cancel_build_btn)
+
+
+# ---------------------------------------------------------------------------
+# Kill counter
+# ---------------------------------------------------------------------------
+
+func _create_kill_counter() -> void:
+	_kill_counter_label = Label.new()
+	_kill_counter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_kill_counter_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_kill_counter_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_kill_counter_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_kill_counter_label.offset_right = -4.0
+	_kill_counter_label.offset_bottom = -32.0
+	_kill_counter_label.offset_left = -120.0
+	_kill_counter_label.add_theme_font_size_override("font_size", 8)
+	_kill_counter_label.add_theme_color_override("font_color", COL_GREEN)
+	_kill_counter_label.visible = false
+	_kill_counter_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_kill_counter_label)
+
+
+# ---------------------------------------------------------------------------
+# Game over overlay
+# ---------------------------------------------------------------------------
+
+func _create_game_over_overlay() -> void:
 	_game_over_overlay = ColorRect.new()
 	_game_over_overlay.color = Color(0.0, 0.0, 0.0, 0.65)
-	_game_over_overlay.anchors_preset = Control.PRESET_FULL_RECT
+	_game_over_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_game_over_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	_game_over_overlay.visible = false
 	add_child(_game_over_overlay)
@@ -151,7 +472,7 @@ func _create_engagement_ui() -> void:
 	_game_over_label = Label.new()
 	_game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_game_over_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_game_over_label.anchors_preset = Control.PRESET_CENTER
+	_game_over_label.set_anchors_preset(Control.PRESET_CENTER)
 	_game_over_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_game_over_label.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_game_over_label.offset_top = -30.0
@@ -163,7 +484,7 @@ func _create_engagement_ui() -> void:
 	_restart_btn = Button.new()
 	_restart_btn.text = "RESTART"
 	_restart_btn.custom_minimum_size = Vector2(100, 28)
-	_restart_btn.anchors_preset = Control.PRESET_CENTER
+	_restart_btn.set_anchors_preset(Control.PRESET_CENTER)
 	_restart_btn.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_restart_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_restart_btn.offset_top = 10.0
@@ -173,21 +494,207 @@ func _create_engagement_ui() -> void:
 	_restart_btn.pressed.connect(_on_restart_pressed)
 	_game_over_overlay.add_child(_restart_btn)
 
-	# Kill counter
-	_kill_counter_label = Label.new()
-	_kill_counter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_kill_counter_label.anchors_preset = Control.PRESET_BOTTOM_RIGHT
-	_kill_counter_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_kill_counter_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_kill_counter_label.offset_right = -4.0
-	_kill_counter_label.offset_bottom = -32.0
-	_kill_counter_label.offset_left = -120.0
-	_kill_counter_label.add_theme_font_size_override("font_size", 8)
-	_kill_counter_label.add_theme_color_override("font_color", Color("#A0D8A0"))
-	_kill_counter_label.visible = false
-	_kill_counter_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_kill_counter_label)
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+func _make_panel_stylebox(padding: int = 6) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(COL_PANEL_BG.r, COL_PANEL_BG.g, COL_PANEL_BG.b, 0.9)
+	sb.border_color = COL_PANEL_BORDER
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(0)
+	sb.content_margin_left = padding
+	sb.content_margin_right = padding
+	sb.content_margin_top = padding
+	sb.content_margin_bottom = padding
+	return sb
+
+
+func _update_budget_display(old_amount: int, new_amount: int) -> void:
+	_budget_value_label.text = "$" + str(new_amount)
+
+	# Pulse scale
+	if _budget_tween:
+		_budget_tween.kill()
+	_budget_tween = create_tween()
+	_budget_panel.pivot_offset = _budget_panel.size / 2.0
+	_budget_tween.tween_property(_budget_panel, "scale", Vector2(1.12, 1.12), 0.08)
+	_budget_tween.tween_property(_budget_panel, "scale", Vector2(1.0, 1.0), 0.08)
+
+	# Float change text
+	var diff := new_amount - old_amount
+	if diff != 0:
+		_budget_change_label.text = ("+" if diff > 0 else "") + str(diff)
+		_budget_change_label.add_theme_color_override("font_color", COL_GREEN if diff > 0 else COL_RED)
+		_budget_change_label.modulate.a = 1.0
+		_budget_change_label.position.y = 52.0
+		var ft := create_tween()
+		ft.set_parallel(true)
+		ft.tween_property(_budget_change_label, "position:y", 38.0, 0.6)
+		ft.tween_property(_budget_change_label, "modulate:a", 0.0, 0.6).set_delay(0.2)
+
+
+func _update_approval_bar(lives: int) -> void:
+	var ratio := float(lives) / float(_max_approval) if _max_approval > 0 else 0.0
+	ratio = clampf(ratio, 0.0, 1.0)
+	var target_w := ratio * APPROVAL_BAR_W
+
+	# Color lerp green → red
+	_approval_bar_fill.color = COL_APPROVAL_FULL.lerp(COL_APPROVAL_LOW, 1.0 - ratio)
+
+	# Smooth tween
+	if _approval_tween:
+		_approval_tween.kill()
+	_approval_tween = create_tween()
+	_approval_tween.tween_property(_approval_bar_fill, "size:x", target_w, 0.3) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
+	_approval_label.text = str(lives) + "/" + str(_max_approval)
+
+	# Pulse red at critical
+	if lives <= 2 and lives > 0:
+		if _lives_pulse_tween:
+			_lives_pulse_tween.kill()
+		_lives_pulse_tween = create_tween().set_loops()
+		_lives_pulse_tween.tween_property(_approval_bar_fill, "modulate", Color(1.5, 0.6, 0.6), 0.3)
+		_lives_pulse_tween.tween_property(_approval_bar_fill, "modulate", Color.WHITE, 0.3)
+	elif _lives_pulse_tween:
+		_lives_pulse_tween.kill()
+		_lives_pulse_tween = null
+		_approval_bar_fill.modulate = Color.WHITE
+
+
+func _make_fallback_circle() -> ImageTexture:
+	const SIZE := 60
+	const HALF := SIZE / 2
+	var img := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
+	var center := Vector2(HALF, HALF)
+	var radius := HALF - 5.0
+	for y in SIZE:
+		for x in SIZE:
+			var dist := Vector2(x, y).distance_to(center)
+			if dist <= radius:
+				img.set_pixel(x, y, COL_RUST)
+			elif dist <= radius + 1.0:
+				var edge_alpha := 1.0 - (dist - radius)
+				img.set_pixel(x, y, Color(COL_RUST.r, COL_RUST.g, COL_RUST.b, edge_alpha))
+	return ImageTexture.create_from_image(img)
+
+
+func _make_circle_portrait(portrait_tex: Texture2D) -> ImageTexture:
+	const SIZE := 60
+	const HALF := SIZE / 2
+	var radius := HALF - 5.0
+	var center := Vector2(HALF, HALF)
+
+	# Get portrait image and resize to fill circle area
+	var src := portrait_tex.get_image()
+	if not src:
+		return _make_fallback_circle()
+	src = src.duplicate()
+	var fill := int(radius * 2)
+	src.resize(fill, fill, Image.INTERPOLATE_NEAREST)
+
+	var img := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
+	var offset := HALF - fill / 2
+
+	for y in SIZE:
+		for x in SIZE:
+			var dist := Vector2(x, y).distance_to(center)
+			if dist <= radius:
+				var sx := x - offset
+				var sy := y - offset
+				if sx >= 0 and sx < fill and sy >= 0 and sy < fill:
+					var col := src.get_pixel(sx, sy)
+					if dist > radius - 1.0:
+						col.a *= (radius - dist + 1.0)
+					img.set_pixel(x, y, col)
+				else:
+					img.set_pixel(x, y, COL_RUST)
+			elif dist <= radius + 1.0:
+				var edge_alpha := 1.0 - (dist - radius)
+				img.set_pixel(x, y, Color(COL_RUST.r, COL_RUST.g, COL_RUST.b, edge_alpha))
+
+	return ImageTexture.create_from_image(img)
+
+
+func _update_wave_circle(wave_number: int) -> void:
+	_wave_number_label.text = str(wave_number)
+
+	var wave_name := WaveNames.get_wave_name(wave_number)
+	var leader_id := WaveNames.get_wave_leader(wave_number)
+	_wave_name_label.text = wave_name
+
+	# Manifestation name
+	_manifestation_name_label.text = WaveNames.get_manifestation_name(wave_number)
+
+	# Update circle portrait when manifestation leader changes
+	var manif_leader := WaveNames.get_manifestation_leader_id(wave_number)
+	if manif_leader != _current_manifestation_leader:
+		_current_manifestation_leader = manif_leader
+		var manif_tex := ThemeManager.get_wave_portrait(manif_leader)
+		if manif_tex:
+			_wave_circle_tex.texture = _make_circle_portrait(manif_tex)
+		else:
+			_wave_circle_tex.texture = _make_fallback_circle()
+
+	# Compute total enemies for this wave
+	_wave_gone = 0
+	_wave_total = 0
+	var wave_idx := wave_number - 1
+	if wave_idx >= 0 and wave_idx < WaveManager.waves.size():
+		var wave_data: WaveData = WaveManager.waves[wave_idx]
+		for seq in wave_data.spawn_sequences:
+			_wave_total += seq.count
+	_wave_progress_ring.queue_redraw()
+
+	# Per-wave small portrait (left of circle)
+	var portrait_tex := ThemeManager.get_wave_portrait(leader_id)
+	if portrait_tex:
+		_wave_portrait.texture = portrait_tex
+	else:
+		_wave_portrait.texture = null
+
+	# Bounce tween
+	_wave_circle_tex.pivot_offset = Vector2(30, 30)
+	_wave_number_label.pivot_offset = _wave_number_label.size / 2.0
+	var bt := create_tween()
+	bt.tween_property(_wave_circle_tex, "scale", Vector2(1.15, 1.15), 0.1)
+	bt.tween_property(_wave_circle_tex, "scale", Vector2(1.0, 1.0), 0.15) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+
+func _draw_progress_ring() -> void:
+	# Draw a circular arc showing wave progress (enemies gone / total)
+	var center := Vector2(30, 30)  # half of 60px circle
+	var outer_r := 29.0
+	var ring_width := 3.0
+	var point_count := 64
+
+	# Background track (dark ring)
+	_wave_progress_ring.draw_arc(center, outer_r, 0.0, TAU, point_count, Color("#2A2A30"), ring_width, true)
+
+	if _wave_total <= 0:
+		return
+
+	var ratio := clampf(float(_wave_gone) / float(_wave_total), 0.0, 1.0)
+	if ratio <= 0.0:
+		return
+
+	# Progress arc — starts at top (-PI/2), sweeps clockwise
+	var start_angle := -PI / 2.0
+	var end_angle := start_angle + TAU * ratio
+
+	# Color: lerp from amber to green as wave clears
+	var arc_color := COL_AMBER.lerp(COL_GREEN, ratio)
+	_wave_progress_ring.draw_arc(center, outer_r, start_angle, end_angle, point_count, arc_color, ring_width, true)
+
+
+# ---------------------------------------------------------------------------
+# Process
+# ---------------------------------------------------------------------------
 
 func _process(_delta: float) -> void:
 	var timer := WaveManager.get_between_wave_timer()
@@ -199,20 +706,24 @@ func _process(_delta: float) -> void:
 		_send_wave_btn.visible = false
 
 
+# ---------------------------------------------------------------------------
+# Signal handlers
+# ---------------------------------------------------------------------------
+
 func _on_gold_changed(amount: int) -> void:
+	var old := _budget
 	_budget = amount
-	_refresh_info()
+	_update_budget_display(old, amount)
 
 
 func _on_lives_changed(amount: int) -> void:
 	_approval = amount
-	_refresh_info()
+	_update_approval_bar(amount)
 
 
 func _on_wave_started(wave_number: int) -> void:
 	_incident = wave_number
-	_refresh_info()
-	_update_wave_preview()
+	_update_wave_circle(wave_number)
 
 
 func _on_wave_completed(wave_number: int) -> void:
@@ -221,42 +732,79 @@ func _on_wave_completed(wave_number: int) -> void:
 
 func _on_enemies_remaining(count: int) -> void:
 	_active_count = count
-	_refresh_info()
 
 
 func _on_speed_changed(speed: Enums.GameSpeed) -> void:
-	match speed:
-		Enums.GameSpeed.PAUSED:
-			speed_label.text = "STANDBY"
-		Enums.GameSpeed.NORMAL:
-			speed_label.text = "1x"
-		Enums.GameSpeed.FAST:
-			speed_label.text = "2x"
-		Enums.GameSpeed.ULTRA:
-			speed_label.text = "3x"
+	# Highlight active speed button
+	for i in _speed_buttons.size():
+		var btn := _speed_buttons[i]
+		var is_active := false
+		match i:
+			0: is_active = speed == Enums.GameSpeed.NORMAL
+			1: is_active = speed == Enums.GameSpeed.FAST
+			2: is_active = speed == Enums.GameSpeed.ULTRA
+
+		if is_active:
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = COL_RUST
+			sb.border_color = COL_RUST
+			sb.set_border_width_all(1)
+			sb.set_corner_radius_all(0)
+			sb.content_margin_left = 2
+			sb.content_margin_right = 2
+			sb.content_margin_top = 1
+			sb.content_margin_bottom = 1
+			btn.add_theme_stylebox_override("normal", sb)
+		else:
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = COL_PANEL_BG
+			sb.border_color = COL_CARD_BORDER
+			sb.set_border_width_all(1)
+			sb.set_corner_radius_all(0)
+			sb.content_margin_left = 2
+			sb.content_margin_right = 2
+			sb.content_margin_top = 1
+			sb.content_margin_bottom = 1
+			btn.add_theme_stylebox_override("normal", sb)
 
 
 func _on_game_over(victory: bool) -> void:
-	if victory:
-		_game_over_label.text = "ORDER RESTORED"
-		_game_over_label.add_theme_color_override("font_color", Color("#A0D8A0"))
-	else:
-		_game_over_label.text = "REGIME CHANGE"
-		_game_over_label.add_theme_color_override("font_color", Color("#D04040"))
-	_game_over_overlay.visible = true
 	_send_wave_btn.visible = false
 	_kill_counter_label.visible = false
+
+	if victory:
+		_game_over_label.text = "ORDER RESTORED"
+		_game_over_label.add_theme_color_override("font_color", COL_GREEN)
+		_game_over_label.add_theme_font_size_override("font_size", 24)
+		_game_over_overlay.visible = true
+	else:
+		_game_over_label.text = "REGIME CHANGE"
+		_game_over_label.add_theme_color_override("font_color", COL_RED)
+		_game_over_label.add_theme_font_size_override("font_size", 36)
+		_game_over_overlay.color = Color(0.0, 0.0, 0.0, 0.0)
+		_game_over_overlay.visible = true
+		_game_over_label.modulate.a = 0.0
+		_restart_btn.modulate.a = 0.0
+		var tween := create_tween()
+		tween.tween_property(_game_over_overlay, "color:a", 0.75, 1.2) \
+			.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+		tween.tween_property(_game_over_label, "modulate:a", 1.0, 0.8) \
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		tween.tween_property(_restart_btn, "modulate:a", 1.0, 0.5) \
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
 	_build_post_game_ui(victory)
 
 
 # -- Engagement handlers --
 
 func _show_wave_banner(wave_number: int) -> void:
-	_wave_banner.text = "INCIDENT " + str(wave_number) + " CONTAINED"
+	var wave_name := WaveNames.get_wave_name(wave_number)
+	_wave_banner.text = wave_name + " CONTAINED"
 	if WaveManager.perfect_streak > 0:
-		_wave_banner.add_theme_color_override("font_color", Color("#D8A040"))
+		_wave_banner.add_theme_color_override("font_color", COL_AMBER)
 	else:
-		_wave_banner.add_theme_color_override("font_color", Color("#A0D8A0"))
+		_wave_banner.add_theme_color_override("font_color", COL_GREEN)
 	if _banner_tween:
 		_banner_tween.kill()
 	_banner_tween = create_tween()
@@ -272,12 +820,12 @@ func _on_streak_changed(count: int) -> void:
 		return
 	_streak_label.text = "ZERO TOLERANCE: " + str(count)
 	if count >= 5:
-		_streak_label.add_theme_color_override("font_color", Color("#D8A040"))
+		_streak_label.add_theme_color_override("font_color", COL_AMBER)
 		var tween := create_tween().set_loops()
 		tween.tween_property(_streak_label, "modulate:a", 0.5, 0.5)
 		tween.tween_property(_streak_label, "modulate:a", 1.0, 0.5)
 	elif count >= 3:
-		_streak_label.add_theme_color_override("font_color", Color("#D8A040"))
+		_streak_label.add_theme_color_override("font_color", COL_AMBER)
 		_streak_label.modulate.a = 1.0
 	else:
 		_streak_label.add_theme_color_override("font_color", Color.WHITE)
@@ -286,36 +834,16 @@ func _on_streak_changed(count: int) -> void:
 
 func _on_last_stand_entered() -> void:
 	_last_stand_label.text = "MARTIAL LAW"
+	# Pulse the approval bar red instead of the old info_label
 	if _lives_pulse_tween:
 		_lives_pulse_tween.kill()
 	_lives_pulse_tween = create_tween().set_loops()
-	_lives_pulse_tween.tween_property(info_label, "modulate", Color("#D04040"), 0.4)
-	_lives_pulse_tween.tween_property(info_label, "modulate", Color.WHITE, 0.4)
+	_lives_pulse_tween.tween_property(_approval_bar_fill, "modulate", Color(2.0, 0.4, 0.4), 0.4)
+	_lives_pulse_tween.tween_property(_approval_bar_fill, "modulate", Color.WHITE, 0.4)
 
 
 func _on_send_wave_pressed() -> void:
 	WaveManager.call_next_wave()
-
-
-func _update_wave_preview() -> void:
-	var preview := ""
-	var idx := WaveManager.current_wave_index
-	for offset in [1, 2]:
-		var i: int = idx + offset
-		if i >= WaveManager.waves.size():
-			break
-		var wave: WaveData = WaveManager.waves[i]
-		preview += "Inc " + str(wave.wave_number) + ": "
-		var counts: Dictionary = {}
-		for seq in wave.spawn_sequences:
-			if seq.enemy_data:
-				var n := seq.enemy_data.get_display_name()
-				counts[n] = counts.get(n, 0) + seq.count
-		var parts: Array[String] = []
-		for enemy_name in counts:
-			parts.append(str(counts[enemy_name]) + "x " + enemy_name)
-		preview += ", ".join(parts) + "\n"
-	_wave_preview_label.text = preview.strip_edges()
 
 
 func _on_restart_pressed() -> void:
@@ -326,7 +854,7 @@ func _on_streak_broken(old_streak: int) -> void:
 	if old_streak <= 0:
 		return
 	_streak_label.text = "ZERO TOLERANCE: BROKEN"
-	_streak_label.add_theme_color_override("font_color", Color("#D04040"))
+	_streak_label.add_theme_color_override("font_color", COL_RED)
 	var tween := create_tween()
 	_streak_label.pivot_offset = _streak_label.size / 2.0
 	tween.tween_property(_streak_label, "scale", Vector2(1.3, 1.3), 0.1)
@@ -353,8 +881,15 @@ func _on_tower_deselected_hud() -> void:
 
 
 func _on_enemy_killed_hud(_enemy: Node2D, _gold: int) -> void:
+	_wave_gone += 1
+	_wave_progress_ring.queue_redraw()
 	if _selected_tower_ref and is_instance_valid(_selected_tower_ref):
 		call_deferred("_update_kill_counter")
+
+
+func _on_enemy_leaked_hud(_enemy: Node2D, _lives_cost: int) -> void:
+	_wave_gone += 1
+	_wave_progress_ring.queue_redraw()
 
 
 func _update_kill_counter() -> void:
@@ -382,7 +917,7 @@ func _on_tower_kill_milestone(tower: Node2D, kc: int) -> void:
 		return
 	var tname: String = tower.tower_data.get_display_name() if tower.tower_data else "Unit"
 	_wave_banner.text = tname + ": " + _get_kill_title(kc)
-	_wave_banner.add_theme_color_override("font_color", Color("#D8A040"))
+	_wave_banner.add_theme_color_override("font_color", COL_AMBER)
 	if _banner_tween:
 		_banner_tween.kill()
 	_banner_tween = create_tween()
@@ -400,7 +935,7 @@ func _build_post_game_ui(victory: bool) -> void:
 
 	var stats_label := Label.new()
 	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stats_label.anchors_preset = Control.PRESET_CENTER
+	stats_label.set_anchors_preset(Control.PRESET_CENTER)
 	stats_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	stats_label.grow_vertical = Control.GROW_DIRECTION_BOTH
 	stats_label.offset_top = 50.0
@@ -435,10 +970,20 @@ func _build_post_game_ui(victory: bool) -> void:
 			var ename: String = last.get("name", "agitator")
 			var what_if := Label.new()
 			what_if.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			what_if.anchors_preset = Control.PRESET_CENTER
+			what_if.set_anchors_preset(Control.PRESET_CENTER)
 			what_if.grow_horizontal = Control.GROW_DIRECTION_BOTH
 			what_if.offset_top = 80.0
 			what_if.add_theme_font_size_override("font_size", 9)
-			what_if.add_theme_color_override("font_color", Color("#D8A040"))
+			what_if.add_theme_color_override("font_color", COL_AMBER)
 			what_if.text = "Last " + ename + " escaped with " + str(hp) + " HP"
 			_game_over_overlay.add_child(what_if)
+
+
+func _on_build_mode_entered_hud(_tower_data: TowerData) -> void:
+	if _cancel_build_btn:
+		_cancel_build_btn.visible = true
+
+
+func _on_build_mode_exited_hud() -> void:
+	if _cancel_build_btn:
+		_cancel_build_btn.visible = false

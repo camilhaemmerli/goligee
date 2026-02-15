@@ -42,6 +42,10 @@ signal send_wave_bonus(gold_bonus: int)
 signal streak_broken(old_streak: int)
 signal tower_kill_milestone(tower: Node2D, kill_count: int)
 
+# -- Presidential Briefing --
+signal presidential_briefing_requested(wave_number: int)
+signal presidential_briefing_dismissed()
+
 # -- UI --
 signal tower_selected(tower: Node2D)
 signal tower_deselected()

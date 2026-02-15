@@ -143,6 +143,10 @@
 
 ---
 
+| ![TD Diorama Zoom](reference-td-diorama-zoomout.webp) **Tower Defense Diorama (Zoom Reference)** | Zoomed-out isometric TD with compact miniature towers, visible grid on buildable zones, dark vignette around playfield, diorama/tabletop feel. Key takeaway: towers should be small relative to tiles, many more tiles visible at once |
+
+---
+
 ## Mood Keywords
 `urban` `concrete` `oppressive` `smoky` `authoritarian` `dystopian`
 `institutional` `harsh` `propaganda` `surveillance` `post-soviet`

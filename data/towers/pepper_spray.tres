@@ -1,23 +1,23 @@
-[gd_resource type="Resource" script_class="TowerData" load_steps=25 format=3]
+[gd_resource type="Resource" script_class="TowerData" load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/tower_data.gd" id="1_td"]
 [ext_resource type="PackedScene" path="res://scenes/towers/base_tower.tscn" id="2_scene"]
-[ext_resource type="PackedScene" path="res://scenes/projectiles/base_projectile.tscn" id="3_proj"]
+[ext_resource type="PackedScene" path="res://scenes/projectiles/pepper_spray_projectile.tscn" id="3_proj"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_path_data.gd" id="4_upd"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_tier_data.gd" id="5_utd"]
 [ext_resource type="Script" path="res://scripts/resources/stat_modifier_data.gd" id="6_smd"]
 [ext_resource type="Script" path="res://scripts/resources/status_effect_data.gd" id="7_sed"]
 
-; -- Base on-hit: BURN 8 DPS, 3s, 3 stacks --
+; -- Base on-hit: BURN 6 DPS, 3s, 3 stacks --
 [sub_resource type="Resource" id="burn_effect"]
 script = ExtResource("7_sed")
 effect_type = 3
 duration = 3.0
-potency = 8.0
+potency = 6.0
 stack_limit = 3
 apply_chance = 1.0
 
-; -- Path A "Concentrated Formula" --
+; -- Path A "Concentrated Formula" (damage) --
 [sub_resource type="Resource" id="mod_a1_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
@@ -28,7 +28,7 @@ value = 1.3
 script = ExtResource("5_utd")
 tier_name = "Extra Spicy"
 description = "Scoville rating: classified"
-cost = 175
+cost = 2
 stat_modifiers = [SubResource("mod_a1_dmg")]
 
 [sub_resource type="Resource" id="mod_a2_dmg"]
@@ -41,86 +41,153 @@ value = 1.4
 script = ExtResource("5_utd")
 tier_name = "Military Grade"
 description = "Geneva convention? More like Geneva suggestion"
-cost = 350
+cost = 4
 stat_modifiers = [SubResource("mod_a2_dmg")]
 
-[sub_resource type="Resource" id="path_a"]
-script = ExtResource("4_upd")
-path_name = "Concentrated Formula"
-description = "Increase spray potency"
-tiers = [SubResource("tier_a1"), SubResource("tier_a2")]
-
-; -- Path B "Wide Dispersal" --
-[sub_resource type="Resource" id="mod_b1_aoe"]
-script = ExtResource("6_smd")
-stat_name = "area_of_effect"
-operation = 0
-value = 0.5
-
-[sub_resource type="Resource" id="tier_b1"]
-script = ExtResource("5_utd")
-tier_name = "Fan Nozzle"
-description = "Wider coverage for crowd-sized problems"
-cost = 175
-stat_modifiers = [SubResource("mod_b1_aoe")]
-
-[sub_resource type="Resource" id="mod_b2_aoe"]
-script = ExtResource("6_smd")
-stat_name = "area_of_effect"
-operation = 0
-value = 0.5
-
-[sub_resource type="Resource" id="mod_b2_range"]
-script = ExtResource("6_smd")
-stat_name = "base_range"
-operation = 0
-value = 0.5
-
-[sub_resource type="Resource" id="tier_b2"]
-script = ExtResource("5_utd")
-tier_name = "Pressurized Tank"
-description = "Industrial-strength personal space enforcement"
-cost = 350
-stat_modifiers = [SubResource("mod_b2_aoe"), SubResource("mod_b2_range")]
-
-[sub_resource type="Resource" id="path_b"]
-script = ExtResource("4_upd")
-path_name = "Wide Dispersal"
-description = "Increase spray area and reach"
-tiers = [SubResource("tier_b1"), SubResource("tier_b2")]
-
-; -- Path C "Irritant Research" --
-[sub_resource type="Resource" id="mod_c1_dmg"]
-script = ExtResource("6_smd")
-stat_name = "base_damage"
-operation = 1
-value = 1.2
-
-[sub_resource type="Resource" id="tier_c1"]
-script = ExtResource("5_utd")
-tier_name = "Sensitizing Agent"
-description = "Makes everything worse, especially the burning"
-cost = 175
-stat_modifiers = [SubResource("mod_c1_dmg")]
-
-[sub_resource type="Resource" id="mod_c2_dmg"]
+[sub_resource type="Resource" id="mod_a3_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
 value = 1.3
 
+[sub_resource type="Resource" id="mod_a3_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="tier_a3"]
+script = ExtResource("5_utd")
+tier_name = "Capsaicin Concentrate"
+description = "Extracted from peppers grown in enriched soil. Don't ask what enriched means."
+cost = 6
+stat_modifiers = [SubResource("mod_a3_dmg"), SubResource("mod_a3_range")]
+
+[sub_resource type="Resource" id="mod_a4_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.4
+
+[sub_resource type="Resource" id="mod_a4_crit"]
+script = ExtResource("6_smd")
+stat_name = "crit_chance"
+operation = 0
+value = 0.05
+
+[sub_resource type="Resource" id="tier_a4"]
+script = ExtResource("5_utd")
+tier_name = "Weaponized Extract"
+description = "Pure capsaicin. One drop and they'll confess to anything."
+cost = 10
+stat_modifiers = [SubResource("mod_a4_dmg"), SubResource("mod_a4_crit")]
+
+[sub_resource type="Resource" id="mod_a5_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.5
+
+[sub_resource type="Resource" id="mod_a5_rate"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.2
+
+[sub_resource type="Resource" id="tier_a5"]
+script = ExtResource("5_utd")
+tier_name = "Obliterator Stream"
+description = "Fast, concentrated, and absolutely not up for debate at the ethics committee"
+cost = 16
+stat_modifiers = [SubResource("mod_a5_dmg"), SubResource("mod_a5_rate")]
+
+[sub_resource type="Resource" id="path_a"]
+script = ExtResource("4_upd")
+path_name = "Concentrated Formula"
+description = "Increase spray potency"
+tiers = [SubResource("tier_a1"), SubResource("tier_a2"), SubResource("tier_a3"), SubResource("tier_a4"), SubResource("tier_a5")]
+
+; -- Path C "Irritant Research" (burn potency focus) --
+[sub_resource type="Resource" id="burn_c1"]
+script = ExtResource("7_sed")
+effect_type = 3
+duration = 3.5
+potency = 12.0
+stack_limit = 3
+apply_chance = 1.0
+
+[sub_resource type="Resource" id="tier_c1"]
+script = ExtResource("5_utd")
+tier_name = "Sensitizing Agent"
+description = "Makes everything worse, especially the burning"
+cost = 2
+unlocks_ability = SubResource("burn_c1")
+
+[sub_resource type="Resource" id="burn_c2"]
+script = ExtResource("7_sed")
+effect_type = 3
+duration = 4.0
+potency = 16.0
+stack_limit = 4
+apply_chance = 1.0
+
 [sub_resource type="Resource" id="tier_c2"]
 script = ExtResource("5_utd")
 tier_name = "Inflammatory Compound"
 description = "Technically legal in 3 jurisdictions"
-cost = 350
-stat_modifiers = [SubResource("mod_c2_dmg")]
+cost = 4
+unlocks_ability = SubResource("burn_c2")
+
+[sub_resource type="Resource" id="burn_c3"]
+script = ExtResource("7_sed")
+effect_type = 3
+duration = 4.0
+potency = 18.0
+stack_limit = 4
+apply_chance = 1.0
+
+[sub_resource type="Resource" id="tier_c3"]
+script = ExtResource("5_utd")
+tier_name = "Thermobaric Irritant"
+description = "Burns so hot it files its own incident report"
+cost = 6
+unlocks_ability = SubResource("burn_c3")
+
+[sub_resource type="Resource" id="burn_c4"]
+script = ExtResource("7_sed")
+effect_type = 3
+duration = 4.5
+potency = 22.0
+stack_limit = 5
+apply_chance = 1.0
+
+[sub_resource type="Resource" id="tier_c4"]
+script = ExtResource("5_utd")
+tier_name = "Exothermic Compound"
+description = "Self-heating formula. No external ignition required."
+cost = 10
+unlocks_ability = SubResource("burn_c4")
+
+[sub_resource type="Resource" id="burn_c5"]
+script = ExtResource("7_sed")
+effect_type = 3
+duration = 5.0
+potency = 28.0
+stack_limit = 6
+apply_chance = 1.0
+
+[sub_resource type="Resource" id="tier_c5"]
+script = ExtResource("5_utd")
+tier_name = "Hellfire Formula"
+description = "The fire department refuses to respond. The chaplain has been notified."
+cost = 16
+unlocks_ability = SubResource("burn_c5")
 
 [sub_resource type="Resource" id="path_c"]
 script = ExtResource("4_upd")
 path_name = "Irritant Research"
-description = "Enhance chemical compound efficacy"
-tiers = [SubResource("tier_c1"), SubResource("tier_c2")]
+description = "Enhance burn intensity and duration"
+tiers = [SubResource("tier_c1"), SubResource("tier_c2"), SubResource("tier_c3"), SubResource("tier_c4"), SubResource("tier_c5")]
 
 [resource]
 script = ExtResource("1_td")
@@ -128,12 +195,12 @@ tower_id = "pepper_spray"
 tower_name = "Pepper Spray Emitter"
 description = "Continuous-stream seasoning applicator. Burns guaranteed."
 scene = ExtResource("2_scene")
-build_cost = 175
-sell_ratio = 0.6
-base_damage = 4.0
+build_cost = 8
+sell_ratio = 0.65
+base_damage = 3.0
 damage_type = 1
-base_range = 3.0
-fire_rate = 2.0
+base_range = 2.5
+fire_rate = 2.5
 projectile_type = 2
 projectile_scene = ExtResource("3_proj")
 area_of_effect = 0.0
@@ -141,4 +208,4 @@ pierce_count = 1
 crit_chance = 0.0
 crit_multiplier = 2.0
 on_hit_effects = [SubResource("burn_effect")]
-upgrade_paths = [SubResource("path_a"), SubResource("path_b"), SubResource("path_c")]
+upgrade_paths = [SubResource("path_a"), SubResource("path_c")]

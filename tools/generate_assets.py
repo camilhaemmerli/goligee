@@ -180,7 +180,9 @@ class PixelLabClient:
                        *, isometric: bool = False,
                        transparent_background: bool = False,
                        negative_description: str | None = None,
-                       seed: int | None = None) -> bytes:
+                       seed: int | None = None,
+                       init_image_b64: str | None = None,
+                       init_image_strength: float | None = None) -> bytes:
         """Generate a single image via pixflux. Min 32x32."""
         api_w = max(width, 32)
         api_h = max(height, 32)
@@ -197,6 +199,10 @@ class PixelLabClient:
             payload["negative_description"] = negative_description
         if seed is not None:
             payload["seed"] = seed
+        if init_image_b64:
+            payload["init_image"] = {"base64": init_image_b64}
+            if init_image_strength is not None:
+                payload["init_image_strength"] = init_image_strength
         result = self._post("create-image-pixflux", payload)
         return self._extract_image(result)
 
@@ -766,6 +772,34 @@ def remove_background(img_bytes: bytes, tolerance: int = 30) -> bytes:
     return buf.getvalue()
 
 
+def remove_ground_stain(img_bytes: bytes) -> bytes:
+    """Remove reddish ground shadow pixels from character sprites.
+
+    The AI consistently generates a red/brown ground shadow blob at the feet of
+    cop figures. These pixels have a distinctive strongly red-shifted color
+    (R >> G, R >> B) that doesn't appear in the dark navy cop uniform.
+    Simply erase all such pixels.
+    """
+    img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
+    pixels = img.load()
+    w, h = img.size
+    count = 0
+
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = pixels[x, y]
+            if a > 10 and r > 150 and r > g + 60 and r > b + 60:
+                pixels[x, y] = (0, 0, 0, 0)
+                count += 1
+
+    if count:
+        print(f"    Removed {count} ground stain pixels")
+
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
 def img_to_b64(img_bytes: bytes) -> str:
     """Convert image bytes to base64 string."""
     return base64.b64encode(img_bytes).decode()
@@ -845,6 +879,11 @@ THEME = (
     "oppressive authoritarian dystopia, post-Soviet urban decay"
 )
 
+# Chroma-key background: request a vivid color the flood-fill can cleanly
+# remove without eating dark sprite content.  Every prompt that needs a
+# transparent result should include CHROMA_BG instead of "transparent background".
+CHROMA_BG = "on solid bright magenta #FF00FF background"
+
 # Layer 4: Negative prompt (used by all transparent-bg generators)
 NEGATIVE = (
     "background, scene, environment, building, architecture, street, "
@@ -857,7 +896,7 @@ NEGATIVE = (
 SCENE_PROMPT = f"{STYLE}, {LIGHTING}, {THEME}"
 
 # Isolated sprites (turrets, projectiles, effects, animated details)
-SPRITE_PROMPT = f"{STYLE}, {LIGHTING}, single isolated game sprite on transparent background"
+SPRITE_PROMPT = f"{STYLE}, {LIGHTING}, single isolated game sprite {CHROMA_BG}"
 
 # Characters (enemies, bosses) -- keep SHORT per learned lesson
 CHAR_PROMPT = f"{STYLE}, dark muted colors, warm accents"
@@ -865,7 +904,7 @@ CHAR_PROMPT = f"{STYLE}, dark muted colors, warm accents"
 # UI icons
 UI_PROMPT = (
     "pixel art game icon, clean sharp edges, no anti-aliasing, "
-    "dark theme, transparent background"
+    f"dark theme, {CHROMA_BG}"
 )
 
 
@@ -881,12 +920,12 @@ TOWER_GROUND = (
 )
 
 TOWER_BASE_STRUCTURE = (
-    "isometric tower base structure on transparent background, "
-    "single solid architectural block rising from ground platform"
+    f"isometric low-profile equipment housing {CHROMA_BG}, "
+    "compact squat structure on ground platform, wider than tall"
 )
 
 TOWER_TURRET_STRUCTURE = (
-    "isolated rotating turret weapon head on transparent background, "
+    f"isolated rotating turret weapon head {CHROMA_BG}, "
     "weapon block centered exactly in middle of artboard, "
     "barrel or emitter may extend past center, "
     "small weapon head only, no body, no base, no platform, no ground"
@@ -910,7 +949,7 @@ TURRET_NEGATIVE = (
 )
 
 # Body height / weapon size → proportion text
-BODY_HEIGHT_MAP = {"short": "lower 40%", "medium": "lower 55%", "tall": "lower 70%"}
+BODY_HEIGHT_MAP = {"very_short": "lower 12%", "short": "lower 20%", "medium": "lower 28%", "tall": "lower 35%"}
 WEAPON_SIZE_MAP = {"small": "small", "medium": "medium-sized", "large": "large prominent"}
 
 
@@ -947,22 +986,46 @@ def build_turret_prompt(tower: dict) -> str:
 # Per-tower slot data: shared material + accent, base slots, turret slots
 TOWERS = {
     "rubber_bullet": {
-        "material": "dark gunmetal steel plating, bolted panel seams, industrial rivets, heavy gauge sheet metal",
+        "material": "matte dark gunmetal steel plating, bolted panel seams, industrial rivets, heavy gauge sheet metal, brushed metal finish",
         "accent_hex": "#9A9AA0",
         "accent_name": "silver metallic",
-        "body_desc": "tall rectangular body, ammunition storage compartments, ladder rungs on side, military equipment housing",
-        "body_height": "tall",
-        "ground_desc": "standard reinforced slab",
-        "weapon_desc": "single-barrel rubber bullet launcher, blue-tipped rubber bullet cartridges strapped to sides in bandolier racks, muzzle suppressor",
-        "weapon_shape": "compact rectangular block with protruding barrel, cartridge racks flanking both sides",
-        "weapon_size": "medium",
+        "body_desc": "extremely low flat wide platform, only 8 pixels tall body, trapezoidal wider at bottom, black and yellow diagonal hazard stripes, gunmetal steel flat top",
+        "body_height": "very_short",
+        "ground_desc": "concrete slab",
+        "weapon_desc": "police riot grenade launcher with large round drum cylinder magazine on side, short wide barrel, black and yellow hazard stripe ring base, no handle no grip",
+        "weapon_shape": "short wide barrel pointing forward-right, big round drum magazine attached to side, flat circular base with yellow black diagonal stripes",
+        "weapon_size": "small",
+        "skip_base": True,
+        "cop_prompt": (
+            f"{STYLE}, {LIGHTING}, "
+            "single standing riot police officer character, "
+            "full body visible head to boots, facing south-east, "
+            "dark navy tactical uniform, body armor vest, combat helmet with visor, "
+            "holding rubber bullet launcher in both hands at ready position, "
+            "black combat boots, knee pads, utility belt, "
+            "intimidating authoritarian stance, "
+            "no ground, no shadow, no platform, no floor beneath feet, "
+            f"weathered gear, scuff marks, {CHROMA_BG}"
+        ),
+        "cop_fire_prompt": (
+            f"{STYLE}, {LIGHTING}, "
+            "single riot police officer character firing weapon, "
+            "full body visible head to boots, facing south-east, "
+            "dark navy tactical uniform, body armor vest, combat helmet with visor, "
+            "aiming and firing rubber bullet launcher, weapon raised to shoulder, recoil stance, "
+            "muzzle flash at barrel tip, "
+            "black combat boots, knee pads, utility belt, "
+            "aggressive firing pose, leaning forward, "
+            "no ground, no shadow, no platform, no floor beneath feet, "
+            f"weathered gear, scuff marks, {CHROMA_BG}"
+        ),
     },
     "tear_gas": {
         "material": "vented steel panels, chemical hazmat housing, corroded metal plating",
         "accent_hex": "#70A040",
         "accent_name": "chemical green",
-        "body_desc": "chemical storage body, pressurized tanks, hazmat warning labels, gas venting slits",
-        "body_height": "medium",
+        "body_desc": "wide chemical barrel cluster, three stubby hazmat canisters strapped together, drip stains",
+        "body_height": "short",
         "ground_desc": "chemical-stained reinforced slab",
         "weapon_desc": "multi-tube grenade launcher rack, 6 angled launch tubes, hazmat yellow markings",
         "weapon_shape": "wide rectangular rack with angled tube cluster",
@@ -972,8 +1035,8 @@ TOWERS = {
         "material": "insulated dark metal panels, high voltage warning markings, rubber-sealed joints",
         "accent_hex": "#50A0D0",
         "accent_name": "electric blue",
-        "body_desc": "capacitor bank housing, insulated electrical body, transformer coils visible, warning signage",
-        "body_height": "medium",
+        "body_desc": "compact transformer box, exposed copper coils on top, rubber insulator feet, warning stickers",
+        "body_height": "short",
         "ground_desc": "insulated rubber-topped slab",
         "weapon_desc": "tesla coil twin conductor prongs, high voltage electrode pair, arc gap between tips",
         "weapon_shape": "vertical prong pair rising from compact base block",
@@ -983,7 +1046,7 @@ TOWERS = {
         "material": "industrial steel plating, pipe fittings, pressure gauge rivets, hydraulic joints",
         "accent_hex": "#6090B0",
         "accent_name": "cool blue",
-        "body_desc": "large water tank body, pressurized hydraulic system, pipe network, pressure gauges",
+        "body_desc": "squat cylindrical water tank, pressure gauge on front, hose coils around base, valve wheel",
         "body_height": "short",
         "ground_desc": "drain-grated reinforced slab",
         "weapon_desc": "industrial fire hose nozzle on swivel, chrome nozzle head, pressurized spray tip",
@@ -994,8 +1057,8 @@ TOWERS = {
         "material": "dark matte composite panels, data cable conduits, sealed equipment housing",
         "accent_hex": "#A0D8A0",
         "accent_name": "terminal green",
-        "body_desc": "tall intelligence hub body, monitor screens behind tinted glass, antenna mast, data conduits",
-        "body_height": "tall",
+        "body_desc": "low server cabinet rack, blinking status LEDs behind mesh panel, cable bundle exiting side",
+        "body_height": "medium",
         "ground_desc": "cable-routed reinforced slab",
         "weapon_desc": "satellite dish with camera cluster, radar spinner, CCTV cameras, red recording light",
         "weapon_shape": "dish and antenna array fanning outward from compact hub",
@@ -1005,8 +1068,8 @@ TOWERS = {
         "material": "chemical-resistant steel panels, pressurized canister housing, hazmat orange seals",
         "accent_hex": "#D06030",
         "accent_name": "hazmat orange",
-        "body_desc": "pressurized chemical tank body, canister storage rack, warning labels, spray hose coils",
-        "body_height": "medium",
+        "body_desc": "row of pressurized spray canisters in metal cradle, pressure manifold, drip tray underneath",
+        "body_height": "short",
         "ground_desc": "chemical-resistant reinforced slab",
         "weapon_desc": "industrial aerosol nozzle array, spray cone emitter head, pressurized chemical sprayer",
         "weapon_shape": "fan-shaped nozzle array spreading from compact manifold",
@@ -1016,18 +1079,18 @@ TOWERS = {
         "material": "military-grade dark metal, sound dampening panels, acoustic foam inserts, heavy bolts",
         "accent_hex": "#D8A040",
         "accent_name": "warning amber",
-        "body_desc": "acoustic equipment housing body, amplifier stacks, dampening panels, power supply unit",
-        "body_height": "medium",
+        "body_desc": "compact amplifier stack, speaker cone vents on sides, vibration dampener feet, power cable coil",
+        "body_height": "short",
         "ground_desc": "vibration-dampened reinforced slab",
-        "weapon_desc": "large parabolic speaker dish, concentric ring emitter face, military audio weapon",
-        "weapon_shape": "large forward-facing circular dish on pivot mount",
+        "weapon_desc": "large warning-amber orange parabolic speaker dish, bright #D8A040 orange concentric ring emitter face, military audio weapon",
+        "weapon_shape": "large forward-facing circular orange dish on pivot mount",
         "weapon_size": "large",
     },
     "microwave": {
         "material": "heat-resistant alloy panels, cooling fin arrays, power conduit housing, thermal seals",
         "accent_hex": "#D06030",
         "accent_name": "heat shimmer orange",
-        "body_desc": "energy weapon cooling body, heat sink fin arrays, power conduit housing, thermal vents",
+        "body_desc": "low boxy generator unit, cooling fan grille on side, exhaust heat shimmer, power conduit bundle",
         "body_height": "short",
         "ground_desc": "heat-shielded reinforced slab",
         "weapon_desc": "flat panel directed energy emitter, heat grid face, cooling fins on sides",
@@ -1126,6 +1189,31 @@ ENEMIES = {
                 "sneakers and jeans, youthful energy",
         "size": (32, 32),
     },
+    "drummer": {
+        "desc": "protestor carrying large portable bass drum strapped to chest, "
+                "both arms raised with drumsticks pounding the drum, "
+                "bandana headband, tank top, cargo pants, heavy boots, "
+                "muscular arms, rhythmic marching stance",
+        "size": (32, 32),
+    },
+    "sign_stop": {
+        "desc": "protestor holding large cardboard sign above head with bold STOP text, "
+                "hoodie, jeans, sneakers, angry shouting expression, "
+                "both hands gripping sign pole, marching forward",
+        "size": (32, 32),
+    },
+    "sign_peace": {
+        "desc": "protestor carrying big hand-painted peace symbol sign on wooden stick, "
+                "tie-dye shirt, beanie hat, round glasses, "
+                "one hand holding sign high, relaxed walking pose",
+        "size": (32, 32),
+    },
+    "sign_fist": {
+        "desc": "protestor waving large protest banner with painted raised fist drawing, "
+                "leather jacket, ripped jeans, combat boots, "
+                "defiant stance, sign held at angle while marching",
+        "size": (32, 32),
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -1195,17 +1283,9 @@ EFFECTS = {
 # ---------------------------------------------------------------------------
 
 TILES = {
-    "ground_cracked": "cracked urban asphalt, subtle crack lines, worn road surface, urban decay",
-    "ground_clean": "clean asphalt surface, smooth pavement, minimal cracks",
-    "path_warning": "hazard-marked path, diagonal warning stripes, worn caution paint",
-    "path_worn": "faded path markings, old yellow paint barely visible, worn walkway",
-    "wall_concrete": "raised concrete wall block, brutalist architecture, cinder block texture",
-    "wall_damaged": "damaged concrete wall, chunks missing, rebar exposed, battle-scarred",
-    "platform": "raised metal platform, industrial grating texture, tower placement pad",
-    "scorched": "fire-damaged asphalt, scorch marks and ash, burnt debris",
-    "flooded": "shallow water on asphalt, reflective puddle surface, ripple effect",
-    "toxic": "chemical spill on ground, green-tinted puddle, toxic warning, corrosive",
-    "rubble": "collapsed debris pile, concrete chunks and rebar, destroyed building remnants",
+    "concrete_a": "plain solid grey concrete, very uniform, almost flat color, extremely low contrast",
+    "concrete_b": "plain solid dark grey concrete, very uniform, almost flat color, extremely low contrast",
+    "concrete_c": "plain solid grey concrete, very slight tonal variation, extremely low contrast, nearly flat",
 }
 
 # ---------------------------------------------------------------------------
@@ -1213,43 +1293,141 @@ TILES = {
 # ---------------------------------------------------------------------------
 
 BUILDINGS = {
-    "panelka_tall": {
-        "desc": "tall Soviet panelka apartment block, 10+ stories, repeating window grid, "
-                "crumbling prefab concrete facade, broken windows, exposed rebar, "
-                "satellite dishes, clothing lines, dim yellow lit windows, "
-                "brutalist rectangular architecture, night scene",
-        "size": (128, 192),
-    },
-    "panelka_wide": {
-        "desc": "wide Soviet panelka apartment block, 5 stories, long horizontal form, "
-                "prefab concrete panels, some windows boarded up, graffiti on ground floor, "
-                "dimly lit balconies, laundry hanging, urban decay, night scene",
-        "size": (192, 128),
-    },
-    "panelka_ruined": {
-        "desc": "partially collapsed panelka building, top floors crumbled, "
-                "exposed internal structure, rebar sticking out, rubble at base, "
-                "fire damage marks, abandoned and dark, urban ruin, night scene",
-        "size": (128, 160),
-    },
-    "government": {
-        "desc": "imposing government administration building, Soviet neoclassical style, "
-                "columns at entrance, flag on roof, floodlit facade, "
-                "barricades and razor wire at entrance, guard checkpoint, "
-                "the building being defended, institutional authority, night scene",
+    "government_dome": {
+        "desc": "imposing government palace, Soviet neoclassical, large golden onion dome on top, "
+                "massive columns at entrance, floodlit stone facade, barricades at base, "
+                "flag on dome, institutional grandeur, night scene",
         "size": (192, 192),
     },
+    "panelka_tall_a": {
+        "desc": "tall Soviet panelka apartment block, 10+ stories, repeating window grid, "
+                "crumbling prefab concrete, some windows dim yellow lit, satellite dishes, "
+                "brutalist rectangular tower, night scene",
+        "size": (96, 160),
+    },
+    "panelka_tall_b": {
+        "desc": "tall dark Soviet apartment tower, 12 stories, narrow building, "
+                "few lit windows, broken balconies, antenna on roof, "
+                "concrete decay, urban neglect, night scene",
+        "size": (80, 160),
+    },
+    "panelka_wide": {
+        "desc": "wide Soviet apartment block, 5 stories, long horizontal form, "
+                "prefab concrete panels, some windows boarded, graffiti, "
+                "dim balcony lights, urban decay, night scene",
+        "size": (160, 96),
+    },
+    "rooftop_fg_a": {
+        "desc": "rooftop of concrete building seen from above at angle, flat roof, "
+                "air vents, water tank, antenna mast, gravel surface, "
+                "concrete parapet edge, night scene",
+        "size": (192, 64),
+    },
+    "rooftop_fg_b": {
+        "desc": "rooftop edge of apartment building from above, concrete parapet, "
+                "satellite dishes, pipes, chimney, seen from slightly above, "
+                "urban rooftop clutter, night scene",
+        "size": (160, 48),
+    },
+    "factory": {
+        "desc": "dark industrial factory building, tall smokestack chimney with faint smoke, "
+                "corrugated metal walls, small dirty windows, loading dock, "
+                "Soviet industrial brutalism, night scene",
+        "size": (128, 128),
+    },
+    "panelka_short": {
+        "desc": "short squat Soviet apartment block, 4 stories, wide and low, "
+                "prefab panels, laundry on balconies, dim lights, "
+                "cracked facade, urban housing, night scene",
+        "size": (128, 80),
+    },
+    "water_tower": {
+        "desc": "tall concrete water tower, cylindrical tank on stilts, "
+                "Soviet industrial, ladder rungs, rusty metal, "
+                "single red warning light on top, night scene",
+        "size": (48, 128),
+    },
     "guard_booth": {
-        "desc": "small military checkpoint guard booth, reinforced concrete, "
-                "slit windows, antenna on roof, barrier arm, "
-                "warning signage, floodlight mounted, night scene",
+        "desc": "small military guard booth checkpoint, concrete walls, "
+                "metal roof, single bright light, barrier gate arm, "
+                "sandbags at base, authoritarian outpost, night scene",
         "size": (64, 64),
     },
-    "checkpoint": {
-        "desc": "road checkpoint with barriers, concrete jersey barriers, "
-                "metal gate, razor wire on top, stop sign, "
-                "military checkpoint equipment, harsh floodlight, night scene",
+    "church_spire": {
+        "desc": "old orthodox church with tall spire and cross on top, "
+                "dark stone walls, narrow windows, scaffolding for repairs, "
+                "abandoned religious building, night scene",
+        "size": (64, 160),
+    },
+    # --- Vehicles ---
+    "police_bus": {
+        "desc": "riot police transport bus, dark blue armored bus, mesh window guards, "
+                "side door open, heavy tires, OMON markings, parked on flat ground, "
+                "isometric vehicle, night scene",
         "size": (96, 64),
+    },
+    "police_car": {
+        "desc": "police patrol car, dark blue sedan with lightbar on roof, "
+                "white stripe, parked on flat ground, "
+                "isometric vehicle, night scene",
+        "size": (64, 48),
+    },
+    # --- Props / barriers ---
+    "barricade": {
+        "desc": "heavy concrete jersey barrier with metal fence on top, "
+                "police riot barricade, orange warning stripes, "
+                "sitting on flat ground, isometric object, night scene",
+        "size": (64, 48),
+    },
+    "barbed_wire": {
+        "desc": "coiled razor wire barrier on metal posts, concertina wire, "
+                "military checkpoint obstacle, sitting on flat ground, "
+                "isometric object, night scene",
+        "size": (96, 32),
+    },
+    "playground_soviet": {
+        "desc": "broken Soviet playground, rusty metal climbing frame, "
+                "old carousel, cracked concrete base, bent swing set, "
+                "urban decay, sitting on flat ground, isometric diorama, night scene",
+        "size": (128, 96),
+    },
+    # --- More buildings ---
+    "khrushchyovka": {
+        "desc": "classic Soviet khrushchyovka 5-story apartment block, long horizontal, "
+                "uniform window rows, prefab concrete panels, flat roof, "
+                "few dim lights, urban housing, night scene",
+        "size": (160, 96),
+    },
+    "apartment_tower": {
+        "desc": "Soviet 16-story residential tower, brutalist concrete, "
+                "narrow and tall, repeating balconies, antenna on roof, "
+                "scattered lit windows, urban monolith, night scene",
+        "size": (64, 192),
+    },
+    # --- Road elements (isometric, joinable on tile grid) ---
+    "road_ew": {
+        "desc": "straight asphalt road going left-right, isometric diamond tile, "
+                "worn lane markings, cracked surface, puddles, "
+                "flat road surface only, no buildings, night scene",
+        "size": (128, 64),
+    },
+    "road_ns": {
+        "desc": "straight asphalt road going up-down, isometric diamond tile, "
+                "worn center line, cracked asphalt, flat road surface only, "
+                "no buildings, night scene",
+        "size": (128, 64),
+    },
+    "road_cross": {
+        "desc": "asphalt crossroads intersection, isometric diamond tile, "
+                "faded lane markings, cracked surface, manhole cover in center, "
+                "flat road surface only, no buildings, night scene",
+        "size": (128, 64),
+    },
+    "road_corner": {
+        "desc": "asphalt road corner turn, isometric diamond tile, "
+                "worn lane markings curving, cracked surface, "
+                "flat road surface only, no buildings, night scene",
+        "size": (128, 64),
     },
 }
 
@@ -1339,37 +1517,89 @@ UI_ICONS = {
 
 def _gen_turret_ref(client: PixelLabClient, name: str, info: dict) -> tuple[str, bytes]:
     """Generate a single turret reference image. Returns (name, image_bytes)."""
-    print(f"  Generating turret reference for {name} (SE)...")
+    cop_prompt = info.get("cop_prompt")
+    if cop_prompt:
+        print(f"  Generating cop figure reference for {name} (SE)...")
+        prompt = cop_prompt
+        neg = NEGATIVE
+    else:
+        print(f"  Generating turret reference for {name} (SE)...")
+        prompt = build_turret_prompt(info)
+        neg = TURRET_NEGATIVE
     img = client.generate_image(
-        build_turret_prompt(info),
+        prompt,
         64, 64,
         isometric=True,
-        transparent_background=True,
-        negative_description=TURRET_NEGATIVE,
+        negative_description=neg,
     )
     if img:
         img = remove_background(img)
+        if cop_prompt:
+            img = remove_ground_stain(img)
     save_image(img, f"towers/{name}/turret_ref.png", open_viewer=False)
     return (name, img)
 
 
-def _gen_turret_rotations(client: PixelLabClient, name: str, turret_ref: bytes) -> None:
-    """Generate 8 rotations for a turret from its reference image."""
-    print(f"  Generating 8 rotations for {name}...")
+def _gen_turret_rotations(client: PixelLabClient, name: str, turret_ref: bytes,
+                           prefix: str = "turret",
+                           clean_stains: bool = False) -> None:
+    """Generate 8 rotations for a turret from its reference image.
+
+    PixelLab's rotate_8_directions returns east/west swapped directions.
+    We remap: swap NE↔NW, E↔W, SE↔SW to correct this.
+
+    prefix: file prefix — "turret" for idle, "turret_fire" for firing pose.
+    clean_stains: if True, run remove_ground_stain on each rotation output.
+    """
+    # API returns [s, sw, w, nw, n, ne, e, se] but E/W axis is flipped.
+    # Corrected labels for indices 0-7:
+    CORRECTED_DIRS = ["s", "se", "e", "ne", "n", "nw", "w", "sw"]
+
+    print(f"  Generating 8 rotations for {name} ({prefix})...")
     try:
         rotations = client.rotate_8_directions(
             img_to_b64(turret_ref), 64, 64,
             view="low top-down",
             method="rotate_character",
         )
-        for dir_name, img_data in rotations:
-            save_image(img_data, f"towers/{name}/turret_{dir_name}.png", open_viewer=False)
-        print(f"  Got {len(rotations)} rotations for {name}")
+        for i, (_api_dir, img_data) in enumerate(rotations):
+            corrected_dir = CORRECTED_DIRS[i] if i < len(CORRECTED_DIRS) else _api_dir
+            if clean_stains:
+                img_data = remove_ground_stain(img_data)
+            save_image(img_data, f"towers/{name}/{prefix}_{corrected_dir}.png", open_viewer=False)
+        print(f"  Got {len(rotations)} rotations for {name}/{prefix} (direction-corrected)")
     except Exception as e:
-        print(f"  ERROR generating rotations for {name}: {e}")
+        print(f"  ERROR generating rotations for {name}/{prefix}: {e}")
         print(f"  Saving SE reference as fallback for all directions")
         for d in ["s", "sw", "w", "nw", "n", "ne", "e", "se"]:
-            save_image(turret_ref, f"towers/{name}/turret_{d}.png", open_viewer=False)
+            save_image(turret_ref, f"towers/{name}/{prefix}_{d}.png", open_viewer=False)
+
+
+def _gen_fire_ref(client: PixelLabClient, name: str, info: dict,
+                   idle_ref: bytes | None = None) -> tuple[str, bytes]:
+    """Generate a firing-pose reference image using idle ref as init_image for consistency.
+
+    Returns (name, image_bytes).
+    """
+    fire_prompt = info.get("cop_fire_prompt")
+    if not fire_prompt:
+        return (name, None)
+    init_b64 = img_to_b64(idle_ref) if idle_ref else None
+    label = " (with idle ref as init)" if init_b64 else ""
+    print(f"  Generating fire pose reference for {name} (SE){label}...")
+    img = client.generate_image(
+        fire_prompt,
+        64, 64,
+        isometric=True,
+        negative_description=NEGATIVE,
+        init_image_b64=init_b64,
+        init_image_strength=250.0,  # rough color guidance — keep palette, allow pose change
+    )
+    if img:
+        img = remove_background(img)
+        img = remove_ground_stain(img)
+    save_image(img, f"towers/{name}/turret_fire_ref.png", open_viewer=False)
+    return (name, img)
 
 
 def gen_turrets(client: PixelLabClient, names: list[str] | None = None):
@@ -1386,6 +1616,8 @@ def gen_turrets(client: PixelLabClient, names: list[str] | None = None):
     ]
     ref_results = run_parallel(ref_tasks)
 
+    # Collect idle refs for fire pose init_image
+    idle_ref_map: dict[str, bytes] = {}
     # Phase B: Generate all 8-direction rotations in parallel
     print("\nPhase B: Generating 8-direction rotations...")
     rot_tasks = []
@@ -1396,21 +1628,54 @@ def gen_turrets(client: PixelLabClient, names: list[str] | None = None):
         if not turret_ref:
             print(f"  ERROR: No turret reference generated for {name}, skipping rotations")
             continue
+        idle_ref_map[name] = turret_ref
+        is_cop = bool(TOWERS[name].get("cop_prompt"))
         rot_tasks.append(
-            (name, _gen_turret_rotations, (client, name, turret_ref), {})
+            (name, _gen_turret_rotations, (client, name, turret_ref, "turret", is_cop), {})
         )
     if rot_tasks:
         run_parallel(rot_tasks)
 
+    # Phase C: Generate fire pose refs for towers that have cop_fire_prompt
+    fire_names = [n for n in tower_names if TOWERS[n].get("cop_fire_prompt")]
+    if fire_names:
+        print(f"\nPhase C: Generating fire pose references ({len(fire_names)} towers)...")
+        fire_ref_tasks = [
+            (name, _gen_fire_ref, (client, name, TOWERS[name], idle_ref_map.get(name)), {})
+            for name in fire_names
+        ]
+        fire_ref_results = run_parallel(fire_ref_tasks)
+
+        # Phase D: Generate fire pose 8-direction rotations
+        print("\nPhase D: Generating fire pose 8-direction rotations...")
+        fire_rot_tasks = []
+        for result in fire_ref_results:
+            if result is None:
+                continue
+            name, fire_ref = result
+            if not fire_ref:
+                print(f"  ERROR: No fire pose reference for {name}, skipping")
+                continue
+            fire_rot_tasks.append(
+                (name, _gen_turret_rotations, (client, name, fire_ref, "turret_fire", True), {})
+            )
+        if fire_rot_tasks:
+            run_parallel(fire_rot_tasks)
+
 
 def _gen_single_base(client: PixelLabClient, name: str, info: dict) -> None:
     """Generate a single tower base platform."""
+    if info.get("skip_base"):
+        print(f"  Emitting transparent base for {name} (skip_base)...")
+        buf = io.BytesIO()
+        Image.new("RGBA", (64, 64), (0, 0, 0, 0)).save(buf, format="PNG")
+        save_image(buf.getvalue(), f"towers/{name}/base.png")
+        return
     print(f"  Generating base_{name}...")
     img = client.generate_image(
         build_base_prompt(info),
         64, 64,
         isometric=True,
-        transparent_background=True,
         negative_description=BASE_NEGATIVE,
     )
     if img:
@@ -1454,9 +1719,9 @@ def _gen_single_enemy_char(client: PixelLabClient, name: str, info: dict) -> tup
         print(f"  ERROR creating character {name}: {e}")
         print(f"  Falling back to single SE sprite for {name}...")
         img = client.generate_image(
-            f"{CHAR_PROMPT}, single character on transparent background, "
+            f"{CHAR_PROMPT}, single character {CHROMA_BG}, "
             f"facing south-east, walking pose, {info['desc']}",
-            w, h, isometric=True, transparent_background=True,
+            w, h, isometric=True,
             negative_description=NEGATIVE,
         )
         if img:
@@ -1600,6 +1865,29 @@ def _gen_single_building(client: PixelLabClient, name: str, info: dict) -> None:
     )
     if img:
         img = remove_background(img)
+        # Mute buildings: desaturate + flatten contrast so they don't compete with gameplay
+        from PIL import Image as PILImage, ImageEnhance
+        import numpy as np
+        pil = PILImage.open(io.BytesIO(img)).convert("RGBA")
+        # Desaturate 60%
+        r, g, b, a = pil.split()
+        rgb = PILImage.merge("RGB", (r, g, b))
+        rgb = ImageEnhance.Color(rgb).enhance(0.4)
+        dr, dg, db = rgb.split()
+        pil = PILImage.merge("RGBA", (dr, dg, db, a))
+        # Flatten contrast 50% toward mean
+        arr = np.array(pil, dtype=np.float32)
+        rgb_arr = arr[:, :, :3]
+        alpha_arr = arr[:, :, 3]
+        mask = alpha_arr > 0
+        if mask.any():
+            mean_rgb = rgb_arr[mask].mean(axis=0)
+            rgb_arr[mask] = rgb_arr[mask] * 0.5 + mean_rgb * 0.5
+        arr[:, :, :3] = np.clip(rgb_arr, 0, 255)
+        pil = PILImage.fromarray(arr.astype(np.uint8), "RGBA")
+        buf = io.BytesIO()
+        pil.save(buf, format="PNG")
+        img = buf.getvalue()
     save_image(img, f"buildings/building_{name}.png")
 
 
@@ -1667,13 +1955,40 @@ def gen_animated_details(client: PixelLabClient):
 
 
 def _gen_single_tile(client: PixelLabClient, name: str, desc: str) -> None:
-    """Generate a single isometric tile."""
+    """Generate a 32x32 isometric tile, crop to content, resize to 64x32."""
+    from PIL import Image as PILImage
+    import io
+
     print(f"  Generating tile_{name}...")
-    img = client.generate_isometric_tile(
-        f"{SCENE_PROMPT}, isometric floor tile, seamless tiling edges, {desc}",
-        size=32, shape="thin tile",
+    tile_prompt = (
+        f"{STYLE}, flat isometric floor tile, top-down surface texture only, "
+        f"no height no depth no 3D objects, seamless tiling edges, {desc}"
     )
-    save_image(img, f"tiles/tile_{name}.png")
+    img_bytes = client.generate_isometric_tile(
+        tile_prompt, size=32, shape="thin tile",
+    )
+    # Crop to content bbox, then resize to exactly 64x32 to fill the atlas slot
+    pil_img = PILImage.open(io.BytesIO(img_bytes)).convert("RGBA")
+    bbox = pil_img.getbbox()
+    if bbox:
+        content = pil_img.crop(bbox)
+    else:
+        content = pil_img
+    result = content.resize((64, 32), PILImage.NEAREST)
+    # Flatten contrast: blend each pixel 80% toward the tile's average color
+    import numpy as np
+    arr = np.array(result, dtype=np.float32)
+    rgb = arr[:, :, :3]
+    alpha = arr[:, :, 3:4]
+    mask = alpha > 0
+    if mask.any():
+        mean_rgb = rgb[mask[:, :, 0]].mean(axis=0)
+        rgb = rgb * 0.2 + mean_rgb * 0.8
+    arr[:, :, :3] = np.clip(rgb, 0, 255)
+    result = PILImage.fromarray(arr.astype(np.uint8), "RGBA")
+    buf = io.BytesIO()
+    result.save(buf, format="PNG")
+    save_image(buf.getvalue(), f"tiles/tile_{name}.png")
 
 
 def gen_tiles(client: PixelLabClient):
@@ -1729,8 +2044,8 @@ def _gen_single_boss(client: PixelLabClient, name: str, info: dict) -> None:
     print(f"  Generating boss_{name}_idle...")
     img = client.generate_image(
         f"{CHAR_PROMPT}, boss character, imposing large figure, "
-        f"detailed for size, single game sprite, {info['desc']}",
-        48, 48, isometric=True, transparent_background=True,
+        f"detailed for size, single game sprite {CHROMA_BG}, {info['desc']}",
+        48, 48, isometric=True,
         negative_description=NEGATIVE,
     )
     save_image(img, f"bosses/boss_{name}_idle.png")
@@ -1774,7 +2089,7 @@ def _gen_single_ui_icon(client: PixelLabClient, name: str, desc: str) -> None:
     print(f"  Generating icon_{name}...")
     img = client.generate_image(
         f"{UI_PROMPT}, {desc}",
-        32, 32, transparent_background=True,
+        32, 32,
     )
     save_image(img, f"ui/icon_{name}.png")
 
@@ -1795,6 +2110,13 @@ def gen_ui(client: PixelLabClient):
 
 def _gen_tower_base_rd(rd_client: RetroDiffusionClient, name: str, info: dict) -> tuple[str, bytes]:
     """Generate tower base via Retro Diffusion. Returns (name, image_bytes)."""
+    if info.get("skip_base"):
+        print(f"  [RD] Emitting transparent base for {name} (skip_base)...")
+        buf = io.BytesIO()
+        Image.new("RGBA", (64, 64), (0, 0, 0, 0)).save(buf, format="PNG")
+        img = buf.getvalue()
+        save_image(img, f"towers/{name}/base.png", open_viewer=False)
+        return (name, img)
     print(f"  [RD] Generating base for {name}...")
     prompt = build_base_prompt(info)
     images = rd_client.generate(prompt, 64, 64, style="rd_pro__isometric", remove_bg=True)
@@ -1811,9 +2133,15 @@ def _gen_turret_with_base_ref_rd(rd_client: RetroDiffusionClient, name: str, inf
 
     Returns (name, turret_image_bytes).
     """
-    print(f"  [RD] Generating turret reference for {name} (with base as reference)...")
-    prompt = build_turret_prompt(info)
-    ref_imgs = [base_b64] if base_b64 else None
+    cop_prompt = info.get("cop_prompt")
+    if cop_prompt:
+        print(f"  [RD] Generating cop figure reference for {name} (no base reference)...")
+        prompt = cop_prompt
+        ref_imgs = None
+    else:
+        print(f"  [RD] Generating turret reference for {name} (with base as reference)...")
+        prompt = build_turret_prompt(info)
+        ref_imgs = [base_b64] if base_b64 else None
     images = rd_client.generate(
         prompt, 64, 64,
         style="rd_pro__isometric",
@@ -1900,6 +2228,38 @@ def gen_towers_rd(rd_client: RetroDiffusionClient, pl_client: PixelLabClient,
     if rot_tasks:
         run_parallel(rot_tasks)
 
+    # Collect idle turret refs for fire pose init_image
+    turret_ref_map: dict[str, bytes] = {}
+    for result in turret_results:
+        if result is not None:
+            name, img = result
+            if img:
+                turret_ref_map[name] = img
+
+    # Phase D/E: Fire pose refs + rotations for towers with cop_fire_prompt
+    fire_names = [n for n in tower_names if TOWERS[n].get("cop_fire_prompt")]
+    if fire_names:
+        print(f"\nPhase D: Generating fire pose references ({len(fire_names)} towers)...")
+        fire_ref_tasks = [
+            (name, _gen_fire_ref, (pl_client, name, TOWERS[name], turret_ref_map.get(name)), {})
+            for name in fire_names
+        ]
+        fire_ref_results = run_parallel(fire_ref_tasks)
+
+        print("\nPhase E: Generating fire pose 8-direction rotations...")
+        fire_rot_tasks = []
+        for result in fire_ref_results:
+            if result is None:
+                continue
+            name, fire_ref = result
+            if not fire_ref:
+                continue
+            fire_rot_tasks.append(
+                (name, _gen_turret_rotations, (pl_client, name, fire_ref, "turret_fire", True), {})
+            )
+        if fire_rot_tasks:
+            run_parallel(fire_rot_tasks)
+
 
 def gen_test_foundation(client: PixelLabClient):
     """Test the pipeline with 1 tower + 1 enemy before full generation."""
@@ -1974,6 +2334,8 @@ def main():
                              "(default: auto = RD for towers, PixelLab for everything else)")
     parser.add_argument("--towers", type=str, default=None,
                         help="Comma-separated tower names to generate (e.g. rubber_bullet,tear_gas)")
+    parser.add_argument("--enemies", type=str, default=None,
+                        help="Comma-separated enemy names to generate (e.g. rioter,drummer)")
     parser.add_argument("--test-foundation", action="store_true",
                         help="Test pipeline with 1 tower + 1 enemy")
     parser.add_argument("--single", type=str, help="Generate a single asset by name")
@@ -1991,6 +2353,15 @@ def main():
         for t in tower_filter:
             if t not in TOWERS:
                 print(f"ERROR: Unknown tower '{t}'. Available: {', '.join(TOWERS.keys())}")
+                sys.exit(1)
+
+    # Parse enemy name filter
+    enemy_filter = None
+    if args.enemies:
+        enemy_filter = [e.strip() for e in args.enemies.split(",")]
+        for e in enemy_filter:
+            if e not in ENEMIES:
+                print(f"ERROR: Unknown enemy '{e}'. Available: {', '.join(ENEMIES.keys())}")
                 sys.exit(1)
 
     # Determine which backends are needed
@@ -2056,8 +2427,8 @@ def main():
             run_towers()
         else:
             phase_map = {
-                "enemy-chars": lambda: gen_enemy_characters(pl_client),
-                "enemy-anims": lambda: gen_enemy_animations(pl_client),
+                "enemy-chars": lambda: gen_enemy_characters(pl_client, names=enemy_filter),
+                "enemy-anims": lambda: gen_enemy_animations(pl_client, names=enemy_filter),
                 "projectiles": lambda: gen_projectiles(pl_client),
                 "effects": lambda: gen_effects(pl_client),
                 "city": lambda: gen_city(pl_client),

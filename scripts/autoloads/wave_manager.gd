@@ -10,16 +10,39 @@ var enemies_alive: int = 0
 var is_spawning: bool = false
 var _between_wave_timer: float = 0.0
 var _waiting_for_next_wave: bool = false
-var _active_sequences: int = 0
 
 # Engagement: perfect wave streak
 var perfect_streak: int = 0
 var _wave_had_leak: bool = false
 
+# Crowd diversity: pool of regular protestor types to mix at spawn time.
+# Special enemies (bosses, vehicles, stealth) keep their original type.
+var _crowd_pool: Array[EnemyData] = []
+const _CROWD_PATHS: PackedStringArray = [
+	"res://data/enemies/rioter.tres",
+	"res://data/enemies/blonde_protestor.tres",
+	"res://data/enemies/goth_protestor.tres",
+	"res://data/enemies/student.tres",
+	"res://data/enemies/grandma.tres",
+	"res://data/enemies/masked.tres",
+]
+const _SPECIAL_IDS: PackedStringArray = [
+	"shield_wall", "union_boss", "armored_van", "infiltrator",
+]
+
 
 func _ready() -> void:
 	SignalBus.enemy_killed.connect(_on_enemy_died)
 	SignalBus.enemy_reached_end.connect(_on_enemy_reached_end)
+	_load_crowd_pool()
+
+
+func _load_crowd_pool() -> void:
+	for path in _CROWD_PATHS:
+		if ResourceLoader.exists(path):
+			var data := load(path) as EnemyData
+			if data:
+				_crowd_pool.append(data)
 
 
 func start_waves() -> void:
@@ -36,6 +59,12 @@ func _start_next_wave() -> void:
 		return
 
 	var wave := waves[current_wave_index]
+
+	# Manifestation briefing at the start of each 5-wave group (1, 6, 11, ...)
+	if (wave.wave_number - 1) % 5 == 0:
+		SignalBus.presidential_briefing_requested.emit(wave.wave_number)
+		await SignalBus.presidential_briefing_dismissed
+
 	_wave_had_leak = false
 	SignalBus.wave_started.emit(wave.wave_number)
 	is_spawning = true
@@ -44,9 +73,42 @@ func _start_next_wave() -> void:
 
 
 func _spawn_wave(wave: WaveData) -> void:
-	_active_sequences = wave.spawn_sequences.size()
+	# Build a flat timeline from all sequences, then sort by time.
+	# This interleaves different enemy types instead of spawning in batches.
+	var timeline: Array[Dictionary] = []
+	var late_scale := _get_late_wave_hp_scale()
+
 	for seq in wave.spawn_sequences:
-		_spawn_sequence(seq)
+		var t := seq.start_delay
+		var is_crowd := not _crowd_pool.is_empty() and seq.enemy_data.enemy_id not in _SPECIAL_IDS
+		for i in seq.count:
+			var enemy: EnemyData = _crowd_pool[randi() % _crowd_pool.size()] if is_crowd else seq.enemy_data
+			timeline.append({
+				"time": t,
+				"enemy_data": enemy,
+				"spawn_point_index": seq.spawn_point_index,
+				"modifiers": {
+					"hp_multiplier": seq.hp_multiplier * late_scale,
+					"speed_multiplier": seq.speed_multiplier,
+					"armor_bonus": seq.armor_bonus,
+				},
+			})
+			t += seq.spawn_interval
+
+	timeline.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["time"] < b["time"])
+
+	var elapsed := 0.0
+	for entry in timeline:
+		var wait: float = entry["time"] - elapsed
+		if wait > 0.0:
+			await get_tree().create_timer(wait).timeout
+		elapsed = entry["time"]
+
+		enemies_alive += 1
+		spawn_enemy_requested.emit(entry["enemy_data"], entry["spawn_point_index"], entry["modifiers"])
+		SignalBus.wave_enemies_remaining.emit(enemies_alive)
+
+	is_spawning = false
 
 
 func _get_late_wave_hp_scale() -> float:
@@ -54,29 +116,6 @@ func _get_late_wave_hp_scale() -> float:
 	if current_wave_index >= 5:
 		return 1.0 + (current_wave_index - 5) * 0.1
 	return 1.0
-
-
-func _spawn_sequence(seq: SpawnSequenceData) -> void:
-	if seq.start_delay > 0.0:
-		await get_tree().create_timer(seq.start_delay).timeout
-
-	var late_scale := _get_late_wave_hp_scale()
-	for i in seq.count:
-		var modifiers := {
-			"hp_multiplier": seq.hp_multiplier * late_scale,
-			"speed_multiplier": seq.speed_multiplier,
-			"armor_bonus": seq.armor_bonus,
-		}
-		enemies_alive += 1
-		spawn_enemy_requested.emit(seq.enemy_data, seq.spawn_point_index, modifiers)
-		SignalBus.wave_enemies_remaining.emit(enemies_alive)
-
-		if i < seq.count - 1 and seq.spawn_interval > 0.0:
-			await get_tree().create_timer(seq.spawn_interval).timeout
-
-	_active_sequences -= 1
-	if _active_sequences <= 0:
-		is_spawning = false
 
 
 func _on_enemy_died(_enemy: Node2D, _value: int = 0) -> void:

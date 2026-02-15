@@ -26,6 +26,7 @@ var _distance_traveled: float = 0.0
 var _total_path_length: float = 0.0
 
 var last_hit_by: Node2D  ## Tower that last dealt damage (for kill attribution)
+var velocity: Vector2 = Vector2.ZERO  ## Last frame movement direction (for crossfire calc)
 
 ## Corpse cleanup: track lingering corpses globally, cap at 30
 static var _corpses: Array[Node2D] = []
@@ -35,9 +36,11 @@ const MAX_CORPSES := 30
 var _use_animated: bool = false
 ## Current animation direction suffix
 var _current_dir: String = "se"
+## Speed burst: fires once when HP drops below threshold
+var _speed_burst_triggered: bool = false
 
 # 8-direction animation: snap movement angle to nearest direction
-const DIR_NAMES := ["e", "ne", "n", "nw", "w", "sw", "s", "se"]
+const DIR_NAMES := ["e", "se", "s", "sw", "w", "nw", "n", "ne"]
 
 # Damage type color map for floating numbers
 const DAMAGE_COLORS := {
@@ -62,7 +65,7 @@ func _ready() -> void:
 	if not _use_animated and not sprite.texture:
 		if enemy_data and enemy_data.enemy_id:
 			match enemy_data.enemy_id:
-				"rioter", "masked_protestor":
+				"rioter", "masked_protestor", "blonde_protestor":
 					sprite.texture = EntitySprites.create_protestor()
 				"shield_wall":
 					sprite.texture = EntitySprites.create_agitator_elite()
@@ -210,8 +213,9 @@ func _process(delta: float) -> void:
 			_distance_traveled += move_budget
 			move_budget = 0.0
 
-	# Update walk animation direction
+	# Update walk animation direction and velocity for crossfire
 	var move_dir := global_position - prev_pos
+	velocity = move_dir
 	_update_animation_direction(move_dir)
 
 	# Apply DoT (raw damage, bypasses armor but uses proper death handling)
@@ -302,6 +306,14 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 	health_bar.max_value = max_hp
 	health_bar.value = current
 
+	# Speed burst: one-time speed increase when HP drops below threshold
+	if not _speed_burst_triggered and enemy_data and enemy_data.speed_burst_threshold > 0.0:
+		var ratio := current / max_hp if max_hp > 0.0 else 1.0
+		if ratio <= enemy_data.speed_burst_threshold and ratio > 0.0:
+			_speed_burst_triggered = true
+			base_speed *= enemy_data.speed_burst_multiplier
+			_flash_speed_burst()
+
 
 func _on_damage_taken(amount: float, damage_type: Enums.DamageType, is_crit: bool) -> void:
 	SignalBus.enemy_damaged.emit(self, amount, damage_type)
@@ -380,6 +392,14 @@ func _flash_damage() -> void:
 	_flash_material.set_shader_parameter("flash_amount", 1.0)
 	var tween := create_tween()
 	tween.tween_property(_flash_material, "shader_parameter/flash_amount", 0.0, 0.15)
+
+
+func _flash_speed_burst() -> void:
+	var visual: CanvasItem = animated_sprite if _use_animated else sprite
+	var original_modulate := visual.modulate
+	visual.modulate = Color(1.5, 1.2, 0.8)
+	var tween := create_tween()
+	tween.tween_property(visual, "modulate", original_modulate, 0.3)
 
 
 func _spawn_impact_sparks(damage_type: Enums.DamageType) -> void:

@@ -219,3 +219,31 @@ static func create_ice_shard() -> ImageTexture:
 				img.set_pixel(x, y, c)
 
 	return ImageTexture.create_from_image(img)
+
+
+static func create_tear_gas_canister() -> ImageTexture:
+	## 8x8 dark metal cylinder with orange warning band.
+	var img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	var body := Color("#404048")
+	var dark := Color("#303038")
+	var band := Color("#E08040")
+	var cap := Color("#505058")
+
+	# Top cap
+	for x in range(2, 6):
+		img.set_pixel(x, 0, cap)
+
+	# Body with shading
+	for y in range(1, 7):
+		for x in range(2, 6):
+			var c := body if x >= 4 else dark
+			# Orange warning band in the middle
+			if y >= 3 and y <= 4:
+				c = band if x >= 4 else band.darkened(0.2)
+			img.set_pixel(x, y, c)
+
+	# Bottom cap
+	for x in range(2, 6):
+		img.set_pixel(x, 7, dark)
+
+	return ImageTexture.create_from_image(img)

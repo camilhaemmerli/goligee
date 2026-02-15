@@ -1,7 +1,7 @@
 extends Node
 ## Tracks player gold. All gold transactions go through here.
 
-var gold: int = 200
+var gold: int = 14
 
 # Income tracking for affordability projections
 var _gold_per_wave: Array[int] = []
@@ -16,7 +16,7 @@ func _ready() -> void:
 
 
 func _on_game_started() -> void:
-	gold = 200
+	gold = 14
 	_gold_per_wave.clear()
 	_gold_at_wave_start = gold
 	SignalBus.gold_changed.emit(gold)
@@ -55,11 +55,11 @@ func can_afford(amount: int) -> bool:
 	return gold >= amount
 
 
-## Apply between-wave interest: 5% of current gold, min 50 balance, max 100 interest.
+## Apply between-wave interest: 8% of current gold, min 4 balance, max 8 interest.
 func apply_interest() -> void:
-	if gold < 50:
+	if gold < 4:
 		return
-	var interest := clampi(int(gold * 0.05), 0, 100)
+	var interest := clampi(int(gold * 0.08), 0, 8)
 	if interest > 0:
 		add_gold(interest)
 

@@ -1,44 +1,53 @@
-[gd_resource type="Resource" script_class="WaveData" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="WaveData" load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="1_wd"]
 [ext_resource type="Script" path="res://scripts/resources/spawn_sequence_data.gd" id="2_ssd"]
 [ext_resource type="Resource" path="res://data/enemies/goblin.tres" id="3_goblin"]
 [ext_resource type="Resource" path="res://data/enemies/orc.tres" id="4_orc"]
 [ext_resource type="Resource" path="res://data/enemies/skeleton.tres" id="5_skeleton"]
+[ext_resource type="Resource" path="res://data/enemies/union_boss.tres" id="6_uboss"]
 
 [sub_resource type="Resource" id="seq_1"]
 script = ExtResource("2_ssd")
 enemy_data = ExtResource("3_goblin")
-count = 25
-spawn_interval = 0.3
+count = 30
+spawn_interval = 0.25
 start_delay = 0.0
 spawn_point_index = 0
 hp_multiplier = 1.5
-speed_multiplier = 1.2
+speed_multiplier = 1.3
 
 [sub_resource type="Resource" id="seq_2"]
 script = ExtResource("2_ssd")
 enemy_data = ExtResource("4_orc")
-count = 8
-spawn_interval = 1.0
+count = 10
+spawn_interval = 0.8
 start_delay = 5.0
 spawn_point_index = 0
-hp_multiplier = 2.0
-armor_bonus = 5.0
+hp_multiplier = 2.5
+armor_bonus = 8.0
 
 [sub_resource type="Resource" id="seq_3"]
 script = ExtResource("2_ssd")
 enemy_data = ExtResource("5_skeleton")
-count = 5
-spawn_interval = 1.5
+count = 8
+spawn_interval = 0.6
 start_delay = 10.0
 spawn_point_index = 0
 hp_multiplier = 2.0
+
+[sub_resource type="Resource" id="seq_4"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("6_uboss")
+count = 2
+spawn_interval = 4.0
+start_delay = 12.0
+spawn_point_index = 0
 
 [resource]
 script = ExtResource("1_wd")
 wave_number = 10
 wave_type = 2
-spawn_sequences = [SubResource("seq_1"), SubResource("seq_2"), SubResource("seq_3")]
-gold_bonus = 100
+spawn_sequences = [SubResource("seq_1"), SubResource("seq_2"), SubResource("seq_3"), SubResource("seq_4")]
+gold_bonus = 6
 pre_wave_delay = 5.0

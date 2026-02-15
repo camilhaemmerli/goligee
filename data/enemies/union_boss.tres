@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/enemy_data.gd" id="1_ed"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/base_enemy.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_ed")
+enemy_id = "union_boss"
+enemy_name = "Union Boss"
+description = "Rallies nearby agitators. Built like a concrete slab."
+scene = ExtResource("2_scene")
+max_hp = 200.0
+base_speed = 0.5
+armor = 8.0
+armor_type = 2
+gold_reward = 2
+lives_cost = 3

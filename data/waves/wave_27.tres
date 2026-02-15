@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="WaveData" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="1_wd"]
+[ext_resource type="Script" path="res://scripts/resources/spawn_sequence_data.gd" id="2_ssd"]
+[ext_resource type="Resource" path="res://data/enemies/orc.tres" id="3_orc"]
+[ext_resource type="Resource" path="res://data/enemies/skeleton.tres" id="4_skeleton"]
+[ext_resource type="Resource" path="res://data/enemies/blonde_protestor.tres" id="5_bp"]
+
+[sub_resource type="Resource" id="seq_1"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("3_orc")
+count = 30
+spawn_interval = 0.3
+start_delay = 0.0
+spawn_point_index = 0
+hp_multiplier = 8.0
+armor_bonus = 25.0
+
+[sub_resource type="Resource" id="seq_2"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("4_skeleton")
+count = 20
+spawn_interval = 0.25
+start_delay = 6.0
+spawn_point_index = 0
+hp_multiplier = 6.0
+armor_bonus = 15.0
+speed_multiplier = 1.3
+
+[sub_resource type="Resource" id="seq_3"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("5_bp")
+count = 15
+spawn_interval = 0.15
+start_delay = 12.0
+spawn_point_index = 0
+hp_multiplier = 4.0
+speed_multiplier = 2.3
+
+[resource]
+script = ExtResource("1_wd")
+wave_number = 27
+wave_type = 1
+spawn_sequences = [SubResource("seq_1"), SubResource("seq_2"), SubResource("seq_3")]
+gold_bonus = 15
+pre_wave_delay = 5.0

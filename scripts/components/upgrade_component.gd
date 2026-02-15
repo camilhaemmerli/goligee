@@ -25,6 +25,22 @@ func init(tower_data: TowerData) -> void:
 	active_modifiers.clear()
 	unlocked_effects.clear()
 
+	# Auto-configure crosspathing rules based on number of upgrade paths
+	var num_paths := tower_data.upgrade_paths.size() if tower_data else 0
+	match num_paths:
+		1:
+			# Budget towers: single path goes to tier 5 freely
+			max_paths_used = 1
+			max_deep_tier = 5
+		2:
+			# Standard towers: both paths active, only 1 past tier 2
+			max_paths_used = 2
+			max_deep_tier = 2
+		_:
+			# Premium/Elite towers: max 2 of 3 active, only 1 past tier 2
+			max_paths_used = 2
+			max_deep_tier = 2
+
 
 func can_upgrade_path(path_index: int) -> bool:
 	if not _tower_data or path_index >= _tower_data.upgrade_paths.size():

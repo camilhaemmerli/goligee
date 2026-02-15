@@ -1,23 +1,23 @@
-[gd_resource type="Resource" script_class="TowerData" load_steps=25 format=3]
+[gd_resource type="Resource" script_class="TowerData" load_steps=50 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/tower_data.gd" id="1_td"]
 [ext_resource type="PackedScene" path="res://scenes/towers/base_tower.tscn" id="2_scene"]
-[ext_resource type="PackedScene" path="res://scenes/projectiles/base_projectile.tscn" id="3_proj"]
+[ext_resource type="PackedScene" path="res://scenes/projectiles/chain_lightning_projectile.tscn" id="3_proj"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_path_data.gd" id="4_upd"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_tier_data.gd" id="5_utd"]
 [ext_resource type="Script" path="res://scripts/resources/stat_modifier_data.gd" id="6_smd"]
 [ext_resource type="Script" path="res://scripts/resources/status_effect_data.gd" id="7_sed"]
 
-; -- Base on-hit: STUN 0.3s @25% chance --
+; -- Base on-hit: STUN 0.3s @20% chance --
 [sub_resource type="Resource" id="stun_effect"]
 script = ExtResource("7_sed")
 effect_type = 5
 duration = 0.3
 potency = 1.0
 stack_limit = 1
-apply_chance = 0.25
+apply_chance = 0.2
 
-; -- Path A "High Voltage" --
+; -- Path A "High Voltage" (damage + pierce) --
 [sub_resource type="Resource" id="mod_a1_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
@@ -28,7 +28,7 @@ value = 1.3
 script = ExtResource("5_utd")
 tier_name = "Amped Output"
 description = "Voltage increase for enhanced compliance"
-cost = 175
+cost = 3
 stat_modifiers = [SubResource("mod_a1_dmg")]
 
 [sub_resource type="Resource" id="mod_a2_pierce"]
@@ -41,16 +41,67 @@ value = 1.0
 script = ExtResource("5_utd")
 tier_name = "Dual Prongs"
 description = "Two electrodes, twice the attitude adjustment"
-cost = 350
+cost = 6
 stat_modifiers = [SubResource("mod_a2_pierce")]
+
+[sub_resource type="Resource" id="mod_a3_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.3
+
+[sub_resource type="Resource" id="tier_a3"]
+script = ExtResource("5_utd")
+tier_name = "Megavolt Capacitor"
+description = "Stores enough charge to restart a dissident's heart. Then stop it again."
+cost = 9
+stat_modifiers = [SubResource("mod_a3_dmg")]
+
+[sub_resource type="Resource" id="mod_a4_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.4
+
+[sub_resource type="Resource" id="mod_a4_pierce"]
+script = ExtResource("6_smd")
+stat_name = "pierce_count"
+operation = 0
+value = 1.0
+
+[sub_resource type="Resource" id="tier_a4"]
+script = ExtResource("5_utd")
+tier_name = "Arc Projector"
+description = "Electricity finds the path of least resistance. So do we."
+cost = 15
+stat_modifiers = [SubResource("mod_a4_dmg"), SubResource("mod_a4_pierce")]
+
+[sub_resource type="Resource" id="mod_a5_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.5
+
+[sub_resource type="Resource" id="mod_a5_chain"]
+script = ExtResource("6_smd")
+stat_name = "chain_targets"
+operation = 0
+value = 2.0
+
+[sub_resource type="Resource" id="tier_a5"]
+script = ExtResource("5_utd")
+tier_name = "Tesla Array"
+description = "Named after the inventor. He'd be horrified. We're delighted."
+cost = 24
+stat_modifiers = [SubResource("mod_a5_dmg"), SubResource("mod_a5_chain")]
 
 [sub_resource type="Resource" id="path_a"]
 script = ExtResource("4_upd")
 path_name = "High Voltage"
 description = "Increase electrical output and penetration"
-tiers = [SubResource("tier_a1"), SubResource("tier_a2")]
+tiers = [SubResource("tier_a1"), SubResource("tier_a2"), SubResource("tier_a3"), SubResource("tier_a4"), SubResource("tier_a5")]
 
-; -- Path B "Neural Disruptor" --
+; -- Path B "Neural Disruptor" (rate) --
 [sub_resource type="Resource" id="mod_b1_rate"]
 script = ExtResource("6_smd")
 stat_name = "fire_rate"
@@ -61,7 +112,7 @@ value = 1.3
 script = ExtResource("5_utd")
 tier_name = "Quick Charge"
 description = "Faster capacitor cycling"
-cost = 175
+cost = 3
 stat_modifiers = [SubResource("mod_b1_rate")]
 
 [sub_resource type="Resource" id="mod_b2_rate"]
@@ -80,16 +131,70 @@ value = 1.2
 script = ExtResource("5_utd")
 tier_name = "Overclocked"
 description = "Exceeding manufacturer safety guidelines"
-cost = 350
+cost = 6
 stat_modifiers = [SubResource("mod_b2_rate"), SubResource("mod_b2_dmg")]
+
+[sub_resource type="Resource" id="mod_b3_rate"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.2
+
+[sub_resource type="Resource" id="tier_b3"]
+script = ExtResource("5_utd")
+tier_name = "Rapid Discharge"
+description = "Zap. Zap. Zap. No cooldown. No mercy."
+cost = 9
+stat_modifiers = [SubResource("mod_b3_rate")]
+
+[sub_resource type="Resource" id="mod_b4_rate"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.25
+
+[sub_resource type="Resource" id="mod_b4_crit"]
+script = ExtResource("6_smd")
+stat_name = "crit_chance"
+operation = 0
+value = 0.05
+
+[sub_resource type="Resource" id="tier_b4"]
+script = ExtResource("5_utd")
+tier_name = "Neural Scrambler"
+description = "Targets the nervous system. What's left of it."
+cost = 15
+stat_modifiers = [SubResource("mod_b4_rate"), SubResource("mod_b4_crit")]
+
+[sub_resource type="Resource" id="mod_b5_rate"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.3
+
+[sub_resource type="Resource" id="stun_b5"]
+script = ExtResource("7_sed")
+effect_type = 5
+duration = 0.5
+potency = 1.0
+stack_limit = 1
+apply_chance = 0.4
+
+[sub_resource type="Resource" id="tier_b5"]
+script = ExtResource("5_utd")
+tier_name = "Seizure Inducer"
+description = "Medical professionals call it a seizure. We call it involuntary compliance dancing."
+cost = 24
+stat_modifiers = [SubResource("mod_b5_rate")]
+unlocks_ability = SubResource("stun_b5")
 
 [sub_resource type="Resource" id="path_b"]
 script = ExtResource("4_upd")
 path_name = "Neural Disruptor"
 description = "Increase firing speed and efficiency"
-tiers = [SubResource("tier_b1"), SubResource("tier_b2")]
+tiers = [SubResource("tier_b1"), SubResource("tier_b2"), SubResource("tier_b3"), SubResource("tier_b4"), SubResource("tier_b5")]
 
-; -- Path C "Compliance Network" --
+; -- Path C "Compliance Network" (range + AoE) --
 [sub_resource type="Resource" id="mod_c1_range"]
 script = ExtResource("6_smd")
 stat_name = "base_range"
@@ -100,7 +205,7 @@ value = 0.5
 script = ExtResource("5_utd")
 tier_name = "Extended Detention"
 description = "Longer reach, longer compliance"
-cost = 175
+cost = 3
 stat_modifiers = [SubResource("mod_c1_range")]
 
 [sub_resource type="Resource" id="mod_c2_aoe"]
@@ -113,14 +218,74 @@ value = 0.5
 script = ExtResource("5_utd")
 tier_name = "Conductive Gel"
 description = "Splash zone now an involuntary participation zone"
-cost = 350
+cost = 6
 stat_modifiers = [SubResource("mod_c2_aoe")]
+
+[sub_resource type="Resource" id="mod_c3_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="mod_c3_aoe"]
+script = ExtResource("6_smd")
+stat_name = "area_of_effect"
+operation = 0
+value = 0.3
+
+[sub_resource type="Resource" id="tier_c3"]
+script = ExtResource("5_utd")
+tier_name = "Grid Extension"
+description = "The floor is lava. Except it's electricity. And it's everywhere."
+cost = 9
+stat_modifiers = [SubResource("mod_c3_range"), SubResource("mod_c3_aoe")]
+
+[sub_resource type="Resource" id="mod_c4_aoe"]
+script = ExtResource("6_smd")
+stat_name = "area_of_effect"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="tier_c4"]
+script = ExtResource("5_utd")
+tier_name = "Electrified Perimeter"
+description = "Step inside the perimeter. We dare you."
+cost = 15
+stat_modifiers = [SubResource("mod_c4_aoe")]
+
+[sub_resource type="Resource" id="mod_c5_aoe"]
+script = ExtResource("6_smd")
+stat_name = "area_of_effect"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="mod_c5_chain"]
+script = ExtResource("6_smd")
+stat_name = "chain_targets"
+operation = 0
+value = 1.0
+
+[sub_resource type="Resource" id="slow_c5"]
+script = ExtResource("7_sed")
+effect_type = 0
+duration = 2.0
+potency = 0.3
+stack_limit = 1
+apply_chance = 1.0
+
+[sub_resource type="Resource" id="tier_c5"]
+script = ExtResource("5_utd")
+tier_name = "Detention Grid"
+description = "You have the right to remain electrocuted. Everything you step on will shock you."
+cost = 24
+stat_modifiers = [SubResource("mod_c5_aoe"), SubResource("mod_c5_chain")]
+unlocks_ability = SubResource("slow_c5")
 
 [sub_resource type="Resource" id="path_c"]
 script = ExtResource("4_upd")
 path_name = "Compliance Network"
 description = "Extend area of influence"
-tiers = [SubResource("tier_c1"), SubResource("tier_c2")]
+tiers = [SubResource("tier_c1"), SubResource("tier_c2"), SubResource("tier_c3"), SubResource("tier_c4"), SubResource("tier_c5")]
 
 [resource]
 script = ExtResource("1_td")
@@ -128,9 +293,9 @@ tower_id = "taser_grid"
 tower_name = "Taser Grid"
 description = "Involuntary muscle relaxation therapy. Side effects include compliance."
 scene = ExtResource("2_scene")
-build_cost = 175
-sell_ratio = 0.6
-base_damage = 12.0
+build_cost = 12
+sell_ratio = 0.65
+base_damage = 10.0
 damage_type = 3
 base_range = 3.5
 fire_rate = 0.7
@@ -142,5 +307,6 @@ crit_chance = 0.0
 crit_multiplier = 2.0
 chain_targets = 3
 chain_damage_falloff = 0.5
+crossfire_bonus = 0.15
 on_hit_effects = [SubResource("stun_effect")]
 upgrade_paths = [SubResource("path_a"), SubResource("path_b"), SubResource("path_c")]

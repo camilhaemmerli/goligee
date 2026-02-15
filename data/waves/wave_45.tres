@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="WaveData" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="1_wd"]
+[ext_resource type="Script" path="res://scripts/resources/spawn_sequence_data.gd" id="2_ssd"]
+[ext_resource type="Resource" path="res://data/enemies/armored_van.tres" id="3_av"]
+[ext_resource type="Resource" path="res://data/enemies/infiltrator.tres" id="4_inf"]
+[ext_resource type="Resource" path="res://data/enemies/union_boss.tres" id="5_ub"]
+[ext_resource type="Resource" path="res://data/enemies/rioter.tres" id="6_rioter"]
+[ext_resource type="Resource" path="res://data/enemies/street_medic.tres" id="7_med"]
+
+[sub_resource type="Resource" id="seq_1"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("3_av")
+count = 40
+spawn_interval = 0.7
+start_delay = 0.0
+spawn_point_index = 0
+hp_multiplier = 32.0
+armor_bonus = 85.0
+speed_multiplier = 0.6
+
+[sub_resource type="Resource" id="seq_2"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("4_inf")
+count = 50
+spawn_interval = 0.2
+start_delay = 3.0
+spawn_point_index = 0
+hp_multiplier = 15.0
+speed_multiplier = 3.0
+
+[sub_resource type="Resource" id="seq_3"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("6_rioter")
+count = 250
+spawn_interval = 0.012
+start_delay = 6.0
+spawn_point_index = 0
+hp_multiplier = 18.0
+speed_multiplier = 3.5
+
+[sub_resource type="Resource" id="seq_4"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("5_ub")
+count = 40
+spawn_interval = 0.8
+start_delay = 10.0
+spawn_point_index = 0
+hp_multiplier = 28.0
+armor_bonus = 50.0
+speed_multiplier = 0.8
+
+[sub_resource type="Resource" id="seq_5"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("7_med")
+count = 60
+spawn_interval = 0.1
+start_delay = 14.0
+spawn_point_index = 0
+hp_multiplier = 18.0
+speed_multiplier = 2.5
+
+[resource]
+script = ExtResource("1_wd")
+wave_number = 45
+wave_type = 4
+spawn_sequences = [SubResource("seq_1"), SubResource("seq_2"), SubResource("seq_3"), SubResource("seq_4"), SubResource("seq_5")]
+gold_bonus = 24
+pre_wave_delay = 3.0

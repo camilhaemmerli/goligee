@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/enemy_data.gd" id="1_ed"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/base_enemy.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_ed")
+enemy_id = "masked"
+enemy_name = "Masked Protestor"
+description = "Gas-masked and determined. Shrugs off chemical agents."
+scene = ExtResource("2_scene")
+max_hp = 80.0
+base_speed = 0.9
+armor = 3.0
+armor_type = 1
+resistances = { 1: 0.3 }
+gold_reward = 1
+lives_cost = 1

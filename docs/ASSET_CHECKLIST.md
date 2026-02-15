@@ -65,24 +65,24 @@ Each enemy needs: 8-direction walk cycle (4 frames each = 32 frames per enemy).
 
 | # | Enemy | Size | SE_01 | Total Frames | Status |
 |---|-------|------|-------|--------------|--------|
-| 1 | Rioter | 32x32 | [x] | 1/32 | [~] 1/32 (SE) |
-| 2 | Masked Protestor | 32x32 | [ ] | 0/32 | [ ] |
-| 3 | Shield Wall | 32x32 | [ ] | 0/32 | [ ] |
-| 4 | Molotov Thrower | 32x32 | [ ] | 0/32 | [ ] |
-| 5 | Drone Operator | 32x32 | [ ] | 0/32 | [ ] |
-| 6 | Goth Protestor | 32x32 | [ ] | 0/32 | [ ] |
-| 7 | Street Medic | 32x32 | [ ] | 0/32 | [ ] |
-| 8 | Armored Van | 32x32 | [ ] | 0/32 | [ ] |
-| 9 | Infiltrator | 32x32 | [ ] | 0/32 | [ ] |
-| 10 | Blonde Protestor | 32x32 | [ ] | 0/32 | [ ] |
-| 11 | Tunnel Rat | 32x32 | [ ] | 0/32 | [ ] |
-| 12 | Union Boss | 32x32 | [ ] | 0/32 | [ ] |
-| 13 | Journalist | 32x32 | [ ] | 0/32 | [ ] |
-| 14 | Grandma | 32x32 | [ ] | 0/32 | [ ] |
-| 15 | Family | 32x32 | [ ] | 0/32 | [ ] |
-| 16 | Student | 32x32 | [ ] | 0/32 | [ ] |
+| 1 | Rioter | 32x32 | [x] | 32/32 | [x] |
+| 2 | Masked Protestor | 32x32 | [x] | 32/32 | [x] |
+| 3 | Shield Wall | 32x32 | [x] | 32/32 | [x] |
+| 4 | Molotov Thrower | 32x32 | [x] | 32/32 | [x] |
+| 5 | Drone Operator | 32x32 | [x] | 32/32 | [x] |
+| 6 | Goth Protestor | 32x32 | [x] | 32/32 | [x] |
+| 7 | Street Medic | 32x32 | [x] | 32/32 | [x] |
+| 8 | Armored Van | 32x32 | [x] | 32/32 | [x] |
+| 9 | Infiltrator | 32x32 | [x] | 32/32 | [x] |
+| 10 | Blonde Protestor | 32x32 | [x] | 32/32 | [x] |
+| 11 | Tunnel Rat | 32x32 | [x] | 32/32 | [x] |
+| 12 | Union Boss | 32x32 | [x] | 32/32 | [x] |
+| 13 | Journalist | 32x32 | [x] | 32/32 | [x] |
+| 14 | Grandma | 32x32 | [x] | 32/32 | [x] |
+| 15 | Family | 32x32 | [x] | 32/32 | [x] |
+| 16 | Student | 32x32 | [x] | 32/32 | [x] |
 
-**Progress: 1/512 enemy frames**
+**Progress: 512/512 enemy frames**
 
 ---
 
@@ -151,13 +151,13 @@ Each enemy needs: 8-direction walk cycle (4 frames each = 32 frames per enemy).
 | # | Building | Size | File | Status |
 |---|----------|------|------|--------|
 | 1 | Panelka (tall) | 128x192 | `buildings/building_panelka_tall.png` | [ ] |
-| 2 | Panelka (wide) | 192x128 | `buildings/building_panelka_wide.png` | [ ] |
+| 2 | Panelka (wide) | 192x128 | `buildings/building_panelka_wide.png` | [x] |
 | 3 | Panelka (ruined) | 128x160 | `buildings/building_panelka_ruined.png` | [ ] |
 | 4 | Government Building | 192x192 | `buildings/building_government.png` | [ ] |
-| 5 | Guard Booth | 64x64 | `buildings/building_guard_booth.png` | [ ] |
+| 5 | Guard Booth | 64x64 | `buildings/building_guard_booth.png` | [x] |
 | 6 | Checkpoint | 96x64 | `buildings/building_checkpoint.png` | [ ] |
 
-**Progress: 0/6 building sprites**
+**Progress: 2/6 building sprites**
 
 ---
 
@@ -231,20 +231,20 @@ Each enemy needs: 8-direction walk cycle (4 frames each = 32 frames per enemy).
 
 | # | Prop | Size | File | Status |
 |---|------|------|------|--------|
-| 1 | Concrete barricade | 32x24 | `props/prop_barricade.png` | [ ] |
-| 2 | Burnt vehicle | 48x32 | `props/prop_burnt_car.png` | [ ] |
-| 3 | Floodlight | 16x32 | `props/prop_floodlight.png` | [ ] |
-| 4 | Razor wire | 32x8 | `props/prop_razor_wire.png` | [ ] |
-| 5 | Rubble pile (small) | 16x16 | `props/prop_rubble_small.png` | [ ] |
-| 6 | Rubble pile (large) | 32x24 | `props/prop_rubble_large.png` | [ ] |
-| 7 | Dumpster | 24x16 | `props/prop_dumpster.png` | [ ] |
-| 8 | Street lamp (broken) | 8x32 | `props/prop_street_lamp.png` | [ ] |
-| 9 | Protest signs (ground) | 16x8 | `props/prop_signs_ground.png` | [ ] |
-| 10 | Traffic cone | 8x8 | `props/prop_traffic_cone.png` | [ ] |
-| 11 | Burning barrel | 16x16 | `props/prop_burning_barrel.png` | [ ] |
-| 12 | Sandbag wall | 32x16 | `props/prop_sandbags.png` | [ ] |
+| 1 | Concrete barricade | 32x24 | `props/prop_barricade.png` | [x] |
+| 2 | Burnt vehicle | 48x32 | `props/prop_burnt_car.png` | [x] |
+| 3 | Floodlight | 16x32 | `props/prop_floodlight.png` | [x] |
+| 4 | Razor wire | 32x8 | `props/prop_razor_wire.png` | [x] |
+| 5 | Rubble pile (small) | 16x16 | `props/prop_rubble_small.png` | [x] |
+| 6 | Rubble pile (large) | 32x24 | `props/prop_rubble_large.png` | [x] |
+| 7 | Dumpster | 24x16 | `props/prop_dumpster.png` | [x] |
+| 8 | Street lamp (broken) | 8x32 | `props/prop_street_lamp.png` | [x] |
+| 9 | Protest signs (ground) | 16x8 | `props/prop_signs_ground.png` | [x] |
+| 10 | Traffic cone | 8x8 | `props/prop_traffic_cone.png` | [x] |
+| 11 | Burning barrel | 16x16 | `props/prop_burning_barrel.png` | [x] |
+| 12 | Sandbag wall | 32x16 | `props/prop_sandbags.png` | [x] |
 
-**Progress: 0/12 prop sprites**
+**Progress: 12/12 prop sprites**
 
 ---
 
@@ -255,13 +255,13 @@ Each enemy needs: 8-direction walk cycle (4 frames each = 32 frames per enemy).
 | Tiles | 0 | 8 |
 | Towers (base+turret) | 72 | 72 |
 | Towers (tier 5 turrets) | 0 | 72 |
-| Enemy frames | 1 | 512 |
+| Enemy frames | 512 | 512 |
 | Boss frames | 0 | 72 |
 | Projectiles | 0 | 8 |
 | Effect frames | 0 | 50 |
-| City buildings | 0 | 6 |
+| City buildings | 2 | 6 |
 | Animated details | 0 | 12 |
 | UI icons | 0 | 28 |
-| Props | 0 | 12 |
-| **TOTAL** | **73** | **852** |
+| Props | 12 | 12 |
+| **TOTAL** | **598** | **852** |
 

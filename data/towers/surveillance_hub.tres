@@ -1,23 +1,23 @@
-[gd_resource type="Resource" script_class="TowerData" load_steps=25 format=3]
+[gd_resource type="Resource" script_class="TowerData" load_steps=53 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/tower_data.gd" id="1_td"]
 [ext_resource type="PackedScene" path="res://scenes/towers/base_tower.tscn" id="2_scene"]
-[ext_resource type="PackedScene" path="res://scenes/projectiles/base_projectile.tscn" id="3_proj"]
+[ext_resource type="PackedScene" path="res://scenes/projectiles/surveillance_pulse_projectile.tscn" id="3_proj"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_path_data.gd" id="4_upd"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_tier_data.gd" id="5_utd"]
 [ext_resource type="Script" path="res://scripts/resources/stat_modifier_data.gd" id="6_smd"]
 [ext_resource type="Script" path="res://scripts/resources/status_effect_data.gd" id="7_sed"]
 
-; -- Base on-hit: MARK +15% dmg taken, 3s --
+; -- Base on-hit: MARK +20% dmg taken, 4s --
 [sub_resource type="Resource" id="mark_effect"]
 script = ExtResource("7_sed")
 effect_type = 6
-duration = 3.0
-potency = 0.15
+duration = 4.0
+potency = 0.2
 stack_limit = 1
 apply_chance = 1.0
 
-; -- Path A "Drone Fleet" --
+; -- Path A "Drone Fleet" (range + rate) --
 [sub_resource type="Resource" id="mod_a1_range"]
 script = ExtResource("6_smd")
 stat_name = "base_range"
@@ -28,7 +28,7 @@ value = 1.0
 script = ExtResource("5_utd")
 tier_name = "Upgraded Optics"
 description = "Enhanced surveillance range for citizen safety"
-cost = 250
+cost = 5
 stat_modifiers = [SubResource("mod_a1_range")]
 
 [sub_resource type="Resource" id="mod_a2_rate"]
@@ -41,16 +41,82 @@ value = 1.4
 script = ExtResource("5_utd")
 tier_name = "Patrol Drone"
 description = "Autonomous monitoring unit. It's for your protection."
-cost = 500
+cost = 10
 stat_modifiers = [SubResource("mod_a2_rate")]
+
+[sub_resource type="Resource" id="mod_a3_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="mod_a3_rate"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.2
+
+[sub_resource type="Resource" id="tier_a3"]
+script = ExtResource("5_utd")
+tier_name = "Relay Network"
+description = "Drones talking to drones. They have more social life than you."
+cost = 15
+stat_modifiers = [SubResource("mod_a3_range"), SubResource("mod_a3_rate")]
+
+[sub_resource type="Resource" id="mod_a4_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="mod_a4_rate"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.3
+
+[sub_resource type="Resource" id="tier_a4"]
+script = ExtResource("5_utd")
+tier_name = "Drone Swarm"
+description = "The sky is full of tiny cameras. Isn't technology wonderful?"
+cost = 25
+stat_modifiers = [SubResource("mod_a4_range"), SubResource("mod_a4_rate")]
+
+[sub_resource type="Resource" id="mod_a5_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 1.0
+
+[sub_resource type="Resource" id="mod_a5_rate"]
+script = ExtResource("6_smd")
+stat_name = "fire_rate"
+operation = 1
+value = 1.3
+
+[sub_resource type="Resource" id="weaken_a5"]
+script = ExtResource("7_sed")
+effect_type = 7
+duration = 3.0
+potency = 0.15
+stack_limit = 1
+apply_chance = 1.0
+
+[sub_resource type="Resource" id="tier_a5"]
+script = ExtResource("5_utd")
+tier_name = "Panopticon"
+description = "We see everything. We know everything. Privacy was a failed experiment."
+cost = 40
+stat_modifiers = [SubResource("mod_a5_range"), SubResource("mod_a5_rate")]
+unlocks_ability = SubResource("weaken_a5")
 
 [sub_resource type="Resource" id="path_a"]
 script = ExtResource("4_upd")
 path_name = "Drone Fleet"
 description = "Extend surveillance capabilities"
-tiers = [SubResource("tier_a1"), SubResource("tier_a2")]
+tiers = [SubResource("tier_a1"), SubResource("tier_a2"), SubResource("tier_a3"), SubResource("tier_a4"), SubResource("tier_a5")]
 
-; -- Path B "Data Mining" --
+; -- Path B "Data Mining" (range + damage) --
 [sub_resource type="Resource" id="mod_b1_range"]
 script = ExtResource("6_smd")
 stat_name = "base_range"
@@ -61,7 +127,7 @@ value = 0.5
 script = ExtResource("5_utd")
 tier_name = "Facial Recognition"
 description = "We know who you are. We know where you live."
-cost = 250
+cost = 5
 stat_modifiers = [SubResource("mod_b1_range")]
 
 [sub_resource type="Resource" id="mod_b2_dmg"]
@@ -74,16 +140,76 @@ value = 1.3
 script = ExtResource("5_utd")
 tier_name = "Behavioral Analysis"
 description = "Predictive threat assessment via social media history"
-cost = 500
+cost = 10
 stat_modifiers = [SubResource("mod_b2_dmg")]
+
+[sub_resource type="Resource" id="mod_b3_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.3
+
+[sub_resource type="Resource" id="mod_b3_range"]
+script = ExtResource("6_smd")
+stat_name = "base_range"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="tier_b3"]
+script = ExtResource("5_utd")
+tier_name = "Metadata Harvester"
+description = "Your phone is our phone. Your contacts are our contacts."
+cost = 15
+stat_modifiers = [SubResource("mod_b3_dmg"), SubResource("mod_b3_range")]
+
+[sub_resource type="Resource" id="mod_b4_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.4
+
+[sub_resource type="Resource" id="mod_b4_crit"]
+script = ExtResource("6_smd")
+stat_name = "crit_chance"
+operation = 0
+value = 0.05
+
+[sub_resource type="Resource" id="tier_b4"]
+script = ExtResource("5_utd")
+tier_name = "Deepfake Generator"
+description = "Your alibi has been overwritten. You were there. We have footage."
+cost = 25
+stat_modifiers = [SubResource("mod_b4_dmg"), SubResource("mod_b4_crit")]
+
+[sub_resource type="Resource" id="mod_b5_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.5
+
+[sub_resource type="Resource" id="mark_b5"]
+script = ExtResource("7_sed")
+effect_type = 6
+duration = 4.0
+potency = 0.25
+stack_limit = 1
+apply_chance = 1.0
+
+[sub_resource type="Resource" id="tier_b5"]
+script = ExtResource("5_utd")
+tier_name = "Social Credit System"
+description = "Your score is -9000. All units converge. Your family's score has also been adjusted."
+cost = 40
+stat_modifiers = [SubResource("mod_b5_dmg")]
+unlocks_ability = SubResource("mark_b5")
 
 [sub_resource type="Resource" id="path_b"]
 script = ExtResource("4_upd")
 path_name = "Data Mining"
 description = "Weaponize personal information"
-tiers = [SubResource("tier_b1"), SubResource("tier_b2")]
+tiers = [SubResource("tier_b1"), SubResource("tier_b2"), SubResource("tier_b3"), SubResource("tier_b4"), SubResource("tier_b5")]
 
-; -- Path C "Propaganda Network" --
+; -- Path C "Propaganda Network" (AoE) --
 [sub_resource type="Resource" id="mod_c1_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
@@ -94,7 +220,7 @@ value = 1.0
 script = ExtResource("5_utd")
 tier_name = "Loudspeaker Array"
 description = "Attention citizens: you are wrong about everything"
-cost = 250
+cost = 5
 stat_modifiers = [SubResource("mod_c1_aoe")]
 
 [sub_resource type="Resource" id="mod_c2_dmg"]
@@ -113,14 +239,74 @@ value = 0.5
 script = ExtResource("5_utd")
 tier_name = "Mandatory Re-education"
 description = "Please watch this 47-hour orientation video"
-cost = 500
+cost = 10
 stat_modifiers = [SubResource("mod_c2_dmg"), SubResource("mod_c2_aoe")]
+
+[sub_resource type="Resource" id="mod_c3_aoe"]
+script = ExtResource("6_smd")
+stat_name = "area_of_effect"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="mod_c3_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.2
+
+[sub_resource type="Resource" id="tier_c3"]
+script = ExtResource("5_utd")
+tier_name = "State Media Broadcast"
+description = "All channels now show the same program. Compliance programming."
+cost = 15
+stat_modifiers = [SubResource("mod_c3_aoe"), SubResource("mod_c3_dmg")]
+
+[sub_resource type="Resource" id="mod_c4_aoe"]
+script = ExtResource("6_smd")
+stat_name = "area_of_effect"
+operation = 0
+value = 0.5
+
+[sub_resource type="Resource" id="mod_c4_dmg"]
+script = ExtResource("6_smd")
+stat_name = "base_damage"
+operation = 1
+value = 1.3
+
+[sub_resource type="Resource" id="tier_c4"]
+script = ExtResource("5_utd")
+tier_name = "Information Warfare"
+description = "Facts are whatever we say they are. We have the speakers to prove it."
+cost = 25
+stat_modifiers = [SubResource("mod_c4_aoe"), SubResource("mod_c4_dmg")]
+
+[sub_resource type="Resource" id="mod_c5_aoe"]
+script = ExtResource("6_smd")
+stat_name = "area_of_effect"
+operation = 0
+value = 1.0
+
+[sub_resource type="Resource" id="slow_c5"]
+script = ExtResource("7_sed")
+effect_type = 0
+duration = 2.0
+potency = 0.25
+stack_limit = 1
+apply_chance = 1.0
+
+[sub_resource type="Resource" id="tier_c5"]
+script = ExtResource("5_utd")
+tier_name = "Ministry of Truth"
+description = "The truth has been updated. Your memory is incorrect. Please stand still for recalibration."
+cost = 40
+stat_modifiers = [SubResource("mod_c5_aoe")]
+unlocks_ability = SubResource("slow_c5")
 
 [sub_resource type="Resource" id="path_c"]
 script = ExtResource("4_upd")
 path_name = "Propaganda Network"
 description = "Broadcast state-approved truth"
-tiers = [SubResource("tier_c1"), SubResource("tier_c2")]
+tiers = [SubResource("tier_c1"), SubResource("tier_c2"), SubResource("tier_c3"), SubResource("tier_c4"), SubResource("tier_c5")]
 
 [resource]
 script = ExtResource("1_td")
@@ -128,15 +314,15 @@ tower_id = "surveillance_hub"
 tower_name = "Surveillance Hub"
 description = "Big Brother is watching. And taking notes. And sharing them."
 scene = ExtResource("2_scene")
-build_cost = 250
-sell_ratio = 0.6
-base_damage = 6.0
+build_cost = 20
+sell_ratio = 0.65
+base_damage = 4.0
 damage_type = 7
-base_range = 5.0
-fire_rate = 0.6
+base_range = 5.5
+fire_rate = 0.5
 projectile_type = 4
 projectile_scene = ExtResource("3_proj")
-area_of_effect = 0.0
+area_of_effect = 5.5
 pierce_count = 1
 crit_chance = 0.0
 crit_multiplier = 2.0

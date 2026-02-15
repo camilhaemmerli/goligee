@@ -21,10 +21,39 @@ var _show_range: bool = false
 
 ## Turret textures for 8 directions: S, SW, W, NW, N, NE, E, SE
 var _turret_textures: Array[Texture2D] = []
+## Optional firing-pose turret textures (same 8 directions)
+var _fire_turret_textures: Array[Texture2D] = []
+var _current_dir_idx: int = 7  # Track current aim direction for fire frame swap
 ## Direction names matching _turret_textures indices
 const DIRS := ["s", "sw", "w", "nw", "n", "ne", "e", "se"]
 
 const KILL_MILESTONES := [25, 50, 100, 250, 500, 1000]
+const TOWER_SCALE := 0.75
+
+# Rank badge constants
+const BADGE_COLORS := [Color("#B08040"), Color("#A0A8B8"), Color("#FFD060")]  # bronze, silver, gold
+const BADGE_OUTLINE := Color("#1A1A1E")
+const CHEVRON_W := 6.0   # half-width of chevron V
+const CHEVRON_H := 3.0   # depth of V
+const CHEVRON_SPACING := 4.0
+var _badge_node: Node2D
+var _total_upgrades: int = 0
+
+# Synergy glow
+var _synergy_node: Node2D
+var _synergy_color: Color = Color.TRANSPARENT
+var _synergy_pulse: float = 0.0
+var _synergy_rate_mult: float = 1.0
+
+# Taser tower-to-tower electric links
+var _taser_links: Dictionary = {}  # neighbor instance_id -> Line2D
+const TASER_LINK_RANGE := 3  # Chebyshev tile distance
+const TASER_LINK_COLOR := Color("#E0E060", 0.3)
+const TASER_LINK_JITTER := 4.0
+const TASER_LINK_SEGMENTS := 4
+const TASER_LINK_FLICKER_INTERVAL := 0.15
+var _link_flicker_timer: float = 0.0
+var _is_taser: bool = false
 
 
 func _ready() -> void:
@@ -56,6 +85,16 @@ func _ready() -> void:
 		else:
 			sprite.texture = EntitySprites.create_tower_turret(Color("#606068"), Color("#90A0B8"))
 
+	_badge_node = Node2D.new()
+	_badge_node.z_index = 1
+	add_child(_badge_node)
+	_badge_node.draw.connect(_draw_rank_badge)
+
+	_synergy_node = Node2D.new()
+	_synergy_node.z_index = 2  # Above base sprite, visible on top of tiles
+	add_child(_synergy_node)
+	_synergy_node.draw.connect(_draw_synergy_glow)
+
 	range_area.area_entered.connect(_on_enemy_entered_range)
 	range_area.area_exited.connect(_on_enemy_exited_range)
 	attack_timer.timeout.connect(_on_attack_timer)
@@ -63,6 +102,17 @@ func _ready() -> void:
 	SignalBus.enemy_killed.connect(_on_enemy_killed)
 	SignalBus.tower_selected.connect(_on_tower_selected)
 	SignalBus.tower_deselected.connect(_on_tower_deselected)
+	SynergyManager.synergy_changed.connect(_on_synergy_changed)
+
+	# Taser tower-to-tower electric links
+	_is_taser = tower_data and tower_data.tower_id == "taser_grid"
+	if _is_taser:
+		SignalBus.tower_placed.connect(_on_taser_neighbor_changed)
+		SignalBus.tower_sold.connect(_on_taser_neighbor_sold)
+		# Defer initial link refresh so our tile_pos is set by the placer first
+		_refresh_taser_links.call_deferred()
+
+	set_process(false)  # Only enable when synergy glow or taser links are active
 
 
 func _init_from_data() -> void:
@@ -99,14 +149,19 @@ func _apply_theme_skin() -> void:
 		sprite.texture = skin.base_texture
 		# Align the diamond ground (bottom of 64x64) with the tile center
 		sprite.offset.y = -16
+		sprite.scale = Vector2(TOWER_SCALE, TOWER_SCALE)
 		turret_sprite.visible = true
-		turret_sprite.position.y = skin.turret_y_offset + sprite.offset.y
-		muzzle_point.position.y = skin.turret_y_offset + sprite.offset.y - 4.0
+		turret_sprite.scale = Vector2(TOWER_SCALE, TOWER_SCALE)
+		turret_sprite.position.y = (skin.turret_y_offset + sprite.offset.y) * TOWER_SCALE
+		muzzle_point.position.y = turret_sprite.position.y - (4.0 * TOWER_SCALE)
 		if skin.turret_textures.size() == 8:
 			_turret_textures = skin.turret_textures
 			turret_sprite.texture = _turret_textures[7]  # Default: SE
+			_current_dir_idx = 7
 		elif skin.turret_textures.size() > 0:
 			turret_sprite.texture = skin.turret_textures[0]
+		if skin.fire_turret_textures.size() == 8:
+			_fire_turret_textures = skin.fire_turret_textures
 	elif skin.sprite_sheet:
 		# Legacy single-sprite mode
 		sprite.texture = skin.sprite_sheet
@@ -126,6 +181,7 @@ func _aim_at(target_pos: Vector2) -> void:
 	# Offset so south=0: subtract PI/2 to rotate, then divide into 8 sectors
 	var adjusted := angle - PI / 2.0  # Now 0=south
 	var idx := wrapi(roundi(adjusted / (TAU / 8.0)), 0, 8)
+	_current_dir_idx = idx
 	turret_sprite.texture = _turret_textures[idx]
 
 
@@ -157,6 +213,18 @@ func _on_attack_timer() -> void:
 
 
 func _fire_at(target: Node2D) -> void:
+	# Crossfire bonus: perpendicular shots deal extra damage
+	var crossfire_mult := 1.0
+	if tower_data and tower_data.crossfire_bonus > 0.0 and target is BaseEnemy:
+		var enemy_dir: Vector2 = target.velocity.normalized() if target.velocity.length_squared() > 0.01 else Vector2.ZERO
+		if enemy_dir != Vector2.ZERO:
+			var tower_to_enemy := (target.global_position - global_position).normalized()
+			var dot := absf(enemy_dir.dot(tower_to_enemy))
+			# dot=1.0 → parallel (no bonus), dot=0.0 → perpendicular (full bonus)
+			crossfire_mult = 1.0 + tower_data.crossfire_bonus * (1.0 - dot)
+			if crossfire_mult > 1.1:
+				_spawn_crossfire_popup(target)
+
 	if weapon.projectile_scene:
 		var proj: Node2D = weapon.projectile_scene.instantiate()
 		# Spawn from muzzle point if turret is active, otherwise tower center
@@ -166,10 +234,11 @@ func _fire_at(target: Node2D) -> void:
 			proj.global_position = global_position
 		if proj is BaseProjectile:
 			proj.source_tower = self
+		var final_dmg := weapon.final_damage * crossfire_mult
 		if proj.has_method("init"):
 			proj.init(
 				target,
-				weapon.final_damage,
+				final_dmg,
 				weapon.damage_type,
 				weapon.final_aoe,
 				weapon.final_pierce,
@@ -184,11 +253,17 @@ func _fire_at(target: Node2D) -> void:
 			get_parent().add_child(proj)
 
 	weapon.fired.emit(target)
+	_play_fire_frame()
 	_play_recoil(target)
 	_spawn_muzzle_flash()
 
 
 func _on_upgraded(path_index: int, tier: int) -> void:
+	_total_upgrades = 0
+	for t in upgrade.path_tiers:
+		_total_upgrades += t
+	_badge_node.queue_redraw()
+
 	weapon.apply_stat_modifiers(upgrade.active_modifiers)
 
 	var combined_effects: Array[StatusEffectData] = []
@@ -196,17 +271,7 @@ func _on_upgraded(path_index: int, tier: int) -> void:
 	combined_effects.append_array(upgrade.unlocked_effects)
 	weapon.on_hit_effects = combined_effects
 
-	var final_rate := tower_data.fire_rate
-	for mod in upgrade.active_modifiers:
-		if mod.stat_name == "fire_rate":
-			match mod.operation:
-				Enums.ModifierOp.ADD:
-					final_rate += mod.value
-				Enums.ModifierOp.MULTIPLY:
-					final_rate *= mod.value
-				Enums.ModifierOp.SET:
-					final_rate = mod.value
-	attack_timer.wait_time = 1.0 / max(final_rate, 0.1)
+	_recalculate_attack_timer()
 
 	var final_range := tower_data.base_range
 	for mod in upgrade.active_modifiers:
@@ -225,6 +290,27 @@ func get_sell_value() -> int:
 	return int(upgrade.get_total_invested() * tower_data.sell_ratio)
 
 
+## Apply synergy fire rate multiplier to the attack timer.
+func apply_synergy_rate(rate_mult: float) -> void:
+	_synergy_rate_mult = rate_mult
+	_recalculate_attack_timer()
+
+
+func _recalculate_attack_timer() -> void:
+	var final_rate := tower_data.fire_rate
+	for mod in upgrade.active_modifiers:
+		if mod.stat_name == "fire_rate":
+			match mod.operation:
+				Enums.ModifierOp.ADD:
+					final_rate += mod.value
+				Enums.ModifierOp.MULTIPLY:
+					final_rate *= mod.value
+				Enums.ModifierOp.SET:
+					final_rate = mod.value
+	final_rate *= _synergy_rate_mult
+	attack_timer.wait_time = 1.0 / max(final_rate, 0.1)
+
+
 func _on_enemy_killed(enemy: Node2D, _gold: int) -> void:
 	if enemy is BaseEnemy and enemy.last_hit_by == self:
 		kill_count += 1
@@ -233,6 +319,10 @@ func _on_enemy_killed(enemy: Node2D, _gold: int) -> void:
 			var tween := create_tween()
 			tween.tween_property(sprite, "modulate", Color("#D8A040"), 0.15)
 			tween.tween_property(sprite, "modulate", Color.WHITE, 0.3)
+			if turret_sprite.visible:
+				var t2 := create_tween()
+				t2.tween_property(turret_sprite, "modulate", Color("#D8A040"), 0.15)
+				t2.tween_property(turret_sprite, "modulate", Color.WHITE, 0.3)
 
 
 func _draw() -> void:
@@ -267,23 +357,49 @@ func _on_tower_deselected() -> void:
 	queue_redraw()
 
 
+func _play_fire_frame() -> void:
+	if _fire_turret_textures.size() != 8:
+		return
+	turret_sprite.texture = _fire_turret_textures[_current_dir_idx]
+	get_tree().create_timer(0.15).timeout.connect(func():
+		if _turret_textures.size() == 8:
+			turret_sprite.texture = _turret_textures[_current_dir_idx]
+	)
+
+
 func _play_recoil(target: Node2D) -> void:
 	var dir := (global_position - target.global_position).normalized()
 	# Recoil on the turret sprite if available, otherwise base sprite
 	var recoil_node: Sprite2D = turret_sprite if _turret_textures.size() == 8 else sprite
 	var tween := create_tween()
 	tween.tween_property(recoil_node, "position",
-		recoil_node.position + dir * 2.0, 0.033)
+		recoil_node.position + dir * 1.0, 0.033)
 	tween.tween_property(recoil_node, "position",
 		recoil_node.position, 0.033)
 
 
+func _spawn_crossfire_popup(target: Node2D) -> void:
+	var label := Label.new()
+	label.text = "CROSSFIRE"
+	label.add_theme_font_size_override("font_size", 8)
+	label.add_theme_color_override("font_color", Color("#D8A040"))
+	label.add_theme_color_override("font_outline_color", Color("#1A1A1E"))
+	label.add_theme_constant_override("outline_size", 2)
+	label.global_position = target.global_position + Vector2(-20, -24)
+	label.z_index = 100
+	get_tree().current_scene.add_child(label)
+	var tween := label.create_tween()
+	tween.tween_property(label, "global_position:y", label.global_position.y - 16.0, 0.5)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.5).set_delay(0.2)
+	tween.tween_callback(label.queue_free)
+
+
 func _spawn_muzzle_flash() -> void:
 	var flash := ColorRect.new()
-	flash.size = Vector2(6, 6)
+	flash.size = Vector2(4, 4)
 	flash.color = ThemeManager.get_damage_type_color(weapon.damage_type)
 	# Position flash at muzzle point
-	flash.position = muzzle_point.position + Vector2(-3, -3)
+	flash.position = muzzle_point.position + Vector2(-2, -2)
 	flash.z_index = 60
 	add_child(flash)
 	var tween := flash.create_tween()
@@ -291,9 +407,181 @@ func _spawn_muzzle_flash() -> void:
 	tween.tween_callback(flash.queue_free)
 
 
+func _draw_rank_badge() -> void:
+	if _total_upgrades <= 0:
+		return
+	var tier_idx := clampi((_total_upgrades - 1) / 2, 0, 2)
+	var count := ((_total_upgrades - 1) % 2) + 1
+	var color: Color = BADGE_COLORS[tier_idx]
+	var anchor := Vector2(12, -20)
+	for i in count:
+		_draw_chevron(anchor + Vector2(0, -i * CHEVRON_SPACING), color)
+
+
+func _draw_chevron(center: Vector2, color: Color) -> void:
+	var left := center + Vector2(-CHEVRON_W, -CHEVRON_H)
+	var tip := center
+	var right := center + Vector2(CHEVRON_W, -CHEVRON_H)
+	# Outline
+	_badge_node.draw_line(left, tip, BADGE_OUTLINE, 2.0)
+	_badge_node.draw_line(tip, right, BADGE_OUTLINE, 2.0)
+	# Fill
+	_badge_node.draw_line(left, tip, color, 1.0)
+	_badge_node.draw_line(tip, right, color, 1.0)
+
+
+func _on_synergy_changed(tower: Node2D) -> void:
+	if tower != self:
+		return
+	var synergies := SynergyManager.get_tower_synergies(self)
+	if synergies.is_empty():
+		_synergy_color = Color.TRANSPARENT
+		if _taser_links.is_empty():
+			set_process(false)
+	else:
+		# Green for buff, red for debuff
+		var has_buff := false
+		var has_debuff := false
+		for s in synergies:
+			if s["is_buff"]:
+				has_buff = true
+			else:
+				has_debuff = true
+		if has_buff and has_debuff:
+			_synergy_color = Color("#E0C040")  # amber for mixed
+		elif has_debuff:
+			_synergy_color = Color("#C04040")  # red for debuff
+		else:
+			_synergy_color = Color("#40C060")  # green for buff
+		set_process(true)
+	_synergy_node.queue_redraw()
+
+
+func _process(delta: float) -> void:
+	if _synergy_color.a > 0.0:
+		_synergy_pulse += delta * 2.5
+		_synergy_node.queue_redraw()
+
+	if _is_taser and not _taser_links.is_empty():
+		_link_flicker_timer += delta
+		if _link_flicker_timer >= TASER_LINK_FLICKER_INTERVAL:
+			_link_flicker_timer -= TASER_LINK_FLICKER_INTERVAL
+			_rerandomize_link_bolts()
+
+
+func _draw_synergy_glow() -> void:
+	if _synergy_color == Color.TRANSPARENT:
+		return
+	var pulse_alpha := 0.35 + 0.25 * sin(_synergy_pulse)
+	var glow_color := Color(_synergy_color, pulse_alpha * 0.4)
+	var outline_color := Color(_synergy_color, pulse_alpha)
+	# Pulsing diamond matching the isometric tile footprint
+	var hw := 32.0
+	var hh := 16.0
+	var pts := PackedVector2Array([
+		Vector2(0, -hh), Vector2(hw, 0), Vector2(0, hh), Vector2(-hw, 0), Vector2(0, -hh),
+	])
+	_synergy_node.draw_colored_polygon(PackedVector2Array([pts[0], pts[1], pts[2], pts[3]]), glow_color)
+	for i in 4:
+		_synergy_node.draw_line(pts[i], pts[i + 1], outline_color, 2.0)
+
+
 func sell() -> void:
+	_clear_taser_links()
 	var refund := get_sell_value()
 	EconomyManager.add_gold(refund)
 	PathfindingManager.remove_tower(_tile_pos)
 	SignalBus.tower_sold.emit(self, refund)
 	queue_free()
+
+
+# -- Taser tower-to-tower electric links --
+
+func _on_taser_neighbor_changed(_tower: Node2D, _tile_pos_arg: Vector2i) -> void:
+	_refresh_taser_links()
+
+
+func _on_taser_neighbor_sold(_tower: Node2D, _refund: int) -> void:
+	# Defer so the sold tower is removed from _tower_grid first
+	_refresh_taser_links.call_deferred()
+
+
+func _refresh_taser_links() -> void:
+	_clear_taser_links()
+
+	if not _is_taser:
+		return
+
+	for tile_pos_key in SynergyManager._tower_grid:
+		var neighbor: BaseTower = SynergyManager._tower_grid[tile_pos_key]
+		if neighbor == self:
+			continue
+		if not is_instance_valid(neighbor) or not neighbor.tower_data:
+			continue
+		if neighbor.tower_data.tower_id != "taser_grid":
+			continue
+
+		# Check Chebyshev distance
+		var dx := absi(tile_pos_key.x - _tile_pos.x)
+		var dy := absi(tile_pos_key.y - _tile_pos.y)
+		if maxi(dx, dy) > TASER_LINK_RANGE:
+			continue
+
+		# Only draw from lower instance_id to higher (one link per pair)
+		if get_instance_id() >= neighbor.get_instance_id():
+			continue
+
+		var bolt := _build_link_bolt(global_position, neighbor.global_position)
+		get_tree().current_scene.add_child(bolt)
+		_taser_links[neighbor.get_instance_id()] = bolt
+
+	# Enable processing if we have links or synergy glow
+	if not _taser_links.is_empty() or _synergy_color.a > 0.0:
+		set_process(true)
+
+
+func _build_link_bolt(from: Vector2, to: Vector2) -> Line2D:
+	var bolt := Line2D.new()
+	bolt.width = 1.0
+	bolt.default_color = TASER_LINK_COLOR
+	bolt.z_index = 5
+	bolt.top_level = true
+	bolt.points = _build_link_jagged_points(from, to)
+	return bolt
+
+
+func _build_link_jagged_points(from: Vector2, to: Vector2) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	points.append(from)
+
+	var diff := to - from
+	var perp := Vector2(-diff.y, diff.x).normalized()
+
+	for i in range(1, TASER_LINK_SEGMENTS):
+		var t := float(i) / float(TASER_LINK_SEGMENTS)
+		var base_pt := from.lerp(to, t)
+		var offset := perp * randf_range(-TASER_LINK_JITTER, TASER_LINK_JITTER)
+		points.append(base_pt + offset)
+
+	points.append(to)
+	return points
+
+
+func _rerandomize_link_bolts() -> void:
+	for nid in _taser_links:
+		var bolt: Line2D = _taser_links[nid]
+		if not is_instance_valid(bolt):
+			continue
+		if bolt.points.size() < 2:
+			continue
+		var from: Vector2 = bolt.points[0]
+		var to: Vector2 = bolt.points[bolt.points.size() - 1]
+		bolt.points = _build_link_jagged_points(from, to)
+
+
+func _clear_taser_links() -> void:
+	for nid in _taser_links:
+		var bolt: Line2D = _taser_links[nid]
+		if is_instance_valid(bolt):
+			bolt.queue_free()
+	_taser_links.clear()

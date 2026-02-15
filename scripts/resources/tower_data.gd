@@ -9,7 +9,7 @@ extends Resource
 
 @export_group("Cost")
 @export var build_cost: int = 100
-@export var sell_ratio: float = 0.6
+@export var sell_ratio: float = 0.65
 
 @export_group("Combat")
 @export var base_damage: float = 10.0
@@ -24,6 +24,7 @@ extends Resource
 @export var crit_multiplier: float = 2.0
 @export var chain_targets: int = 0
 @export var chain_damage_falloff: float = 0.5
+@export var crossfire_bonus: float = 0.0
 @export var on_hit_effects: Array[StatusEffectData] = []
 
 @export_group("Upgrades")

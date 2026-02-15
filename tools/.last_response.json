@@ -1,6 +1,23 @@
 {
-  "usage": null,
-  "background_job_id": "92509538-c74b-4bc0-9bd2-94cb49e68660",
-  "object_id": "bbafcd11-55f0-490b-96bc-492c03bf87d0",
-  "status": "queued"
+  "background_job_ids": [
+    "442e406a-ec0b-4992-8b1b-6e1895efa92a",
+    "f5f414ec-8b5b-4264-9cf4-63a2f89e9d11",
+    "2168288c-9b5b-4191-8b35-37c5e66a1e60",
+    "cf482f13-6050-4ed5-97a3-6dee16a388d6",
+    "9edb7c77-586d-43e0-99c8-ccb2e7c0add0",
+    "b7f94dce-6649-4fbb-bb29-5802e2a3b26d",
+    "4c382439-c8bd-4a1b-b32a-f250f53e9388",
+    "d95ddbf9-1ca2-41ed-87f4-077e083a646f"
+  ],
+  "directions": [
+    "south",
+    "south-west",
+    "west",
+    "north-west",
+    "north",
+    "north-east",
+    "east",
+    "south-east"
+  ],
+  "status": "processing"
 }

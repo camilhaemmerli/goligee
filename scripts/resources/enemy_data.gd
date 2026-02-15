@@ -29,6 +29,10 @@ extends Resource
 @export var split_count: int = 0
 @export var split_enemy: EnemyData
 
+@export_group("Triggered Abilities")
+@export var speed_burst_threshold: float = 0.0  ## HP ratio to trigger (0 = disabled)
+@export var speed_burst_multiplier: float = 2.0
+
 
 func get_display_name() -> String:
 	var skin := ThemeManager.get_enemy_skin(enemy_id) if enemy_id else null

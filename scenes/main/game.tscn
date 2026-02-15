@@ -1,77 +1,542 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene format=3 uid="uid://cd52e3rg6pihb"]
 
-[ext_resource type="Script" path="res://scripts/main/game.gd" id="1_game"]
-[ext_resource type="Script" path="res://scripts/towers/tower_placer.gd" id="2_placer"]
-[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="3_hud"]
-[ext_resource type="Script" path="res://scripts/ui/tower_menu.gd" id="4_tower_menu"]
-[ext_resource type="Script" path="res://scripts/ui/upgrade_panel.gd" id="5_upgrade_panel"]
+[ext_resource type="Script" uid="uid://by6u05ndvauq" path="res://scripts/main/game.gd" id="1_game"]
+[ext_resource type="Script" uid="uid://bsfqrr5c2lgsv" path="res://scripts/towers/tower_placer.gd" id="2_placer"]
+[ext_resource type="Script" uid="uid://c5cegx4sndx1m" path="res://scripts/ui/hud.gd" id="3_hud"]
+[ext_resource type="Texture2D" uid="uid://jhwysn200qh" path="res://assets/sprites/buildings/building_panelka_tall_a.png" id="3_tpf3c"]
+[ext_resource type="Script" uid="uid://dfjx4vl2e5gxv" path="res://scripts/ui/tower_menu.gd" id="4_tower_menu"]
+[ext_resource type="Texture2D" uid="uid://dkv6vaqpcoqmw" path="res://assets/sprites/buildings/building_panelka_wide.png" id="5_icp8a"]
+[ext_resource type="Script" uid="uid://ci1ux2fjtqkto" path="res://scripts/ui/upgrade_panel.gd" id="5_upgrade_panel"]
+[ext_resource type="Script" uid="uid://dqdetw0xfibyw" path="res://scripts/main/scenery_sprite.gd" id="6_scenery"]
+[ext_resource type="Script" uid="uid://bb6u0xd1lqp0n" path="res://scripts/main/playfield_guide.gd" id="7_guide"]
+[ext_resource type="Texture2D" uid="uid://b8utuql0w0qkr" path="res://assets/sprites/buildings/building_rooftop_fg_a.png" id="7_vdk8p"]
+[ext_resource type="Texture2D" uid="uid://5nk0wyp8b5vh" path="res://assets/sprites/buildings/building_church_spire.png" id="8_shvc3"]
+[ext_resource type="Texture2D" uid="uid://p5kedj7box41" path="res://assets/sprites/buildings/building_guard_booth.png" id="9_nknkc"]
+[ext_resource type="Texture2D" uid="uid://bb20esrh0n8ba" path="res://assets/sprites/buildings/building_playground_soviet.png" id="10_6yb0f"]
+[ext_resource type="Texture2D" uid="uid://dx821pewfvtoo" path="res://assets/sprites/buildings/building_barricade.png" id="11_fvlvi"]
+[ext_resource type="Texture2D" uid="uid://0b8ry156c7bd" path="res://assets/sprites/buildings/building_electric_pole_broken.png" id="12_xh3kx"]
+[ext_resource type="Texture2D" uid="uid://blhaggpekp2f8" path="res://assets/sprites/buildings/building_graffiti_wall.png" id="15_8stsq"]
+[ext_resource type="Texture2D" uid="uid://di81hdqav06wb" path="res://assets/sprites/buildings/building_smokestack.png" id="19_7544d"]
+[ext_resource type="Texture2D" uid="uid://dxr75oooa5fl7" path="res://assets/sprites/buildings/building_bus_stop.png" id="20_ix5f2"]
+[ext_resource type="Texture2D" uid="uid://c74rluhvjgybx" path="res://assets/sprites/buildings/building_burned_bus.png" id="23_u0mkb"]
+[ext_resource type="Texture2D" uid="uid://cqy8j0wrdg05u" path="res://assets/sprites/buildings/building_military_jeep.png" id="24_5gg02"]
+[ext_resource type="Texture2D" uid="uid://bf4eoruw73gyr" path="res://assets/sprites/buildings/building_taxi_abandoned.png" id="25_tn61g"]
+[ext_resource type="Texture2D" uid="uid://b1p7xwo6qgbxc" path="res://assets/sprites/buildings/building_government_dome.png" id="26_x56qs"]
+[ext_resource type="Texture2D" uid="uid://dqw2gahmta16k" path="res://assets/sprites/buildings/building_panelka_tower_a.png" id="27_rd01"]
+[ext_resource type="Texture2D" uid="uid://dppkjxwssbhtm" path="res://assets/sprites/buildings/building_panelka_tower_b.png" id="28_rd02"]
+[ext_resource type="Texture2D" uid="uid://68635fmqrmkx" path="res://assets/sprites/buildings/building_panelka_wide_a.png" id="29_rd03"]
+[ext_resource type="Texture2D" uid="uid://beyr2gl1nrxil" path="res://assets/sprites/buildings/building_ministry_building.png" id="32_rd06"]
+[ext_resource type="Texture2D" uid="uid://c42rohqfwhhyv" path="res://assets/sprites/buildings/building_police_van.png" id="39_rd13"]
+[ext_resource type="Texture2D" uid="uid://c64veys1scg3b" path="res://assets/sprites/buildings/building_burned_car.png" id="40_rd14"]
+[ext_resource type="Texture2D" uid="uid://bra5whac7ugu6" path="res://assets/sprites/buildings/building_monument_lenin.png" id="41_rd15"]
+[ext_resource type="Texture2D" uid="uid://bu81x2efwwqju" path="res://assets/sprites/buildings/building_water_tower.png" id="42_rd16"]
+[ext_resource type="Texture2D" uid="uid://dbxaetubyu3lx" path="res://assets/sprites/buildings/building_billboard_propaganda.png" id="44_rd18"]
+[ext_resource type="Texture2D" uid="uid://ddc1f0eog405e" path="res://assets/sprites/buildings/building_state_bank.png" id="47_n03"]
+[ext_resource type="Texture2D" uid="uid://curgnhc6tpx58" path="res://assets/sprites/buildings/building_church_orthodox.png" id="50_n06"]
+[ext_resource type="Texture2D" uid="uid://cjli0iw4iry5n" path="res://assets/sprites/buildings/building_bus_shelter.png" id="52_n08"]
+[ext_resource type="Texture2D" uid="uid://vbqdwigivb0r" path="res://assets/sprites/buildings/building_panelka_corner.png" id="54_n10"]
+[ext_resource type="Texture2D" uid="uid://2sa0hrr2anre" path="res://assets/sprites/buildings/building_apartment_brutalist.png" id="55_n11"]
+[ext_resource type="Texture2D" uid="uid://bdy35in75hvh4" path="res://assets/sprites/buildings/building_hospital_block.png" id="56_n12"]
+[ext_resource type="Texture2D" uid="uid://1psdwlbn2p6c" path="res://assets/sprites/buildings/building_school_soviet.png" id="57_n13"]
+[ext_resource type="Texture2D" uid="uid://byjp7lhx1vpda" path="res://assets/sprites/buildings/building_cinema_palace.png" id="58_n14"]
+[ext_resource type="Texture2D" uid="uid://bsw5pvjyefn7x" path="res://assets/sprites/buildings/building_hotel_soviet.png" id="63_n19"]
+[ext_resource type="Texture2D" uid="uid://dewi2xjqv0l2m" path="res://assets/sprites/buildings/building_residential_tower.png" id="66_n22"]
 
-[node name="Game" type="Node2D"]
+[node name="Game" type="Node2D" unique_id=961407409]
 script = ExtResource("1_game")
 
-[node name="CityBackground" type="Node2D" parent="."]
+[node name="PlayfieldGuide" type="Node2D" parent="." unique_id=1898890565]
+script = ExtResource("7_guide")
+
+[node name="CityBackground" type="Node2D" parent="." unique_id=1855644577]
 z_index = -10
 
-[node name="BuildingsLeft" type="Node2D" parent="CityBackground"]
+[node name="Buildings" type="Node2D" parent="CityBackground" unique_id=838578405]
 
-[node name="BuildingsRight" type="Node2D" parent="CityBackground"]
+[node name="Smokestack" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1699244160]
+texture_filter = 1
+position = Vector2(-240, 72)
+scale = Vector2(2, 2)
+texture = ExtResource("19_7544d")
+offset = Vector2(0, -80)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_smokestack.png"
+foreground = null
 
-[node name="GovernmentBuilding" type="Node2D" parent="CityBackground"]
+[node name="ChurchSpire" type="Sprite2D" parent="CityBackground/Buildings" unique_id=660437127]
+texture_filter = 1
+position = Vector2(-327, 140)
+scale = Vector2(2, 2)
+texture = ExtResource("8_shvc3")
+offset = Vector2(0, -80)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_church_spire.png"
+foreground = null
 
-[node name="AnimatedDetails" type="Node2D" parent="CityBackground"]
+[node name="Barricade" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1499854518]
+texture_filter = 1
+position = Vector2(-208, 32)
+scale = Vector2(2, 2)
+texture = ExtResource("11_fvlvi")
+offset = Vector2(0, -24)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_barricade.png"
+foreground = null
 
-[node name="BackgroundDim" type="CanvasModulate" parent="CityBackground"]
-color = Color(0.7, 0.7, 0.75, 1)
+[node name="MinistryBuilding" type="Sprite2D" parent="CityBackground/Buildings" unique_id=587734674]
+texture_filter = 1
+position = Vector2(221, 113)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("32_rd06")
+offset = Vector2(0, -128)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_ministry_building.png"
+foreground = null
 
-[node name="World" type="Node2D" parent="."]
+[node name="WaterTowerRD" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1594018939]
+texture_filter = 1
+position = Vector2(385, 131)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("42_rd16")
+offset = Vector2(0, -112)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_water_tower.png"
+foreground = null
+
+[node name="MonumentLenin" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1861439345]
+texture_filter = 1
+position = Vector2(300.5, 151)
+scale = Vector2(1.6171875, 1.5)
+texture = ExtResource("41_rd15")
+offset = Vector2(0, -112)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_monument_lenin.png"
+foreground = null
+
+[node name="PanelkaWideA" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1732670930]
+texture_filter = 1
+position = Vector2(444.49997, 171)
+rotation = 0.00071240455
+scale = Vector2(1.2539063, 1.675)
+texture = ExtResource("29_rd03")
+offset = Vector2(0, -80)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_wide_a.png"
+foreground = null
+
+[node name="GraffitiWall" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1608387813]
+texture_filter = 1
+position = Vector2(460, 177)
+scale = Vector2(1.375, 1.6375004)
+texture = ExtResource("15_8stsq")
+offset = Vector2(0, -40)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_graffiti_wall.png"
+foreground = null
+
+[node name="PoliceVan" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1596272038]
+texture_filter = 1
+position = Vector2(678, -192)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("39_rd13")
+offset = Vector2(0, -64)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_police_van.png"
+foreground = null
+
+[node name="RooftopFgA" type="Sprite2D" parent="CityBackground/Buildings" unique_id=442689469]
+texture_filter = 1
+position = Vector2(477, 225)
+scale = Vector2(2, 2)
+texture = ExtResource("7_vdk8p")
+offset = Vector2(0, -32)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_rooftop_fg_a.png"
+foreground = null
+
+[node name="PanelkaTallA_Back3" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1859223435]
+texture_filter = 1
+position = Vector2(643.9999, 261.99997)
+scale = Vector2(1.9114586, 1.9499998)
+texture = ExtResource("3_tpf3c")
+offset = Vector2(0, -80)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_tall_a.png"
+foreground = null
+
+[node name="PanelkaTallA_Back1" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1802674609]
+texture_filter = 1
+position = Vector2(563, 310)
+scale = Vector2(2, 2)
+texture = ExtResource("3_tpf3c")
+offset = Vector2(0, -80)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_tall_a.png"
+foreground = null
+
+[node name="PlaygroundSoviet" type="Sprite2D" parent="CityBackground/Buildings" unique_id=703592117]
+texture_filter = 1
+position = Vector2(-98.00006, 78)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("10_6yb0f")
+offset = Vector2(0, -48)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_playground_soviet.png"
+foreground = null
+
+[node name="PanelkaWide_Back1" type="Sprite2D" parent="CityBackground/Buildings" unique_id=487134197]
+texture_filter = 1
+position = Vector2(-203.79999, 123)
+scale = Vector2(1.39375, 1.53125)
+texture = ExtResource("5_icp8a")
+offset = Vector2(0, -48)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_wide.png"
+foreground = null
+
+[node name="PanelkaTallA_Back2" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1218628094]
+texture_filter = 1
+position = Vector2(724.4, 318)
+scale = Vector2(2, 2)
+texture = ExtResource("3_tpf3c")
+offset = Vector2(0, -80)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_tall_a.png"
+foreground = null
+
+[node name="PanelkaWide_Back2" type="Sprite2D" parent="CityBackground/Buildings" unique_id=657839938]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(-293, 463)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("5_icp8a")
+offset = Vector2(0, -48)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_wide.png"
+foreground = true
+
+[node name="Barricade2" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1019587390]
+texture_filter = 1
+position = Vector2(-457, 136)
+scale = Vector2(1.875, 1.875)
+texture = ExtResource("11_fvlvi")
+offset = Vector2(0, -24)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_barricade.png"
+foreground = null
+
+[node name="PanelkaTallA_Left2" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1014181106]
+texture_filter = 1
+position = Vector2(652.4, 349)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("3_tpf3c")
+offset = Vector2(0, -80)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_tall_a.png"
+foreground = null
+
+[node name="GuardBooth" type="Sprite2D" parent="CityBackground/Buildings" unique_id=694010988]
+texture_filter = 1
+position = Vector2(600, 550)
+scale = Vector2(2, 2)
+texture = ExtResource("9_nknkc")
+offset = Vector2(0, -32)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_guard_booth.png"
+foreground = null
+
+[node name="ElectricPoleBroken" type="Sprite2D" parent="CityBackground/Buildings" unique_id=17030121]
+texture_filter = 1
+position = Vector2(-62, 587)
+scale = Vector2(2, 2)
+texture = ExtResource("12_xh3kx")
+offset = Vector2(0, -64)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_electric_pole_broken.png"
+foreground = null
+
+[node name="PanelkaWide_Left3" type="Sprite2D" parent="CityBackground/Buildings" unique_id=770117922]
+texture_filter = 1
+position = Vector2(-314.80002, 177)
+scale = Vector2(1.6, 1.6)
+texture = ExtResource("5_icp8a")
+offset = Vector2(0, -48)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_wide.png"
+foreground = null
+
+[node name="PanelkaWide_Left3" type="Sprite2D" parent="CityBackground/Buildings/PanelkaWide_Left3" unique_id=1677497734]
+texture_filter = 1
+position = Vector2(-76.37501, 36.874996)
+scale = Vector2(1.074219, 1.0742191)
+texture = ExtResource("5_icp8a")
+offset = Vector2(0, -48)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_wide.png"
+foreground = null
+
+[node name="BusStop" type="Sprite2D" parent="CityBackground/Buildings" unique_id=325105398]
+texture_filter = 1
+position = Vector2(306, 635)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("20_ix5f2")
+offset = Vector2(0, -32)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_bus_stop.png"
+foreground = null
+
+[node name="BurnedBus" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1645012709]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(540, 592)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("23_u0mkb")
+offset = Vector2(0, -32)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_burned_bus.png"
+foreground = true
+
+[node name="MilitaryJeep" type="Sprite2D" parent="CityBackground/Buildings" unique_id=520247179]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(410, 606)
+scale = Vector2(2, 2)
+texture = ExtResource("24_5gg02")
+offset = Vector2(0, -24)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_military_jeep.png"
+foreground = true
+
+[node name="TaxiAbandoned" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1488565172]
+texture_filter = 1
+position = Vector2(-230.79999, 130)
+scale = Vector2(2, 2)
+texture = ExtResource("25_tn61g")
+offset = Vector2(0, -24)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_taxi_abandoned.png"
+foreground = null
+
+[node name="CinemaPalace" type="Sprite2D" parent="CityBackground/Buildings" unique_id=857034198]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(-406, 574)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("58_n14")
+offset = Vector2(0, -112)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_cinema_palace.png"
+foreground = true
+
+[node name="HotelSoviet" type="Sprite2D" parent="CityBackground/Buildings" unique_id=747286399]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(-258, 666)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("63_n19")
+offset = Vector2(0, -128)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_hotel_soviet.png"
+foreground = true
+
+[node name="PanelkaTowerA" type="Sprite2D" parent="CityBackground/Buildings" unique_id=492546297]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(-83, 714)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("27_rd01")
+offset = Vector2(0, -128)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_tower_a.png"
+foreground = true
+
+[node name="PanelkaTowerB" type="Sprite2D" parent="CityBackground/Buildings" unique_id=404918384]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(50, 748)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("28_rd02")
+offset = Vector2(0, -128)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_tower_b.png"
+foreground = true
+
+[node name="BurnedCarRD" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1881170689]
+texture_filter = 1
+position = Vector2(-554, 379)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("40_rd14")
+offset = Vector2(0, -64)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_burned_car.png"
+foreground = null
+
+[node name="BillboardPropaganda" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1893143968]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(324, 758)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("44_rd18")
+offset = Vector2(0, -80)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_billboard_propaganda.png"
+foreground = true
+
+[node name="StateBankRD" type="Sprite2D" parent="CityBackground/Buildings" unique_id=909493966]
+texture_filter = 1
+position = Vector2(1203, 527)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("47_n03")
+offset = Vector2(0, -96)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_state_bank.png"
+foreground = null
+
+[node name="ChurchOrthodox" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1943690955]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(-418.00003, 753)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("50_n06")
+offset = Vector2(0, -128)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_church_orthodox.png"
+foreground = true
+
+[node name="PanelkaCorner" type="Sprite2D" parent="CityBackground/Buildings" unique_id=708301717]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(-823, 737)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("54_n10")
+offset = Vector2(0, -128)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_corner.png"
+foreground = true
+
+[node name="BusShelterRD" type="Sprite2D" parent="CityBackground/Buildings" unique_id=924493567]
+texture_filter = 1
+position = Vector2(-425, 971)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("52_n08")
+offset = Vector2(0, -64)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_bus_shelter.png"
+foreground = null
+
+[node name="SchoolSoviet" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1618115321]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(-116, 848)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("57_n13")
+offset = Vector2(0, -96)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_school_soviet.png"
+foreground = true
+
+[node name="ApartmentBrutalist" type="Sprite2D" parent="CityBackground/Buildings" unique_id=816810955]
+texture_filter = 1
+position = Vector2(824, 414)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("55_n11")
+offset = Vector2(0, -128)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_apartment_brutalist.png"
+foreground = null
+
+[node name="HospitalBlock" type="Sprite2D" parent="CityBackground/Buildings" unique_id=364495853]
+texture_filter = 1
+position = Vector2(-650, 400)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("56_n12")
+offset = Vector2(0, -96)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_hospital_block.png"
+foreground = null
+
+[node name="ResidentialTower" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1152369722]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(146, 843)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("66_n22")
+offset = Vector2(0, -128)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_residential_tower.png"
+foreground = true
+
+[node name="GovernmentBuilding" type="Node2D" parent="CityBackground" unique_id=1225383662]
+z_index = 1
+z_as_relative = false
+
+[node name="Dome" type="Sprite2D" parent="CityBackground/GovernmentBuilding" unique_id=233087137]
+self_modulate = Color(1.4, 1.3, 1.1, 1)
+texture_filter = 1
+position = Vector2(640, 768)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("26_x56qs")
+offset = Vector2(0, -96)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_government_dome.png"
+foreground = null
+
+[node name="AnimatedDetails" type="Node2D" parent="CityBackground" unique_id=2082889522]
+
+[node name="Decorations" type="Node2D" parent="CityBackground" unique_id=1689079054]
+
+[node name="World" type="Node2D" parent="." unique_id=247962481]
+modulate = Color(0.7, 0.7, 0.75, 1)
 y_sort_enabled = true
 
-[node name="TileMapLayer" type="TileMapLayer" parent="World"]
+[node name="TileMapLayer" type="TileMapLayer" parent="World" unique_id=1434382684]
 
-[node name="Towers" type="Node2D" parent="World"]
+[node name="Towers" type="Node2D" parent="World" unique_id=184527324]
 y_sort_enabled = true
 
-[node name="Enemies" type="Node2D" parent="World"]
+[node name="Enemies" type="Node2D" parent="World" unique_id=509735149]
 y_sort_enabled = true
 
-[node name="Projectiles" type="Node2D" parent="World"]
+[node name="Projectiles" type="Node2D" parent="World" unique_id=395269547]
 y_sort_enabled = true
 
-[node name="Effects" type="Node2D" parent="World"]
+[node name="Effects" type="Node2D" parent="World" unique_id=1546109851]
 y_sort_enabled = true
 
-[node name="TowerPlacer" type="Node2D" parent="."]
+[node name="TowerPlacer" type="Node2D" parent="." unique_id=1062296365]
 script = ExtResource("2_placer")
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=88949007]
 layer = 10
 script = ExtResource("3_hud")
 
-[node name="TopBar" type="HBoxContainer" parent="HUD"]
-anchors_preset = 10
-anchor_right = 1.0
-offset_left = 4.0
-offset_bottom = 18.0
-grow_horizontal = 2
-
-[node name="InfoLabel" type="Label" parent="HUD/TopBar"]
-size_flags_horizontal = 3
-
-[node name="SpeedLabel" type="Label" parent="HUD/TopBar"]
-
-[node name="TowerMenu" type="PanelContainer" parent="HUD"]
+[node name="TowerMenu" type="PanelContainer" parent="HUD" unique_id=545547040]
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -28.0
+offset_top = -82.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("4_tower_menu")
 
-[node name="HBox" type="HBoxContainer" parent="HUD/TowerMenu"]
+[node name="HBox" type="HBoxContainer" parent="HUD/TowerMenu" unique_id=1972928426]
+layout_mode = 2
+alignment = 1
 
-[node name="UpgradePanel" type="PanelContainer" parent="HUD"]
+[node name="UpgradePanel" type="PanelContainer" parent="HUD" unique_id=986452773]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
@@ -83,11 +548,15 @@ grow_horizontal = 0
 grow_vertical = 0
 script = ExtResource("5_upgrade_panel")
 
-[node name="VBox" type="VBoxContainer" parent="HUD/UpgradePanel"]
+[node name="VBox" type="VBoxContainer" parent="HUD/UpgradePanel" unique_id=121673308]
+layout_mode = 2
 
-[node name="TowerNameLabel" type="Label" parent="HUD/UpgradePanel/VBox"]
+[node name="TowerNameLabel" type="Label" parent="HUD/UpgradePanel/VBox" unique_id=1417789301]
+layout_mode = 2
 
-[node name="PathContainer" type="VBoxContainer" parent="HUD/UpgradePanel/VBox"]
+[node name="PathContainer" type="VBoxContainer" parent="HUD/UpgradePanel/VBox" unique_id=1482773746]
+layout_mode = 2
 
-[node name="SellButton" type="Button" parent="HUD/UpgradePanel/VBox"]
+[node name="SellButton" type="Button" parent="HUD/UpgradePanel/VBox" unique_id=912853772]
+layout_mode = 2
 text = "Sell"

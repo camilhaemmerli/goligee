@@ -18,14 +18,14 @@ const TOWER_ASSET_ALIASES := {
 
 # Per-tower turret Y offset (turret drawn above base).
 const TURRET_Y_OFFSETS := {
-	"rubber_bullet": -26.0,
-	"taser_grid": -26.0,
-	"surveillance": -28.0,
-	"pepper_spray": -28.0,
-	"microwave": -25.0,
-	"water_cannon": -27.0,
-	"lrad": -27.0,
-	"tear_gas": -26.0,
+	"rubber_bullet": 0.0,
+	"taser_grid": -14.0,
+	"surveillance": -18.0,
+	"pepper_spray": -14.0,
+	"microwave": -13.0,
+	"water_cannon": -14.0,
+	"lrad": -14.0,
+	"tear_gas": -14.0,
 }
 
 
@@ -80,11 +80,24 @@ func _load_tower_skin_from_assets(tower_data: TowerData) -> TowerSkinData:
 			return null
 		turret_textures.append(turret_tex)
 
+	# Load optional firing-pose turret textures
+	var fire_turret_textures: Array[Texture2D] = []
+	var first_fire_path := "res://assets/sprites/towers/%s/turret_fire_%s.png" % [folder_id, TOWER_TURRET_DIRS[0]]
+	if ResourceLoader.exists(first_fire_path):
+		for dir in TOWER_TURRET_DIRS:
+			var fire_path := "res://assets/sprites/towers/%s/turret_fire_%s.png" % [folder_id, dir]
+			if ResourceLoader.exists(fire_path):
+				var fire_tex := load(fire_path) as Texture2D
+				if fire_tex:
+					fire_turret_textures.append(fire_tex)
+
 	var skin := TowerSkinData.new()
 	skin.display_name = tower_data.tower_name
 	skin.description = tower_data.description
 	skin.base_texture = base_tex
 	skin.turret_textures = turret_textures
+	if fire_turret_textures.size() == 8:
+		skin.fire_turret_textures = fire_turret_textures
 
 	# Apply per-tower turret Y offset (try folder_id first, then tower_id).
 	if TURRET_Y_OFFSETS.has(folder_id):
@@ -110,6 +123,67 @@ func _load_tower_icon(tower_id: String, folder_id: String) -> Texture2D:
 	return null
 
 
+func populate_enemy_skins_from_assets(theme: ThemeData) -> void:
+	"""Populate enemy skins from on-disk walk sprites if present."""
+	if not theme:
+		return
+	if not theme.enemy_skins:
+		theme.enemy_skins = {}
+
+	var base_dir := "res://assets/sprites/enemies/"
+	var dir := DirAccess.open(base_dir)
+	if not dir:
+		return
+	dir.list_dir_begin()
+	var folder := dir.get_next()
+	while folder != "":
+		if dir.current_is_dir() and not folder.begins_with("_"):
+			if not theme.enemy_skins.has(folder):
+				var skin := _load_enemy_skin_from_assets(folder)
+				if skin:
+					theme.enemy_skins[folder] = skin
+		folder = dir.get_next()
+	dir.list_dir_end()
+
+
+const ENEMY_WALK_DIRS := ["e", "ne", "n", "nw", "w", "sw", "s", "se"]
+
+func _load_enemy_skin_from_assets(enemy_id: String) -> EnemySkinData:
+	var folder := "res://assets/sprites/enemies/%s/" % enemy_id
+	# Check that at least the SE walk frame exists
+	var test_path := folder + "walk_se_01.png"
+	if not ResourceLoader.exists(test_path):
+		return null
+
+	var frames := SpriteFrames.new()
+	# Remove the default animation that SpriteFrames creates
+	if frames.has_animation("default"):
+		frames.remove_animation("default")
+
+	for anim_dir in ENEMY_WALK_DIRS:
+		var anim_name: String = "walk_" + anim_dir
+		frames.add_animation(anim_name)
+		frames.set_animation_loop(anim_name, true)
+		frames.set_animation_speed(anim_name, 5.0)
+		# Load all frames for this direction (walk_{dir}_01.png, walk_{dir}_02.png, ...)
+		var frame_idx := 1
+		while true:
+			var frame_path := folder + "walk_%s_%02d.png" % [anim_dir, frame_idx]
+			if not ResourceLoader.exists(frame_path):
+				break
+			var tex := load(frame_path) as Texture2D
+			if tex:
+				frames.add_frame(anim_name, tex)
+			frame_idx += 1
+
+	var skin := EnemySkinData.new()
+	skin.display_name = enemy_id.capitalize().replace("_", " ")
+	skin.description = ""
+	skin.animation_frames = frames
+	skin.tint = Color.WHITE
+	return skin
+
+
 func get_palette() -> ThemePalette:
 	if current_theme and current_theme.palette:
 		return current_theme.palette
@@ -125,6 +199,31 @@ func get_tower_skin(tower_id: String) -> TowerSkinData:
 func get_enemy_skin(enemy_id: String) -> EnemySkinData:
 	if current_theme and current_theme.enemy_skins.has(enemy_id):
 		return current_theme.enemy_skins[enemy_id]
+	return null
+
+
+
+
+var _portrait_cache: Dictionary = {}
+
+func get_wave_portrait(enemy_id: String) -> Texture2D:
+	if _portrait_cache.has(enemy_id):
+		return _portrait_cache[enemy_id]
+	# Try dedicated portrait first
+	var portrait_path := "res://assets/sprites/ui/wave_portrait_%s.png" % enemy_id
+	if ResourceLoader.exists(portrait_path):
+		var tex := load(portrait_path) as Texture2D
+		if tex:
+			_portrait_cache[enemy_id] = tex
+			return tex
+	# Fall back to walk_se_01 from enemy sprite folder
+	var fallback_path := "res://assets/sprites/enemies/%s/walk_se_01.png" % enemy_id
+	if ResourceLoader.exists(fallback_path):
+		var tex := load(fallback_path) as Texture2D
+		if tex:
+			_portrait_cache[enemy_id] = tex
+			return tex
+	_portrait_cache[enemy_id] = null
 	return null
 
 

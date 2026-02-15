@@ -3,15 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://oce1f0wey6ed"
-path="res://.godot/imported/overview_TOTAL.png-292b2659e9dc07f2cbbdc011d8675f0b.ctex"
-metadata={
-"vram_texture": false
-}
+valid=false
 
 [deps]
 
 source_file="res://assets/sprites/_overview/overview_TOTAL.png"
-dest_files=["res://.godot/imported/overview_TOTAL.png-292b2659e9dc07f2cbbdc011d8675f0b.ctex"]
 
 [params]
 

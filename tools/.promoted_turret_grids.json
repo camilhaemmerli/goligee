@@ -1,146 +1,148 @@
 {
   "rubber_bullet": {
     "slots": {
-      "material": "dark gunmetal steel plating, bolted panel seams, industrial rivets, heavy gauge sheet metal",
+      "material": "matte dark gunmetal steel plating, bolted panel seams, industrial rivets, heavy gauge sheet metal, brushed metal finish",
       "accent_hex": "#9A9AA0",
       "accent_name": "silver metallic",
-      "body_desc": "tall rectangular body, ammunition storage compartments, ladder rungs on side, military equipment housing",
-      "body_height": "tall",
-      "ground_desc": "standard reinforced slab",
-      "weapon_desc": "single-barrel rubber bullet launcher, blue-tipped rubber bullet cartridges strapped to sides in bandolier racks, muzzle suppressor",
-      "weapon_shape": "compact rectangular block with protruding barrel, cartridge racks flanking both sides",
-      "weapon_size": "medium"
+      "body_desc": "extremely low flat wide platform, only 8 pixels tall body, trapezoidal wider at bottom, black and yellow diagonal hazard stripes, gunmetal steel flat top",
+      "body_height": "very_short",
+      "ground_desc": "concrete slab",
+      "weapon_desc": "police riot grenade launcher with large round drum cylinder magazine on side, short wide barrel, black and yellow hazard stripe ring base, no handle no grip",
+      "weapon_shape": "short wide barrel pointing forward-right, big round drum magazine attached to side, flat circular base with yellow black diagonal stripes",
+      "weapon_size": "small"
     },
-    "base_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isometric tower base structure on transparent background, single solid architectural block rising from ground platform, dark gunmetal steel plating, bolted panel seams, industrial rivets, heavy gauge sheet metal, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, silver metallic #9A9AA0 accent highlights, tall rectangular body, ammunition storage compartments, ladder rungs on side, military equipment housing, body occupies lower 70% of canvas, isometric diamond ground platform at base, 1-tile footprint, reinforced concrete slab, flush with bottom edge of image, scattered debris and litter on ground, cigarette butts, shell casings, grime, standard reinforced slab, empty flat roof for turret mount, no weapon on top",
-    "turret_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isolated rotating turret weapon head on transparent background, weapon block centered exactly in middle of artboard, barrel or emitter may extend past center, small weapon head only, no body, no base, no platform, no ground, dark gunmetal steel plating, bolted panel seams, industrial rivets, heavy gauge sheet metal, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, silver metallic #9A9AA0 accent highlights, medium-sized single-barrel rubber bullet launcher, blue-tipped rubber bullet cartridges strapped to sides in bandolier racks, muzzle suppressor, compact rectangular block with protruding barrel, cartridge racks flanking both sides",
-    "turret_promoted": true,
+    "base_prompt": "",
+    "turret_prompt": "riot cop figure — uses cop_prompt from TOWERS dict, not turret_prompt",
+    "cop_prompt": true,
+    "skip_base": true,
+    "turret_promoted": false,
     "base_promoted": true,
-    "turret_y_offset": -26
+    "turret_y_offset": 0
   },
   "tear_gas": {
     "slots": {
       "material": "vented steel panels, chemical hazmat housing, corroded metal plating",
       "accent_hex": "#70A040",
       "accent_name": "chemical green",
-      "body_desc": "chemical storage body, pressurized tanks, hazmat warning labels, gas venting slits",
-      "body_height": "medium",
+      "body_desc": "wide chemical barrel cluster, three stubby hazmat canisters strapped together, drip stains",
+      "body_height": "short",
       "ground_desc": "chemical-stained reinforced slab",
       "weapon_desc": "multi-tube grenade launcher rack, 6 angled launch tubes, hazmat yellow markings",
       "weapon_shape": "wide rectangular rack with angled tube cluster",
       "weapon_size": "large"
     },
-    "base_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isometric tower base structure on transparent background, single solid architectural block rising from ground platform, vented steel panels, chemical hazmat housing, corroded metal plating, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, chemical green #70A040 accent highlights, chemical storage body, pressurized tanks, hazmat warning labels, gas venting slits, body occupies lower 55% of canvas, isometric diamond ground platform at base, 1-tile footprint, reinforced concrete slab, flush with bottom edge of image, scattered debris and litter on ground, cigarette butts, shell casings, grime, chemical-stained reinforced slab, empty flat roof for turret mount, no weapon on top",
+    "base_prompt": "",
     "turret_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isolated rotating turret weapon head on transparent background, weapon block centered exactly in middle of artboard, barrel or emitter may extend past center, small weapon head only, no body, no base, no platform, no ground, vented steel panels, chemical hazmat housing, corroded metal plating, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, chemical green #70A040 accent highlights, large prominent multi-tube grenade launcher rack, 6 angled launch tubes, hazmat yellow markings, wide rectangular rack with angled tube cluster",
     "turret_promoted": true,
-    "base_promoted": true,
-    "turret_y_offset": -26
+    "base_promoted": false,
+    "turret_y_offset": -14
   },
   "taser_grid": {
     "slots": {
       "material": "insulated dark metal panels, high voltage warning markings, rubber-sealed joints",
       "accent_hex": "#50A0D0",
       "accent_name": "electric blue",
-      "body_desc": "capacitor bank housing, insulated electrical body, transformer coils visible, warning signage",
-      "body_height": "medium",
+      "body_desc": "compact transformer box, exposed copper coils on top, rubber insulator feet, warning stickers",
+      "body_height": "short",
       "ground_desc": "insulated rubber-topped slab",
       "weapon_desc": "tesla coil twin conductor prongs, high voltage electrode pair, arc gap between tips",
       "weapon_shape": "vertical prong pair rising from compact base block",
       "weapon_size": "medium"
     },
-    "base_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isometric tower base structure on transparent background, single solid architectural block rising from ground platform, insulated dark metal panels, high voltage warning markings, rubber-sealed joints, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, electric blue #50A0D0 accent highlights, capacitor bank housing, insulated electrical body, transformer coils visible, warning signage, body occupies lower 55% of canvas, isometric diamond ground platform at base, 1-tile footprint, reinforced concrete slab, flush with bottom edge of image, scattered debris and litter on ground, cigarette butts, shell casings, grime, insulated rubber-topped slab, empty flat roof for turret mount, no weapon on top",
+    "base_prompt": "",
     "turret_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isolated rotating turret weapon head on transparent background, weapon block centered exactly in middle of artboard, barrel or emitter may extend past center, small weapon head only, no body, no base, no platform, no ground, insulated dark metal panels, high voltage warning markings, rubber-sealed joints, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, electric blue #50A0D0 accent highlights, medium-sized tesla coil twin conductor prongs, high voltage electrode pair, arc gap between tips, vertical prong pair rising from compact base block",
     "turret_promoted": true,
-    "base_promoted": true,
-    "turret_y_offset": -26
+    "base_promoted": false,
+    "turret_y_offset": -14
   },
   "water_cannon": {
     "slots": {
       "material": "industrial steel plating, pipe fittings, pressure gauge rivets, hydraulic joints",
       "accent_hex": "#6090B0",
       "accent_name": "cool blue",
-      "body_desc": "large water tank body, pressurized hydraulic system, pipe network, pressure gauges",
+      "body_desc": "squat cylindrical water tank, pressure gauge on front, hose coils around base, valve wheel",
       "body_height": "short",
       "ground_desc": "drain-grated reinforced slab",
       "weapon_desc": "industrial fire hose nozzle on swivel, chrome nozzle head, pressurized spray tip",
       "weapon_shape": "cylindrical swivel mount with forward-pointing nozzle",
       "weapon_size": "large"
     },
-    "base_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isometric tower base structure on transparent background, single solid architectural block rising from ground platform, industrial steel plating, pipe fittings, pressure gauge rivets, hydraulic joints, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, cool blue #6090B0 accent highlights, large water tank body, pressurized hydraulic system, pipe network, pressure gauges, body occupies lower 40% of canvas, isometric diamond ground platform at base, 1-tile footprint, reinforced concrete slab, flush with bottom edge of image, scattered debris and litter on ground, cigarette butts, shell casings, grime, drain-grated reinforced slab, empty flat roof for turret mount, no weapon on top",
+    "base_prompt": "",
     "turret_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isolated rotating turret weapon head on transparent background, weapon block centered exactly in middle of artboard, barrel or emitter may extend past center, small weapon head only, no body, no base, no platform, no ground, industrial steel plating, pipe fittings, pressure gauge rivets, hydraulic joints, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, cool blue #6090B0 accent highlights, large prominent industrial fire hose nozzle on swivel, chrome nozzle head, pressurized spray tip, cylindrical swivel mount with forward-pointing nozzle",
     "turret_promoted": true,
-    "base_promoted": true,
-    "turret_y_offset": -27
+    "base_promoted": false,
+    "turret_y_offset": -14
   },
   "surveillance": {
     "slots": {
       "material": "dark matte composite panels, data cable conduits, sealed equipment housing",
       "accent_hex": "#A0D8A0",
       "accent_name": "terminal green",
-      "body_desc": "tall intelligence hub body, monitor screens behind tinted glass, antenna mast, data conduits",
-      "body_height": "tall",
+      "body_desc": "low server cabinet rack, blinking status LEDs behind mesh panel, cable bundle exiting side",
+      "body_height": "medium",
       "ground_desc": "cable-routed reinforced slab",
       "weapon_desc": "satellite dish with camera cluster, radar spinner, CCTV cameras, red recording light",
       "weapon_shape": "dish and antenna array fanning outward from compact hub",
       "weapon_size": "medium"
     },
-    "base_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isometric tower base structure on transparent background, single solid architectural block rising from ground platform, dark matte composite panels, data cable conduits, sealed equipment housing, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, terminal green #A0D8A0 accent highlights, tall intelligence hub body, monitor screens behind tinted glass, antenna mast, data conduits, body occupies lower 70% of canvas, isometric diamond ground platform at base, 1-tile footprint, reinforced concrete slab, flush with bottom edge of image, scattered debris and litter on ground, cigarette butts, shell casings, grime, cable-routed reinforced slab, empty flat roof for turret mount, no weapon on top",
+    "base_prompt": "",
     "turret_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isolated rotating turret weapon head on transparent background, weapon block centered exactly in middle of artboard, barrel or emitter may extend past center, small weapon head only, no body, no base, no platform, no ground, dark matte composite panels, data cable conduits, sealed equipment housing, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, terminal green #A0D8A0 accent highlights, medium-sized satellite dish with camera cluster, radar spinner, CCTV cameras, red recording light, dish and antenna array fanning outward from compact hub",
     "turret_promoted": true,
-    "base_promoted": true,
-    "turret_y_offset": -28
+    "base_promoted": false,
+    "turret_y_offset": -18
   },
   "pepper_spray": {
     "slots": {
       "material": "chemical-resistant steel panels, pressurized canister housing, hazmat orange seals",
       "accent_hex": "#D06030",
       "accent_name": "hazmat orange",
-      "body_desc": "pressurized chemical tank body, canister storage rack, warning labels, spray hose coils",
-      "body_height": "medium",
+      "body_desc": "row of pressurized spray canisters in metal cradle, pressure manifold, drip tray underneath",
+      "body_height": "short",
       "ground_desc": "chemical-resistant reinforced slab",
       "weapon_desc": "industrial aerosol nozzle array, spray cone emitter head, pressurized chemical sprayer",
       "weapon_shape": "fan-shaped nozzle array spreading from compact manifold",
       "weapon_size": "medium"
     },
-    "base_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isometric tower base structure on transparent background, single solid architectural block rising from ground platform, chemical-resistant steel panels, pressurized canister housing, hazmat orange seals, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, hazmat orange #D06030 accent highlights, pressurized chemical tank body, canister storage rack, warning labels, spray hose coils, body occupies lower 55% of canvas, isometric diamond ground platform at base, 1-tile footprint, reinforced concrete slab, flush with bottom edge of image, scattered debris and litter on ground, cigarette butts, shell casings, grime, chemical-resistant reinforced slab, empty flat roof for turret mount, no weapon on top",
+    "base_prompt": "",
     "turret_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isolated rotating turret weapon head on transparent background, weapon block centered exactly in middle of artboard, barrel or emitter may extend past center, small weapon head only, no body, no base, no platform, no ground, chemical-resistant steel panels, pressurized canister housing, hazmat orange seals, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, hazmat orange #D06030 accent highlights, medium-sized industrial aerosol nozzle array, spray cone emitter head, pressurized chemical sprayer, fan-shaped nozzle array spreading from compact manifold",
     "turret_promoted": true,
-    "base_promoted": true,
-    "turret_y_offset": -28
+    "base_promoted": false,
+    "turret_y_offset": -14
   },
   "lrad": {
     "slots": {
       "material": "military-grade dark metal, sound dampening panels, acoustic foam inserts, heavy bolts",
       "accent_hex": "#D8A040",
       "accent_name": "warning amber",
-      "body_desc": "acoustic equipment housing body, amplifier stacks, dampening panels, power supply unit",
-      "body_height": "medium",
+      "body_desc": "compact amplifier stack, speaker cone vents on sides, vibration dampener feet, power cable coil",
+      "body_height": "short",
       "ground_desc": "vibration-dampened reinforced slab",
-      "weapon_desc": "large parabolic speaker dish, concentric ring emitter face, military audio weapon",
-      "weapon_shape": "large forward-facing circular dish on pivot mount",
+      "weapon_desc": "large warning-amber orange parabolic speaker dish, bright #D8A040 orange concentric ring emitter face, military audio weapon",
+      "weapon_shape": "large forward-facing circular orange dish on pivot mount",
       "weapon_size": "large"
     },
-    "base_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isometric tower base structure on transparent background, single solid architectural block rising from ground platform, military-grade dark metal, sound dampening panels, acoustic foam inserts, heavy bolts, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, warning amber #D8A040 accent highlights, acoustic equipment housing body, amplifier stacks, dampening panels, power supply unit, body occupies lower 55% of canvas, isometric diamond ground platform at base, 1-tile footprint, reinforced concrete slab, flush with bottom edge of image, scattered debris and litter on ground, cigarette butts, shell casings, grime, vibration-dampened reinforced slab, empty flat roof for turret mount, no weapon on top",
+    "base_prompt": "",
     "turret_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isolated rotating turret weapon head on transparent background, weapon block centered exactly in middle of artboard, barrel or emitter may extend past center, small weapon head only, no body, no base, no platform, no ground, military-grade dark metal, sound dampening panels, acoustic foam inserts, heavy bolts, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, warning amber #D8A040 accent highlights, large prominent large parabolic speaker dish, concentric ring emitter face, military audio weapon, large forward-facing circular dish on pivot mount",
     "turret_promoted": true,
-    "base_promoted": true,
-    "turret_y_offset": -27
+    "base_promoted": false,
+    "turret_y_offset": -14
   },
   "microwave": {
     "slots": {
       "material": "heat-resistant alloy panels, cooling fin arrays, power conduit housing, thermal seals",
       "accent_hex": "#D06030",
       "accent_name": "heat shimmer orange",
-      "body_desc": "energy weapon cooling body, heat sink fin arrays, power conduit housing, thermal vents",
+      "body_desc": "low boxy generator unit, cooling fan grille on side, exhaust heat shimmer, power conduit bundle",
       "body_height": "short",
       "ground_desc": "heat-shielded reinforced slab",
       "weapon_desc": "flat panel directed energy emitter, heat grid face, cooling fins on sides",
       "weapon_shape": "flat rectangular panel with grid face on pivot",
       "weapon_size": "large"
     },
-    "base_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isometric tower base structure on transparent background, single solid architectural block rising from ground platform, heat-resistant alloy panels, cooling fin arrays, power conduit housing, thermal seals, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, heat shimmer orange #D06030 accent highlights, energy weapon cooling body, heat sink fin arrays, power conduit housing, thermal vents, body occupies lower 40% of canvas, isometric diamond ground platform at base, 1-tile footprint, reinforced concrete slab, flush with bottom edge of image, scattered debris and litter on ground, cigarette butts, shell casings, grime, heat-shielded reinforced slab, empty flat roof for turret mount, no weapon on top",
+    "base_prompt": "",
     "turret_prompt": "16-bit isometric pixel art, isometric 3/4 view, clean pixel grid, no anti-aliasing, detailed shading, light source from top-left casting shadows to bottom-right, left faces brightest, right faces mid-tone, bottom faces darkest, isolated rotating turret weapon head on transparent background, weapon block centered exactly in middle of artboard, barrel or emitter may extend past center, small weapon head only, no body, no base, no platform, no ground, heat-resistant alloy panels, cooling fin arrays, power conduit housing, thermal seals, weathered and battle-worn, dirt stains, rust streaks, chipped paint, grime buildup in crevices, intricate surface detail, scratches and scuff marks, heavy wear and tear, heat shimmer orange #D06030 accent highlights, large prominent flat panel directed energy emitter, heat grid face, cooling fins on sides, flat rectangular panel with grid face on pivot",
     "turret_promoted": true,
-    "base_promoted": true,
-    "turret_y_offset": -25
+    "base_promoted": false,
+    "turret_y_offset": -13
   }
 }
