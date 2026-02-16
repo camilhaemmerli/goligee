@@ -29,46 +29,46 @@ func _ready() -> void:
 
 
 func _apply_panel_style() -> void:
-	# Brutalist panel background
+	# Brutalist panel background with rounded corners
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(COL_PANEL_BG.r, COL_PANEL_BG.g, COL_PANEL_BG.b, 0.92)
 	sb.border_color = COL_BORDER
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(0)
-	sb.content_margin_left = 8
-	sb.content_margin_right = 8
-	sb.content_margin_top = 6
-	sb.content_margin_bottom = 6
+	sb.set_corner_radius_all(6)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 8
 	add_theme_stylebox_override("panel", sb)
 
-	# Tower name in Pirata One
+	# Tower name in Pirata One, centered
 	if _blackletter_font:
 		tower_name_label.add_theme_font_override("font", _blackletter_font)
-	tower_name_label.add_theme_font_size_override("font_size", 12)
-	tower_name_label.add_theme_color_override("font_color", COL_GOLD)
+	tower_name_label.add_theme_font_size_override("font_size", 16)
+	tower_name_label.add_theme_color_override("font_color", COL_RUST)
+	tower_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
-	# Sell button — RUST background
+	# Sell button — small, muted, understated
 	for state in ["normal", "hover", "pressed"]:
 		var btn_sb := StyleBoxFlat.new()
-		btn_sb.set_corner_radius_all(0)
-		btn_sb.set_border_width_all(1)
+		btn_sb.set_corner_radius_all(3)
+		btn_sb.set_border_width_all(0)
 		btn_sb.content_margin_left = 6
 		btn_sb.content_margin_right = 6
-		btn_sb.content_margin_top = 2
-		btn_sb.content_margin_bottom = 2
+		btn_sb.content_margin_top = 1
+		btn_sb.content_margin_bottom = 1
 		match state:
 			"normal":
-				btn_sb.bg_color = COL_RUST
-				btn_sb.border_color = COL_RUST
+				btn_sb.bg_color = Color.TRANSPARENT
 			"hover":
-				btn_sb.bg_color = Color("#C04820")
-				btn_sb.border_color = Color("#C04820")
+				btn_sb.bg_color = Color(1, 1, 1, 0.06)
 			"pressed":
-				btn_sb.bg_color = Color("#801808")
-				btn_sb.border_color = Color("#801808")
+				btn_sb.bg_color = Color(1, 1, 1, 0.1)
 		sell_button.add_theme_stylebox_override(state, btn_sb)
-	sell_button.add_theme_font_size_override("font_size", 9)
-	sell_button.add_theme_color_override("font_color", Color.WHITE)
+	sell_button.add_theme_font_size_override("font_size", 7)
+	sell_button.add_theme_color_override("font_color", COL_MUTED)
+	sell_button.add_theme_color_override("font_hover_color", Color("#C04820"))
+	sell_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 
 func _on_tower_selected(tower: Node2D) -> void:
@@ -100,57 +100,64 @@ func _refresh() -> void:
 		var path := paths[path_i]
 		var current_tier: int = _selected_tower.upgrade.path_tiers[path_i]
 
-		var hbox := HBoxContainer.new()
-		hbox.add_theme_constant_override("separation", 4)
-		var label := Label.new()
-		label.text = path.path_name + " [" + str(current_tier) + "/" + str(path.tiers.size()) + "]"
-		label.custom_minimum_size.x = 90
-		label.add_theme_font_size_override("font_size", 8)
-		label.add_theme_color_override("font_color", COL_MUTED)
-		hbox.add_child(label)
+		var vbox := VBoxContainer.new()
+		vbox.add_theme_constant_override("separation", 2)
+
+		# Path name header
+		var header := Label.new()
+		header.text = path.path_name + "  " + str(current_tier) + "/" + str(path.tiers.size())
+		header.add_theme_font_size_override("font_size", 8)
+		header.add_theme_color_override("font_color", COL_MUTED)
+		header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(header)
 
 		if current_tier < path.tiers.size():
 			var tier_data := path.tiers[current_tier]
+			var can_afford := _selected_tower.upgrade.can_upgrade_path(path_i)
 			var btn := Button.new()
-			btn.text = tier_data.tier_name + " ($" + str(tier_data.cost) + ")"
-			btn.disabled = not _selected_tower.upgrade.can_upgrade_path(path_i)
+			btn.text = tier_data.tier_name + "  $" + str(tier_data.cost)
+			btn.disabled = not can_afford
 			btn.pressed.connect(_on_upgrade_pressed.bind(path_i))
-			btn.add_theme_font_size_override("font_size", 8)
+			btn.custom_minimum_size = Vector2(180, 32)
+			if _blackletter_font:
+				btn.add_theme_font_override("font", _blackletter_font)
+			btn.add_theme_font_size_override("font_size", 13)
 
-			# Brutalist upgrade button style
 			for state in ["normal", "hover", "pressed", "disabled"]:
-				var sb := StyleBoxFlat.new()
-				sb.set_corner_radius_all(0)
-				sb.set_border_width_all(1)
-				sb.content_margin_left = 4
-				sb.content_margin_right = 4
-				sb.content_margin_top = 1
-				sb.content_margin_bottom = 1
+				var bsb := StyleBoxFlat.new()
+				bsb.set_corner_radius_all(4)
+				bsb.set_border_width_all(2)
+				bsb.content_margin_left = 10
+				bsb.content_margin_right = 10
+				bsb.content_margin_top = 4
+				bsb.content_margin_bottom = 4
 				match state:
 					"normal":
-						sb.bg_color = Color("#252528")
-						sb.border_color = COL_BORDER
+						bsb.bg_color = Color("#2A2A30")
+						bsb.border_color = COL_RUST
 					"hover":
-						sb.bg_color = Color("#353538")
-						sb.border_color = Color("#4A4A50")
+						bsb.bg_color = Color("#3A2A28")
+						bsb.border_color = Color("#C04820")
 					"pressed":
-						sb.bg_color = COL_RUST
-						sb.border_color = COL_RUST
+						bsb.bg_color = COL_RUST
+						bsb.border_color = Color("#C04820")
 					"disabled":
-						sb.bg_color = Color("#181818")
-						sb.border_color = Color("#1E1E22")
-				btn.add_theme_stylebox_override(state, sb)
+						bsb.bg_color = Color("#1A1A1E")
+						bsb.border_color = Color("#2A2A2E")
+				btn.add_theme_stylebox_override(state, bsb)
 
-			btn.add_theme_color_override("font_color", COL_GOLD)
-			hbox.add_child(btn)
+			btn.add_theme_color_override("font_color", Color.WHITE if can_afford else COL_MUTED)
+			btn.add_theme_color_override("font_hover_color", COL_RUST)
+			vbox.add_child(btn)
 		else:
 			var maxed := Label.new()
 			maxed.text = "MAXED"
-			maxed.add_theme_font_size_override("font_size", 8)
+			maxed.add_theme_font_size_override("font_size", 9)
 			maxed.add_theme_color_override("font_color", Color("#A0D8A0"))
-			hbox.add_child(maxed)
+			maxed.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			vbox.add_child(maxed)
 
-		path_container.add_child(hbox)
+		path_container.add_child(vbox)
 
 
 func _on_upgrade_pressed(path_index: int) -> void:

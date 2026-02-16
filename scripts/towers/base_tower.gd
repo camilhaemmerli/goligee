@@ -91,7 +91,7 @@ func _ready() -> void:
 	_badge_node.draw.connect(_draw_rank_badge)
 
 	_synergy_node = Node2D.new()
-	_synergy_node.z_index = 2  # Above base sprite, visible on top of tiles
+	_synergy_node.z_index = -1  # Behind tower sprites, visible on tiles
 	add_child(_synergy_node)
 	_synergy_node.draw.connect(_draw_synergy_glow)
 

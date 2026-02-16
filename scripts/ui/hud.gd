@@ -16,7 +16,6 @@ var _budget_tween: Tween
 
 # Approval bar (bottom-right)
 var _approval_container: Control
-var _approval_label: Label
 var _approval_tween: Tween
 
 # Wave circle (top-right)
@@ -61,7 +60,6 @@ var _banner_tween: Tween
 var _lives_pulse_tween: Tween
 var _blackletter_font: Font
 var _current_manifestation_leader: String = ""
-var _manifestation_name_label: Label
 
 # Colors
 const COL_PANEL_BG := Color("#1A1A1E")
@@ -83,6 +81,7 @@ const COL_BAR_BG := Color("#1E1E22")
 
 const APPROVAL_BAR_W := 140.0
 const APPROVAL_BAR_H := 12.0
+const HUD_MARGIN := 36.0  # inner margin from viewport edges
 
 
 func _ready() -> void:
@@ -123,22 +122,22 @@ func _ready() -> void:
 
 func _create_budget_display() -> void:
 	_budget_container = Control.new()
-	_budget_container.position = Vector2(8, 4)
-	_budget_container.custom_minimum_size = Vector2(160, 44)
+	_budget_container.position = Vector2(HUD_MARGIN, HUD_MARGIN)
+	_budget_container.custom_minimum_size = Vector2(180, 56)
 	_budget_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_budget_container)
 
 	var header := Label.new()
 	header.text = "TAXPAYER BUDGET"
-	header.add_theme_font_size_override("font_size", 9)
+	header.add_theme_font_size_override("font_size", 12)
 	header.add_theme_color_override("font_color", Color.WHITE)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_budget_container.add_child(header)
 
 	_budget_value_label = Label.new()
 	_budget_value_label.text = "$0"
-	_budget_value_label.position = Vector2(0, 12)
-	_budget_value_label.add_theme_font_size_override("font_size", 28)
+	_budget_value_label.position = Vector2(0, 16)
+	_budget_value_label.add_theme_font_size_override("font_size", 36)
 	_budget_value_label.add_theme_color_override("font_color", Color.WHITE)
 	if _blackletter_font:
 		_budget_value_label.add_theme_font_override("font", _blackletter_font)
@@ -147,7 +146,7 @@ func _create_budget_display() -> void:
 
 	# Floating change label
 	_budget_change_label = Label.new()
-	_budget_change_label.position = Vector2(8, 58)
+	_budget_change_label.position = Vector2(HUD_MARGIN, HUD_MARGIN + 54)
 	_budget_change_label.add_theme_font_size_override("font_size", 10)
 	_budget_change_label.modulate.a = 0.0
 	_budget_change_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -163,40 +162,21 @@ func _create_approval_bar() -> void:
 	_approval_container.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_approval_container.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_approval_container.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_approval_container.offset_right = -8.0
-	_approval_container.offset_bottom = -36.0
-	_approval_container.offset_left = -8.0 - APPROVAL_BAR_W - 4.0
-	_approval_container.offset_top = -36.0 - 30.0
+	_approval_container.offset_right = -HUD_MARGIN
+	_approval_container.offset_bottom = -HUD_MARGIN
+	_approval_container.offset_left = -HUD_MARGIN - APPROVAL_BAR_W - 4.0
+	_approval_container.offset_top = -HUD_MARGIN - (APPROVAL_BAR_H + 4.0)
 	_approval_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_approval_container)
 
-	var header := Label.new()
-	header.text = "APPROVAL RATING"
-	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	header.add_theme_font_size_override("font_size", 6)
-	header.add_theme_color_override("font_color", COL_MUTED)
-	header.position = Vector2(0, 0)
-	header.size = Vector2(APPROVAL_BAR_W + 4, 10)
-	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_approval_container.add_child(header)
-
 	# Custom draw control for the bar
 	_approval_draw = Control.new()
-	_approval_draw.position = Vector2(0, 12)
+	_approval_draw.position = Vector2.ZERO
 	_approval_draw.custom_minimum_size = Vector2(APPROVAL_BAR_W + 4, APPROVAL_BAR_H + 4)
 	_approval_draw.size = Vector2(APPROVAL_BAR_W + 4, APPROVAL_BAR_H + 4)
 	_approval_draw.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_approval_draw.draw.connect(_draw_approval_bar)
 	_approval_container.add_child(_approval_draw)
-
-	_approval_label = Label.new()
-	_approval_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_approval_label.position = Vector2(2, 12)
-	_approval_label.size = Vector2(APPROVAL_BAR_W, APPROVAL_BAR_H + 4)
-	_approval_label.add_theme_font_size_override("font_size", 8)
-	_approval_label.add_theme_color_override("font_color", Color.WHITE)
-	_approval_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_approval_container.add_child(_approval_label)
 
 
 # ---------------------------------------------------------------------------
@@ -204,67 +184,94 @@ func _create_approval_bar() -> void:
 # ---------------------------------------------------------------------------
 
 func _create_wave_circle() -> void:
-	# 60px circle, inset from top-right corner
 	const CIRCLE_SIZE := 60
-	const CIRCLE_HALF := CIRCLE_SIZE / 2
+	const BOX_PAD := 10
+	const BOX_W := CIRCLE_SIZE + BOX_PAD * 2
+	const HEADER_H := 18  # height of the wave name header line
 
-	_wave_circle_container = Control.new()
-	_wave_circle_container.position = Vector2(876, 10)
-	_wave_circle_container.custom_minimum_size = Vector2(CIRCLE_SIZE + 8, CIRCLE_SIZE + 28)
+	# Wave name label — top-right, same line as "TAXPAYER BUDGET"
+	_wave_name_label = Label.new()
+	_wave_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_wave_name_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_wave_name_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_wave_name_label.offset_right = -HUD_MARGIN
+	_wave_name_label.offset_left = -HUD_MARGIN - 200.0
+	_wave_name_label.offset_top = HUD_MARGIN
+	_wave_name_label.offset_bottom = HUD_MARGIN + HEADER_H
+	_wave_name_label.add_theme_font_size_override("font_size", 12)
+	_wave_name_label.add_theme_color_override("font_color", Color.WHITE)
+	_wave_name_label.clip_text = true
+	_wave_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_wave_name_label)
+
+	# Dark semi-transparent box — below the wave name header
+	var box_top := HUD_MARGIN + HEADER_H + 4
+	var box_h := CIRCLE_SIZE + BOX_PAD * 2  # circle + padding
+
+	_wave_circle_container = PanelContainer.new()
+	_wave_circle_container.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_wave_circle_container.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_wave_circle_container.grow_vertical = Control.GROW_DIRECTION_END
+	_wave_circle_container.offset_right = -HUD_MARGIN
+	_wave_circle_container.offset_left = -HUD_MARGIN - BOX_W
+	_wave_circle_container.offset_top = box_top
+	_wave_circle_container.offset_bottom = box_top + box_h
 	_wave_circle_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var box_style := StyleBoxFlat.new()
+	box_style.bg_color = Color(0, 0, 0, 0.45)
+	box_style.set_corner_radius_all(6)
+	box_style.content_margin_left = BOX_PAD
+	box_style.content_margin_right = BOX_PAD
+	box_style.content_margin_top = BOX_PAD
+	box_style.content_margin_bottom = BOX_PAD
+	_wave_circle_container.add_theme_stylebox_override("panel", box_style)
 	add_child(_wave_circle_container)
 
-	# Progress ring (drawn behind circle, slightly larger)
+	# Inner layout — centered content
+	var vbox := VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 2)
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wave_circle_container.add_child(vbox)
+
+	# Circle holder (fixed size, centered in vbox)
+	var circle_holder := Control.new()
+	circle_holder.custom_minimum_size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
+	circle_holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	circle_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(circle_holder)
+
+	# Progress ring (drawn behind circle)
 	_wave_progress_ring = Control.new()
-	_wave_progress_ring.position = Vector2(16, 0)
+	_wave_progress_ring.position = Vector2.ZERO
 	_wave_progress_ring.custom_minimum_size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
 	_wave_progress_ring.size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
 	_wave_progress_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wave_progress_ring.draw.connect(_draw_progress_ring)
-	_wave_circle_container.add_child(_wave_progress_ring)
+	circle_holder.add_child(_wave_progress_ring)
 
-	# Circle background — starts as fallback rust, replaced by portrait on first wave
+	# Circle background
 	_wave_circle_tex = TextureRect.new()
 	_wave_circle_tex.texture = _make_fallback_circle()
-	_wave_circle_tex.position = Vector2(16, 0)
+	_wave_circle_tex.position = Vector2.ZERO
 	_wave_circle_tex.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_wave_circle_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_wave_circle_container.add_child(_wave_circle_tex)
+	circle_holder.add_child(_wave_circle_tex)
 
 	# Wave number centered in circle
 	_wave_number_label = Label.new()
 	_wave_number_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_wave_number_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_wave_number_label.position = Vector2(16, 0)
+	_wave_number_label.position = Vector2.ZERO
 	_wave_number_label.size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
 	_wave_number_label.add_theme_font_size_override("font_size", 20)
 	_wave_number_label.add_theme_color_override("font_color", Color.WHITE)
 	if _blackletter_font:
 		_wave_number_label.add_theme_font_override("font", _blackletter_font)
 	_wave_number_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_wave_circle_container.add_child(_wave_number_label)
+	circle_holder.add_child(_wave_number_label)
 
-	# Manifestation name below circle (right-aligned to circle right edge)
-	_manifestation_name_label = Label.new()
-	_manifestation_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_manifestation_name_label.position = Vector2(-60, CIRCLE_SIZE + 2)
-	_manifestation_name_label.size = Vector2(136, 10)
-	_manifestation_name_label.add_theme_font_size_override("font_size", 6)
-	_manifestation_name_label.add_theme_color_override("font_color", COL_MUTED)
-	_manifestation_name_label.clip_text = true
-	_manifestation_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_wave_circle_container.add_child(_manifestation_name_label)
-
-	# Wave name below manifestation name
-	_wave_name_label = Label.new()
-	_wave_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_wave_name_label.position = Vector2(-60, CIRCLE_SIZE + 12)
-	_wave_name_label.size = Vector2(136, 12)
-	_wave_name_label.add_theme_font_size_override("font_size", 7)
-	_wave_name_label.add_theme_color_override("font_color", COL_AMBER)
-	_wave_name_label.clip_text = true
-	_wave_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_wave_circle_container.add_child(_wave_name_label)
 
 
 # ---------------------------------------------------------------------------
@@ -277,13 +284,13 @@ func _create_speed_controls() -> void:
 	_speed_btn = Button.new()
 	_speed_btn.text = "1x"
 	_speed_btn.custom_minimum_size = Vector2(32, 16)
-	_speed_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_speed_btn.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_speed_btn.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_speed_btn.grow_horizontal = Control.GROW_DIRECTION_END
 	_speed_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_speed_btn.offset_left = -16.0
-	_speed_btn.offset_right = 16.0
-	_speed_btn.offset_bottom = -4.0
-	_speed_btn.offset_top = -20.0
+	_speed_btn.offset_left = HUD_MARGIN
+	_speed_btn.offset_right = HUD_MARGIN + 32.0
+	_speed_btn.offset_bottom = -HUD_MARGIN
+	_speed_btn.offset_top = -(HUD_MARGIN + 16.0)
 	_speed_btn.pressed.connect(_on_speed_toggle_pressed)
 
 	for state_name in ["normal", "hover", "pressed"]:
@@ -409,10 +416,10 @@ func _create_cancel_build_btn() -> void:
 	_cancel_build_btn.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	_cancel_build_btn.grow_horizontal = Control.GROW_DIRECTION_END
 	_cancel_build_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_cancel_build_btn.offset_left = 4.0
-	_cancel_build_btn.offset_bottom = -34.0
-	_cancel_build_btn.offset_top = -62.0
-	_cancel_build_btn.offset_right = 32.0
+	_cancel_build_btn.offset_left = HUD_MARGIN
+	_cancel_build_btn.offset_bottom = -(HUD_MARGIN + 50.0)
+	_cancel_build_btn.offset_top = -(HUD_MARGIN + 78.0)
+	_cancel_build_btn.offset_right = HUD_MARGIN + 28.0
 	_cancel_build_btn.visible = false
 	_cancel_build_btn.pressed.connect(func(): SignalBus.build_mode_exited.emit())
 
@@ -440,9 +447,9 @@ func _create_kill_counter() -> void:
 	_kill_counter_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_kill_counter_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_kill_counter_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_kill_counter_label.offset_right = -8.0
-	_kill_counter_label.offset_bottom = -68.0
-	_kill_counter_label.offset_left = -160.0
+	_kill_counter_label.offset_right = -HUD_MARGIN
+	_kill_counter_label.offset_bottom = -(HUD_MARGIN + 80.0)
+	_kill_counter_label.offset_left = -(HUD_MARGIN + 140.0)
 	_kill_counter_label.add_theme_font_size_override("font_size", 8)
 	_kill_counter_label.add_theme_color_override("font_color", COL_GREEN)
 	_kill_counter_label.visible = false
@@ -509,10 +516,10 @@ func _update_budget_display(old_amount: int, new_amount: int) -> void:
 		_budget_change_label.text = ("+" if diff > 0 else "") + str(diff)
 		_budget_change_label.add_theme_color_override("font_color", COL_GREEN if diff > 0 else COL_RED)
 		_budget_change_label.modulate.a = 1.0
-		_budget_change_label.position.y = 58.0
+		_budget_change_label.position.y = HUD_MARGIN + 54.0
 		var ft := create_tween()
 		ft.set_parallel(true)
-		ft.tween_property(_budget_change_label, "position:y", 44.0, 0.6)
+		ft.tween_property(_budget_change_label, "position:y", HUD_MARGIN + 40.0, 0.6)
 		ft.tween_property(_budget_change_label, "modulate:a", 0.0, 0.6).set_delay(0.2)
 
 
@@ -526,8 +533,6 @@ func _update_approval_bar(lives: int) -> void:
 	_approval_tween = create_tween()
 	_approval_tween.tween_method(_set_approval_ratio, _approval_ratio, target, 0.3) \
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-
-	_approval_label.text = str(lives) + "/" + str(_max_approval)
 
 
 func _set_approval_ratio(val: float) -> void:
@@ -643,25 +648,35 @@ func _make_circle_portrait(portrait_tex: Texture2D) -> ImageTexture:
 	if not src:
 		return _make_fallback_circle()
 	src = src.duplicate()
+	if src.get_format() != Image.FORMAT_RGBA8:
+		src.convert(Image.FORMAT_RGBA8)
 	var fill := int(radius * 2)
 	src.resize(fill, fill, Image.INTERPOLATE_NEAREST)
 
 	var img := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
-	var offset := HALF - fill / 2
+	var px_offset := HALF - fill / 2
 
 	for y in SIZE:
 		for x in SIZE:
 			var dist := Vector2(x, y).distance_to(center)
 			if dist <= radius:
-				var sx := x - offset
-				var sy := y - offset
+				var sx := x - px_offset
+				var sy := y - px_offset
+				# Start with beige background
+				var final_col := COL_CIRCLE_BG
 				if sx >= 0 and sx < fill and sy >= 0 and sy < fill:
-					var col := src.get_pixel(sx, sy)
-					if dist > radius - 1.0:
-						col.a *= (radius - dist + 1.0)
-					img.set_pixel(x, y, col)
-				else:
-					img.set_pixel(x, y, COL_CIRCLE_BG)
+					var px := src.get_pixel(sx, sy)
+					# Alpha-blend portrait over beige
+					final_col = Color(
+						COL_CIRCLE_BG.r * (1.0 - px.a) + px.r * px.a,
+						COL_CIRCLE_BG.g * (1.0 - px.a) + px.g * px.a,
+						COL_CIRCLE_BG.b * (1.0 - px.a) + px.b * px.a,
+						1.0
+					)
+				# Anti-alias circle edge
+				if dist > radius - 1.0:
+					final_col.a *= (radius - dist + 1.0)
+				img.set_pixel(x, y, final_col)
 			elif dist <= radius + 1.0:
 				var edge_alpha := 1.0 - (dist - radius)
 				img.set_pixel(x, y, Color(COL_CIRCLE_BG.r, COL_CIRCLE_BG.g, COL_CIRCLE_BG.b, edge_alpha))
@@ -672,10 +687,9 @@ func _make_circle_portrait(portrait_tex: Texture2D) -> ImageTexture:
 func _update_wave_circle(wave_number: int) -> void:
 	_wave_number_label.text = str(wave_number)
 
-	_wave_name_label.text = WaveNames.get_wave_name(wave_number)
-
-	# Manifestation name
-	_manifestation_name_label.text = WaveNames.get_manifestation_name(wave_number)
+	var manif_name := WaveNames.get_manifestation_name(wave_number)
+	var wave_name := WaveNames.get_wave_name(wave_number)
+	_wave_name_label.text = manif_name + " — " + wave_name
 
 	# Update circle portrait when manifestation leader changes
 	var manif_leader := WaveNames.get_manifestation_leader_id(wave_number)

@@ -6,9 +6,9 @@ extends PanelContainer
 
 @onready var button_container: HBoxContainer = $HBox
 
-const CARD_SIZE := Vector2(64, 76)
-const ICON_SIZE := 40
+const CARD_SIZE := Vector2(64, 64)
 const BUTTON_GAP := 4
+const CORNER_RADIUS := 4
 
 # Brutalist palette
 const CARD_BG       := Color("#1A1A1E")
@@ -17,27 +17,14 @@ const CARD_HOVER    := Color("#4A4A50")
 const CARD_SELECTED := Color("#A23813")  # RUST
 const CARD_DISABLED_ALPHA := 0.55
 
-# Price pill
-const PILL_BG   := Color("#08080A")
-const PILL_TEXT  := Color("#F2D864")
-
-# Damage type accent colors (top 2px line)
-const DAMAGE_TYPE_COLORS := {
-	Enums.DamageType.KINETIC: Color("#9A9AA0"),
-	Enums.DamageType.CHEMICAL: Color("#70A040"),
-	Enums.DamageType.HYDRAULIC: Color("#50A0D0"),
-	Enums.DamageType.ELECTRIC: Color("#D8A040"),
-	Enums.DamageType.SONIC: Color("#70A040"),
-	Enums.DamageType.DIRECTED_ENERGY: Color("#A060C0"),
-	Enums.DamageType.CYBER: Color("#50A0D0"),
-	Enums.DamageType.PSYCHOLOGICAL: Color("#808898"),
-}
+var _blackletter_font: Font
 
 
 func _ready() -> void:
 	# Make the outer PanelContainer transparent
 	var transparent := StyleBoxEmpty.new()
 	add_theme_stylebox_override("panel", transparent)
+	_blackletter_font = load("res://assets/fonts/PirataOne-Regular.ttf")
 
 	button_container.add_theme_constant_override("separation", BUTTON_GAP)
 
@@ -56,20 +43,18 @@ func _build_buttons() -> void:
 func _create_tower_button(tower_data: TowerData) -> Button:
 	var btn := Button.new()
 	btn.custom_minimum_size = CARD_SIZE
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	btn.tooltip_text = tower_data.get_display_name()
 	btn.pressed.connect(_on_tower_selected.bind(tower_data))
 	btn.clip_contents = true
 
-	# Get damage type accent color
-	var accent_color: Color = DAMAGE_TYPE_COLORS.get(tower_data.damage_type, Color("#9A9AA0"))
-
-	# Brutalist card backgrounds per state — sharp corners (0 radius)
+	# Rounded card backgrounds per state
 	for state in ["normal", "hover", "pressed", "disabled"]:
 		var sb := StyleBoxFlat.new()
-		sb.set_corner_radius_all(0)
+		sb.set_corner_radius_all(CORNER_RADIUS)
 		sb.content_margin_left = 2
 		sb.content_margin_right = 2
-		sb.content_margin_top = 4
+		sb.content_margin_top = 2
 		sb.content_margin_bottom = 2
 
 		match state:
@@ -87,29 +72,11 @@ func _create_tower_button(tower_data: TowerData) -> Button:
 				sb.border_color = CARD_BORDER
 
 		sb.set_border_width_all(2)
-		# Top accent line — damage type color
-		sb.border_width_top = 3
-		if state == "normal" or state == "disabled":
-			sb.border_color = CARD_BORDER
-		# The accent goes via the expand margin trick:
-		# We set top border to accent color via a sub-element instead
-
 		btn.add_theme_stylebox_override(state, sb)
 
 	btn.text = ""
 
-	# -- Accent line (top 2px colored by damage type) --
-	var accent_line := ColorRect.new()
-	accent_line.color = accent_color
-	accent_line.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	accent_line.offset_top = 0
-	accent_line.offset_bottom = 2
-	accent_line.offset_left = 0
-	accent_line.offset_right = 0
-	accent_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	btn.add_child(accent_line)
-
-	# -- Icon --
+	# -- Icon (fills the card) --
 	var icon_tex := tower_data.get_icon()
 	if icon_tex:
 		var icon_rect := TextureRect.new()
@@ -118,46 +85,31 @@ func _create_tower_button(tower_data: TowerData) -> Button:
 		icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		icon_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-		icon_rect.offset_left = 6
+		icon_rect.offset_left = 4
 		icon_rect.offset_top = 4
-		icon_rect.offset_right = -6
-		icon_rect.offset_bottom = -18  # room for pill
+		icon_rect.offset_right = -4
+		icon_rect.offset_bottom = -4
 		icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		btn.add_child(icon_rect)
 
-	# -- Price pill (bottom-center) --
-	var pill := _make_price_pill(tower_data.build_cost)
-	pill.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	pill.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	pill.offset_top = -14
-	pill.offset_bottom = -2
-	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	btn.add_child(pill)
+	# -- Price label (top-center, white, Pirata One) --
+	var price_label := Label.new()
+	price_label.text = "$" + str(tower_data.build_cost)
+	price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	price_label.add_theme_font_size_override("font_size", 14)
+	price_label.add_theme_color_override("font_color", Color.WHITE)
+	price_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	price_label.add_theme_constant_override("shadow_offset_x", 1)
+	price_label.add_theme_constant_override("shadow_offset_y", 1)
+	if _blackletter_font:
+		price_label.add_theme_font_override("font", _blackletter_font)
+	price_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	price_label.offset_top = 2
+	price_label.offset_bottom = 20
+	price_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(price_label)
 
 	return btn
-
-
-func _make_price_pill(cost: int) -> PanelContainer:
-	var pill := PanelContainer.new()
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = PILL_BG
-	sb.set_corner_radius_all(0)  # sharp corners
-	sb.content_margin_left = 6
-	sb.content_margin_right = 6
-	sb.content_margin_top = 1
-	sb.content_margin_bottom = 1
-	pill.add_theme_stylebox_override("panel", sb)
-
-	var label := Label.new()
-	label.text = "$" + str(cost)
-	label.add_theme_font_size_override("font_size", 9)
-	label.add_theme_color_override("font_color", PILL_TEXT)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	pill.add_child(label)
-	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	return pill
 
 
 func _on_tower_selected(tower_data: TowerData) -> void:
