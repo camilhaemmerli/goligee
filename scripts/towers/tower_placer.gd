@@ -27,6 +27,17 @@ func _ready() -> void:
 
 
 func _on_build_mode_entered(tower_data: TowerData) -> void:
+	# Clean up any existing ghost from a previous tower selection
+	if _ghost:
+		_ghost.queue_free()
+		_ghost = null
+	_ghost_base = null
+	_ghost_turret = null
+	_tile_highlight = null
+	_tile_outline = null
+	_confirm_icon = null
+	_confirmed_tile = Vector2i(-999, -999)
+
 	_placing = true
 	_current_tower_data = tower_data
 
@@ -79,6 +90,9 @@ func _on_build_mode_entered(tower_data: TowerData) -> void:
 		else:
 			_ghost_base.texture = PlaceholderSprites.create_diamond(20, Color("#90A0B8"))
 	_ghost.add_child(_ghost_base)
+
+	# Immediately position ghost at current cursor location
+	_update_ghost_at_world(get_global_mouse_position())
 
 
 func _on_build_mode_exited() -> void:

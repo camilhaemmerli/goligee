@@ -25,6 +25,7 @@ extends Resource
 @export var chain_targets: int = 0
 @export var chain_damage_falloff: float = 0.5
 @export var crossfire_bonus: float = 0.0
+@export var can_target_flying: bool = true
 @export var on_hit_effects: Array[StatusEffectData] = []
 
 @export_group("Upgrades")

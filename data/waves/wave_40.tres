@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WaveData" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="WaveData" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="1_wd"]
 [ext_resource type="Script" path="res://scripts/resources/spawn_sequence_data.gd" id="2_ssd"]
@@ -6,6 +6,8 @@
 [ext_resource type="Resource" path="res://data/enemies/rioter.tres" id="4_rioter"]
 [ext_resource type="Resource" path="res://data/enemies/shield_wall.tres" id="5_sw"]
 [ext_resource type="Resource" path="res://data/enemies/union_boss.tres" id="6_ub"]
+[ext_resource type="Resource" path="res://data/enemies/press_drone.tres" id="7_drone"]
+[ext_resource type="Resource" path="res://data/enemies/news_helicopter.tres" id="8_heli"]
 
 [sub_resource type="Resource" id="seq_1"]
 script = ExtResource("2_ssd")
@@ -49,10 +51,30 @@ hp_multiplier = 22.0
 armor_bonus = 40.0
 speed_multiplier = 0.8
 
+[sub_resource type="Resource" id="seq_5"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("7_drone")
+count = 30
+spawn_interval = 0.2
+start_delay = 3.0
+spawn_point_index = 0
+hp_multiplier = 15.0
+speed_multiplier = 1.5
+
+[sub_resource type="Resource" id="seq_6"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("8_heli")
+count = 10
+spawn_interval = 1.5
+start_delay = 7.0
+spawn_point_index = 0
+hp_multiplier = 20.0
+armor_bonus = 15.0
+
 [resource]
 script = ExtResource("1_wd")
 wave_number = 40
 wave_type = 2
-spawn_sequences = [SubResource("seq_1"), SubResource("seq_2"), SubResource("seq_3"), SubResource("seq_4")]
+spawn_sequences = [SubResource("seq_1"), SubResource("seq_2"), SubResource("seq_3"), SubResource("seq_4"), SubResource("seq_5"), SubResource("seq_6")]
 gold_bonus = 21
 pre_wave_delay = 5.0

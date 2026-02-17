@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/enemy_data.gd" id="1_ed"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/base_enemy.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_ed")
+enemy_id = "press_drone"
+enemy_name = "Press Drone"
+description = "Unauthorized aerial surveillance device. Broadcasting seditious content."
+scene = ExtResource("2_scene")
+max_hp = 25.0
+base_speed = 1.6
+armor = 0.0
+armor_type = 0
+movement_type = 1
+resistances = { 4: 0.5 }
+gold_reward = 1
+lives_cost = 1

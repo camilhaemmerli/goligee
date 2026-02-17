@@ -308,5 +308,6 @@ crit_multiplier = 2.0
 chain_targets = 3
 chain_damage_falloff = 0.5
 crossfire_bonus = 0.15
+can_target_flying = false
 on_hit_effects = [SubResource("stun_effect")]
 upgrade_paths = [SubResource("path_a"), SubResource("path_b"), SubResource("path_c")]

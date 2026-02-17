@@ -10,6 +10,7 @@ Backends:
 Pipeline phases:
     python tools/generate_assets.py --phase turrets        # Tower turrets (SE ref + 8-rotation)
     python tools/generate_assets.py --phase bases          # Tower base platforms
+    python tools/generate_assets.py --phase evo-turrets    # Tier 5 evo variant turrets
     python tools/generate_assets.py --phase enemy-chars    # Create enemy characters (8-dir)
     python tools/generate_assets.py --phase enemy-anims    # Walk cycle animations
     python tools/generate_assets.py --phase projectiles    # All projectiles
@@ -26,6 +27,11 @@ Pipeline phases:
 Tower-specific:
     python tools/generate_assets.py --phase bases --towers rubber_bullet,tear_gas
     python tools/generate_assets.py --phase bases --backend retrodiffusion --towers rubber_bullet
+
+Evo turrets:
+    python tools/generate_assets.py --phase evo-turrets --variants rubber_bullet_a5
+    python tools/generate_assets.py --phase evo-turrets --towers rubber_bullet
+    python tools/generate_assets.py --phase evo-turrets
 
 Foundation test (1 tower + 1 enemy):
     python tools/generate_assets.py --test-foundation
@@ -983,6 +989,46 @@ def build_turret_prompt(tower: dict) -> str:
     )
 
 
+EVO_SIZE_SCALE = {
+    "a": "oversized bulky weapon occupying 70% of artboard, large and heavy",
+    "b": "very large weapon occupying 80% of artboard, heavy reinforced chunky",
+    "c": "massive dominant weapon filling 90% of artboard, enormous imposing hulking",
+}
+
+
+def build_evo_turret_prompt(variant: dict, parent: dict, path_letter: str = "a") -> str:
+    """Assemble a turret prompt for a tier 5 evo variant.
+
+    Inherits material/accent/grit from parent tower but uses the variant's
+    own weapon_desc/shape/size with evolved flavor.  Progressive size
+    increase per path (a < b < c).
+    """
+    wsize = WEAPON_SIZE_MAP[variant["weapon_size"]]
+    size_mod = EVO_SIZE_SCALE.get(path_letter, EVO_SIZE_SCALE["a"])
+    return (
+        f"{STYLE}, {LIGHTING}, "
+        f"{TOWER_TURRET_STRUCTURE}, "
+        f"{parent['material']}, "
+        f"{TOWER_GRIT}, "
+        f"{parent['accent_name']} {parent['accent_hex']} accent highlights, "
+        f"advanced evolved upgraded {wsize} {variant['weapon_desc']}, "
+        f"{size_mod}, "
+        f"{variant['weapon_shape']}"
+    )
+
+
+def build_evo_turret_fire_prompt(variant: dict, parent: dict, path_letter: str = "a") -> str:
+    """Assemble a firing-pose turret prompt for a tier 5 evo variant.
+
+    Same as idle prompt but adds the fire_desc visual effects.
+    """
+    idle = build_evo_turret_prompt(variant, parent, path_letter)
+    fire_desc = variant.get("fire_desc", "")
+    if fire_desc:
+        return f"{idle}, actively firing, {fire_desc}"
+    return f"{idle}, actively firing, muzzle flash, projectile launching"
+
+
 # Per-tower slot data: shared material + accent, base slots, turret slots
 TOWERS = {
     "rubber_bullet": {
@@ -1096,6 +1142,215 @@ TOWERS = {
         "weapon_desc": "flat panel directed energy emitter, heat grid face, cooling fins on sides",
         "weapon_shape": "flat rectangular panel with grid face on pivot",
         "weapon_size": "large",
+    },
+}
+
+# ---------------------------------------------------------------------------
+# Tier 5 Evo Variants -- 3 upgrade paths (a, b, c) per tower
+# ---------------------------------------------------------------------------
+# Each variant inherits parent tower's material/accent/grit.
+# File output: towers/{parent}/tier5{a|b|c}_turret_{dir}.png
+
+TIER5_VARIANTS = {
+    # --- Rubber Bullet ---
+    "rubber_bullet_a5": {
+        "parent": "rubber_bullet",
+        "name": "DEADSHOT",
+        "weapon_desc": "long-barrel precision sniper rifle with telescopic scope, bipod mount, bolt-action mechanism",
+        "weapon_shape": "long narrow barrel extending forward-right, scope on top rail, folding bipod legs",
+        "weapon_size": "large",
+        "fire_desc": "bright muzzle flash at barrel tip, smoke trail, scope glint, recoil kickback",
+    },
+    "rubber_bullet_b5": {
+        "parent": "rubber_bullet",
+        "name": "BULLET HELL",
+        "weapon_desc": "multi-barrel rotary minigun, ammo belt feed from side, spinning barrel cluster, brass casing ejection port",
+        "weapon_shape": "rotating barrel cluster extending forward-right, side-mounted ammo drum, heavy rotating assembly",
+        "weapon_size": "large",
+        "fire_desc": "spinning barrels with continuous muzzle flash stream, brass casings flying, ammo belt feeding rapidly, barrel glow",
+    },
+    "rubber_bullet_c5": {
+        "parent": "rubber_bullet",
+        "name": "EXPERIMENTAL ORDNANCE",
+        "weapon_desc": "exotic energy launcher, glowing plasma chamber, experimental tech housing, capacitor coils",
+        "weapon_shape": "bulky rectangular housing with glowing front aperture, side capacitor banks, experimental wiring",
+        "weapon_size": "large",
+        "fire_desc": "bright plasma bolt launching from aperture, glowing energy charge, capacitor discharge arcs, pulsing core",
+    },
+    # --- Tear Gas ---
+    "tear_gas_a5": {
+        "parent": "tear_gas",
+        "name": "NERVE AGENT DEPLOYER",
+        "weapon_desc": "massive chemical mortar array, bio-hazard housing, dripping toxic residue, sealed launch tubes",
+        "weapon_shape": "triple mortar tube cluster angled upward, hazmat sealed housing, drip stains on sides",
+        "weapon_size": "large",
+        "fire_desc": "green toxic smoke billowing from tubes, canister launching upward with smoke trail, chemical splash drips",
+    },
+    "tear_gas_b5": {
+        "parent": "tear_gas",
+        "name": "CARPET GASSER",
+        "weapon_desc": "wide carpet-bomb launcher rack, dozens of small launch tubes in grid pattern, area saturation system",
+        "weapon_shape": "wide flat rectangular rack with rows of small tubes, grid formation, side-loading mechanism",
+        "weapon_size": "large",
+        "fire_desc": "multiple canisters launching simultaneously from grid, smoke trails fanning out, launch flash from each tube",
+    },
+    "tear_gas_c5": {
+        "parent": "tear_gas",
+        "name": "PANIC INDUCER",
+        "weapon_desc": "gas emitter with pulsing red fear strobe light, skull warning markers, psychological warfare device",
+        "weapon_shape": "compact emitter with rotating red strobe on top, skull decals, gas vent nozzle forward",
+        "weapon_size": "medium",
+        "fire_desc": "intense red strobe flashing, thick yellow-green gas cloud pouring from nozzle, fear aura glow",
+    },
+    # --- Taser Grid ---
+    "taser_grid_a5": {
+        "parent": "taser_grid",
+        "name": "ARC REACTOR",
+        "weapon_desc": "massive tesla coil spire, crackling arc reactor core, chain lightning arcs, high voltage capacitor banks",
+        "weapon_shape": "tall vertical tesla coil spire, glowing core sphere, arcing electricity between prongs",
+        "weapon_size": "large",
+        "fire_desc": "massive chain lightning bolt shooting outward, bright electric arcs between prongs, core sphere blazing white-blue",
+    },
+    "taser_grid_b5": {
+        "parent": "taser_grid",
+        "name": "EMP GRID",
+        "weapon_desc": "triple-prong beam splitter, neural disruption emitter, branching electrode array, pulse generator",
+        "weapon_shape": "three-pronged electrode array fanning outward, central pulse emitter, branching conductor tips",
+        "weapon_size": "large",
+        "fire_desc": "branching electric beams splitting from each prong, EMP pulse wave expanding outward, blue discharge glow",
+    },
+    "taser_grid_c5": {
+        "parent": "taser_grid",
+        "name": "BLACKOUT FIELD",
+        "weapon_desc": "electromagnetic dome generator, pulsing suppression field rings, EMP coil housing",
+        "weapon_shape": "dome-shaped emitter with concentric ring elements, pulsing field effect, compact base unit",
+        "weapon_size": "medium",
+        "fire_desc": "expanding electromagnetic dome pulse, concentric rings radiating outward, blue-white suppression field flash",
+    },
+    # --- Water Cannon ---
+    "water_cannon_a5": {
+        "parent": "water_cannon",
+        "name": "TSUNAMI CANNON",
+        "weapon_desc": "triple-barrel industrial fire hose array, massive water tank, pressure gauges maxed, reinforced piping",
+        "weapon_shape": "three parallel large nozzles extending forward-right, manifold connector, heavy gauge pipes",
+        "weapon_size": "large",
+        "fire_desc": "three powerful water jets blasting forward, massive spray and mist cloud, water splashing back, pipes shaking",
+    },
+    "water_cannon_b5": {
+        "parent": "water_cannon",
+        "name": "INDUSTRIAL WASHER",
+        "weapon_desc": "high-pressure cutting jet nozzle, industrial cutter housing, precision spray head, extreme PSI gauge",
+        "weapon_shape": "narrow focused nozzle on precision gimbal, compact high-pressure housing, fine spray tip",
+        "weapon_size": "medium",
+        "fire_desc": "razor-thin high-pressure water beam cutting forward, fine mist spray, precision targeting laser line",
+    },
+    "water_cannon_c5": {
+        "parent": "water_cannon",
+        "name": "HYPOTHERMIA FIELD",
+        "weapon_desc": "cryo-emitter device, frost-covered nozzle, ice crystal formation, freezing mist vents, coolant tank",
+        "weapon_shape": "frost-encrusted emitter head with ice crystal buildup, coolant pipes, freezing mist cloud",
+        "weapon_size": "large",
+        "fire_desc": "freezing cryo blast spraying forward, ice crystals forming in air, thick frost mist, blue cold glow",
+    },
+    # --- Surveillance ---
+    "surveillance_a5": {
+        "parent": "surveillance",
+        "name": "PANOPTICON",
+        "weapon_desc": "massive multi-dish radar array, drone launcher bay, camera cluster dome, full spectrum sensor suite",
+        "weapon_shape": "large radar dish with smaller dishes around it, camera dome on top, drone bay hatch",
+        "weapon_size": "large",
+        "fire_desc": "scanning beam sweeping from dish, drone launching from bay, all cameras glowing red, radar pulse rings",
+    },
+    "surveillance_b5": {
+        "parent": "surveillance",
+        "name": "SOCIAL CREDIT ENGINE",
+        "weapon_desc": "server rack antenna, scanning beam projector, database terminal screens, facial recognition lens",
+        "weapon_shape": "vertical server rack with antenna array, forward scanning beam lens, side display screens",
+        "weapon_size": "large",
+        "fire_desc": "bright scanning beam projecting forward, screens displaying red warning data, facial recognition targeting box",
+    },
+    "surveillance_c5": {
+        "parent": "surveillance",
+        "name": "MINISTRY OF TRUTH",
+        "weapon_desc": "propaganda loudspeaker array with screens, broadcast antenna, hypnotic display panel, signal emitter",
+        "weapon_shape": "cluster of loudspeaker horns around central display screen, broadcast antenna mast on top",
+        "weapon_size": "large",
+        "fire_desc": "loudspeakers blasting visible sound waves, screen displaying hypnotic spiral, broadcast signal rings pulsing",
+    },
+    # --- Pepper Spray ---
+    "pepper_spray_a5": {
+        "parent": "pepper_spray",
+        "name": "WEAPONIZED CAPSAICIN",
+        "weapon_desc": "oversized industrial chemical sprayer, concentrated nozzle, pressurized tank, drip stains, hazmat seals",
+        "weapon_shape": "large pressurized canister with industrial spray nozzle extending forward, dripping residue",
+        "weapon_size": "large",
+        "fire_desc": "thick orange-red chemical spray blasting from nozzle, pressurized mist cloud, dripping residue splatter",
+    },
+    "pepper_spray_b5": {
+        "parent": "pepper_spray",
+        "name": "CLOUD CHAMBER",
+        "weapon_desc": "multi-directional fog dispersal unit, radial nozzle ring, gas cloud emitter, 360-degree coverage",
+        "weapon_shape": "radial ring of outward-facing nozzles around central hub, fog emission vents",
+        "weapon_size": "large",
+        "fire_desc": "orange pepper fog spraying from all nozzles radially, expanding cloud ring, choking mist filling area",
+    },
+    "pepper_spray_c5": {
+        "parent": "pepper_spray",
+        "name": "SYNTHETIC ALLERGEN",
+        "weapon_desc": "bio-lab emitter pod, research equipment housing, biohazard seals, specimen containment vials",
+        "weapon_shape": "sealed lab pod with biohazard markings, emitter aperture forward, containment vial rack on side",
+        "weapon_size": "medium",
+        "fire_desc": "green-orange bio-agent mist spraying from aperture, biohazard warning glow, containment vials bubbling",
+    },
+    # --- LRAD ---
+    "lrad_a5": {
+        "parent": "lrad",
+        "name": "BROWN NOTE",
+        "weapon_desc": "oversized parabolic dish, massive amplifier stack, devastating concentric sound rings, subwoofer array",
+        "weapon_shape": "huge forward-facing parabolic dish with concentric ring elements, amplifier bank behind",
+        "weapon_size": "large",
+        "fire_desc": "massive visible sound wave blast from dish, concentric pressure rings expanding forward, air distortion shimmer",
+    },
+    "lrad_b5": {
+        "parent": "lrad",
+        "name": "RESONANCE CASCADE",
+        "weapon_desc": "triple harmonic dish array, resonance tuning forks, vibration wave emitter, harmonic oscillator",
+        "weapon_shape": "three offset dishes in triangular formation, tuning fork prongs between, vibration wave lines",
+        "weapon_size": "large",
+        "fire_desc": "triple harmonic sound beams converging forward, resonance fork vibration blur, intersecting wave patterns",
+    },
+    "lrad_c5": {
+        "parent": "lrad",
+        "name": "SUBLIMINAL ARRAY",
+        "weapon_desc": "mind-control dish with spiral pattern, eerie green glow, hypnotic emitter, signal modulator",
+        "weapon_shape": "dish with spiral pattern on face, green glowing center, signal modulator box on back",
+        "weapon_size": "medium",
+        "fire_desc": "spinning hypnotic spiral projecting forward, eerie green beam, mind-control signal waves, pulsing glow",
+    },
+    # --- Microwave ---
+    "microwave_a5": {
+        "parent": "microwave",
+        "name": "DEATH RAY",
+        "weapon_desc": "massive overcharged beam cannon, heat shimmer distortion, cooling fin overload, plasma core glow",
+        "weapon_shape": "long heavy barrel cannon with glowing aperture, stacked cooling fins, overheating vents",
+        "weapon_size": "large",
+        "fire_desc": "intense orange-white heat beam blasting from barrel, heat shimmer distortion waves, cooling fins glowing red-hot",
+    },
+    "microwave_b5": {
+        "parent": "microwave",
+        "name": "PRECISION DENIAL",
+        "weapon_desc": "pinpoint laser emitter, precision targeting optics, surgical beam aperture, compact focusing lens",
+        "weapon_shape": "narrow precision barrel with targeting optics on top, compact lens assembly at tip",
+        "weapon_size": "medium",
+        "fire_desc": "thin precise red laser beam firing forward, targeting reticle projected, lens flare at aperture",
+    },
+    "microwave_c5": {
+        "parent": "microwave",
+        "name": "COOKING FIELD",
+        "weapon_desc": "wide multi-panel heat array, radiant heat zone emitter, thermal grid face, area denial system",
+        "weapon_shape": "wide flat multi-panel array with thermal grid pattern, heat shimmer above, side cooling ducts",
+        "weapon_size": "large",
+        "fire_desc": "all panels glowing bright orange-red, radiant heat waves emanating forward, thermal distortion shimmer zone",
     },
 }
 
@@ -1661,6 +1916,299 @@ def gen_turrets(client: PixelLabClient, names: list[str] | None = None):
             )
         if fire_rot_tasks:
             run_parallel(fire_rot_tasks)
+
+
+# ---------------------------------------------------------------------------
+# Evo Turret Generation (Tier 5 variants)
+# ---------------------------------------------------------------------------
+
+def _gen_evo_turret_ref(client: PixelLabClient, variant_key: str,
+                         variant: dict) -> tuple[str, bytes]:
+    """Generate a single evo turret SE reference image.
+
+    Uses the parent tower's existing turret_ref.png as init_image for style
+    consistency (low strength so the new weapon design dominates).
+    Returns (variant_key, image_bytes).
+    """
+    parent_name = variant["parent"]
+    parent = TOWERS[parent_name]
+    path_letter = variant_key.split("_")[-1][0]  # e.g. "a" from "rubber_bullet_a5"
+    print(f"  Generating evo turret reference for {variant_key} ({variant['name']}, SE)...")
+
+    prompt = build_evo_turret_prompt(variant, parent, path_letter)
+
+    # Use parent's turret ref as init_image for style consistency
+    parent_ref_path = SPRITES_DIR / "towers" / parent_name / "turret_ref.png"
+    init_b64 = None
+    if parent_ref_path.exists():
+        with open(parent_ref_path, "rb") as f:
+            init_b64 = base64.b64encode(f.read()).decode()
+        print(f"    Using parent turret ref as init_image (strength 300)")
+
+    img = client.generate_image(
+        prompt,
+        64, 64,
+        isometric=True,
+        negative_description=TURRET_NEGATIVE,
+        init_image_b64=init_b64,
+        init_image_strength=300.0,  # light guidance — keep palette, allow new weapon
+    )
+    if img:
+        img = remove_background(img)
+    save_image(img, f"towers/{parent_name}/tier5{path_letter}_turret_ref.png", open_viewer=False)
+    return (variant_key, img)
+
+
+def _gen_evo_fire_ref(client: PixelLabClient, variant_key: str,
+                       variant: dict, idle_ref: bytes | None = None) -> tuple[str, bytes]:
+    """Generate a firing-pose evo turret reference using idle ref as init_image.
+
+    Returns (variant_key, image_bytes).
+    """
+    parent_name = variant["parent"]
+    parent = TOWERS[parent_name]
+    path_letter = variant_key.split("_")[-1][0]
+    init_b64 = img_to_b64(idle_ref) if idle_ref else None
+    label = " (with idle ref as init)" if init_b64 else ""
+    print(f"  Generating evo fire pose for {variant_key} ({variant['name']}, SE){label}...")
+
+    prompt = build_evo_turret_fire_prompt(variant, parent, path_letter)
+
+    img = client.generate_image(
+        prompt,
+        64, 64,
+        isometric=True,
+        negative_description=TURRET_NEGATIVE,
+        init_image_b64=init_b64,
+        init_image_strength=250.0,  # keep shape, allow firing effects
+    )
+    if img:
+        img = remove_background(img)
+    save_image(img, f"towers/{parent_name}/tier5{path_letter}_turret_fire_ref.png", open_viewer=False)
+    return (variant_key, img)
+
+
+def gen_evo_turrets(client: PixelLabClient, names: list[str] | None = None,
+                     variants_filter: list[str] | None = None):
+    """Phase: Generate tier 5 evo turret references (SE) then 8-rotations.
+
+    Args:
+        names: filter by parent tower names (e.g. ["rubber_bullet"])
+        variants_filter: filter by specific variant keys (e.g. ["rubber_bullet_a5"])
+    """
+    # Determine which variants to generate
+    if variants_filter:
+        variant_keys = [k for k in variants_filter if k in TIER5_VARIANTS]
+        for k in variants_filter:
+            if k not in TIER5_VARIANTS:
+                print(f"  WARNING: Unknown variant '{k}', skipping. "
+                      f"Available: {', '.join(TIER5_VARIANTS.keys())}")
+    elif names:
+        variant_keys = [k for k, v in TIER5_VARIANTS.items() if v["parent"] in names]
+    else:
+        variant_keys = list(TIER5_VARIANTS.keys())
+
+    if not variant_keys:
+        print("No evo turret variants to generate.")
+        return
+
+    total = len(variant_keys)
+    print(f"\n=== EVO TURRETS ({total} variants x 16 directions = {total * 16} sprites) ===\n")
+
+    # Phase A: Generate all evo turret idle references in parallel
+    print("Phase A: Generating evo turret references (SE)...")
+    ref_tasks = [
+        (key, _gen_evo_turret_ref, (client, key, TIER5_VARIANTS[key]), {})
+        for key in variant_keys
+    ]
+    ref_results = run_parallel(ref_tasks)
+
+    # Collect idle refs for fire pose init_image
+    idle_ref_map: dict[str, bytes] = {}
+
+    # Phase B: Generate 8-direction idle rotations in parallel
+    print("\nPhase B: Generating 8-direction idle rotations...")
+    rot_tasks = []
+    for result in ref_results:
+        if result is None:
+            continue
+        variant_key, turret_ref = result
+        if not turret_ref:
+            print(f"  ERROR: No evo turret reference for {variant_key}, skipping rotations")
+            continue
+        idle_ref_map[variant_key] = turret_ref
+        variant = TIER5_VARIANTS[variant_key]
+        parent_name = variant["parent"]
+        path_letter = variant_key.split("_")[-1][0]
+        prefix = f"tier5{path_letter}_turret"
+        rot_tasks.append(
+            (variant_key, _gen_turret_rotations,
+             (client, parent_name, turret_ref, prefix, False), {})
+        )
+    if rot_tasks:
+        run_parallel(rot_tasks)
+
+    # Phase C: Generate fire pose references using idle refs as init_image
+    print(f"\nPhase C: Generating evo fire pose references ({len(idle_ref_map)} variants)...")
+    fire_ref_tasks = [
+        (key, _gen_evo_fire_ref,
+         (client, key, TIER5_VARIANTS[key], idle_ref_map.get(key)), {})
+        for key in variant_keys if key in idle_ref_map
+    ]
+    fire_ref_results = run_parallel(fire_ref_tasks)
+
+    # Phase D: Generate 8-direction fire rotations
+    print("\nPhase D: Generating 8-direction fire rotations...")
+    fire_rot_tasks = []
+    for result in fire_ref_results:
+        if result is None:
+            continue
+        variant_key, fire_ref = result
+        if not fire_ref:
+            print(f"  ERROR: No fire pose reference for {variant_key}, skipping")
+            continue
+        variant = TIER5_VARIANTS[variant_key]
+        parent_name = variant["parent"]
+        path_letter = variant_key.split("_")[-1][0]
+        prefix = f"tier5{path_letter}_turret_fire"
+        fire_rot_tasks.append(
+            (variant_key, _gen_turret_rotations,
+             (client, parent_name, fire_ref, prefix, False), {})
+        )
+    if fire_rot_tasks:
+        run_parallel(fire_rot_tasks)
+
+
+def _gen_evo_turret_ref_rd(rd_client: RetroDiffusionClient, variant_key: str,
+                            variant: dict) -> tuple[str, bytes]:
+    """Generate evo turret SE reference via Retro Diffusion.
+
+    Uses the parent tower's base sprite as style reference.
+    Returns (variant_key, image_bytes).
+    """
+    parent_name = variant["parent"]
+    parent = TOWERS[parent_name]
+    path_letter = variant_key.split("_")[-1][0]
+    print(f"  [RD] Generating evo turret reference for {variant_key} ({variant['name']}, SE)...")
+
+    prompt = build_evo_turret_prompt(variant, parent, path_letter)
+
+    # Use parent's base sprite as style reference
+    base_path = SPRITES_DIR / "towers" / parent_name / "base.png"
+    ref_imgs = None
+    if base_path.exists():
+        with open(base_path, "rb") as f:
+            img_data = f.read()
+        # RD needs RGB, no alpha
+        pil_img = Image.open(io.BytesIO(img_data)).convert("RGB")
+        buf = io.BytesIO()
+        pil_img.save(buf, format="PNG")
+        ref_imgs = [base64.b64encode(buf.getvalue()).decode()]
+        print(f"    Using parent base sprite as RD style reference")
+
+    images = rd_client.generate(
+        prompt, 64, 64,
+        style="rd_pro__isometric",
+        reference_images=ref_imgs,
+        remove_bg=True,
+    )
+    img = images[0] if images else b""
+    if img:
+        img = remove_background(img)
+    save_image(img, f"towers/{parent_name}/tier5{path_letter}_turret_ref.png", open_viewer=False)
+    return (variant_key, img)
+
+
+def gen_evo_turrets_rd(rd_client: RetroDiffusionClient, pl_client: PixelLabClient,
+                        names: list[str] | None = None,
+                        variants_filter: list[str] | None = None):
+    """Generate tier 5 evo turrets: RD for SE reference, PixelLab for 8-rotations.
+
+    Args:
+        names: filter by parent tower names
+        variants_filter: filter by specific variant keys
+    """
+    # Determine which variants to generate
+    if variants_filter:
+        variant_keys = [k for k in variants_filter if k in TIER5_VARIANTS]
+        for k in variants_filter:
+            if k not in TIER5_VARIANTS:
+                print(f"  WARNING: Unknown variant '{k}', skipping. "
+                      f"Available: {', '.join(TIER5_VARIANTS.keys())}")
+    elif names:
+        variant_keys = [k for k, v in TIER5_VARIANTS.items() if v["parent"] in names]
+    else:
+        variant_keys = list(TIER5_VARIANTS.keys())
+
+    if not variant_keys:
+        print("No evo turret variants to generate.")
+        return
+
+    total = len(variant_keys)
+    print(f"\n=== EVO TURRETS via Retro Diffusion ({total} variants) ===\n")
+
+    # Phase A: Generate all evo turret refs via RD
+    print("Phase A: Generating evo turret references via RD...")
+    ref_tasks = [
+        (key, _gen_evo_turret_ref_rd, (rd_client, key, TIER5_VARIANTS[key]), {})
+        for key in variant_keys
+    ]
+    ref_results = run_parallel(ref_tasks)
+
+    # Collect idle refs for fire pose init_image
+    idle_ref_map: dict[str, bytes] = {}
+
+    # Phase B: Generate 8-direction idle rotations via PixelLab
+    print("\nPhase B: Generating 8-direction idle rotations via PixelLab...")
+    rot_tasks = []
+    for result in ref_results:
+        if result is None:
+            continue
+        variant_key, turret_ref = result
+        if not turret_ref:
+            print(f"  ERROR: No evo turret reference for {variant_key}, skipping rotations")
+            continue
+        idle_ref_map[variant_key] = turret_ref
+        variant = TIER5_VARIANTS[variant_key]
+        parent_name = variant["parent"]
+        path_letter = variant_key.split("_")[-1][0]
+        prefix = f"tier5{path_letter}_turret"
+        rot_tasks.append(
+            (variant_key, _gen_turret_rotations,
+             (pl_client, parent_name, turret_ref, prefix, False), {})
+        )
+    if rot_tasks:
+        run_parallel(rot_tasks)
+
+    # Phase C: Generate fire pose references via PixelLab (using idle refs as init)
+    print(f"\nPhase C: Generating evo fire pose references ({len(idle_ref_map)} variants)...")
+    fire_ref_tasks = [
+        (key, _gen_evo_fire_ref,
+         (pl_client, key, TIER5_VARIANTS[key], idle_ref_map.get(key)), {})
+        for key in variant_keys if key in idle_ref_map
+    ]
+    fire_ref_results = run_parallel(fire_ref_tasks)
+
+    # Phase D: Generate 8-direction fire rotations via PixelLab
+    print("\nPhase D: Generating 8-direction fire rotations via PixelLab...")
+    fire_rot_tasks = []
+    for result in fire_ref_results:
+        if result is None:
+            continue
+        variant_key, fire_ref = result
+        if not fire_ref:
+            print(f"  ERROR: No fire pose reference for {variant_key}, skipping")
+            continue
+        variant = TIER5_VARIANTS[variant_key]
+        parent_name = variant["parent"]
+        path_letter = variant_key.split("_")[-1][0]
+        prefix = f"tier5{path_letter}_turret_fire"
+        fire_rot_tasks.append(
+            (variant_key, _gen_turret_rotations,
+             (pl_client, parent_name, fire_ref, prefix, False), {})
+        )
+    if fire_rot_tasks:
+        run_parallel(fire_rot_tasks)
 
 
 def _gen_single_base(client: PixelLabClient, name: str, info: dict) -> None:
@@ -2316,7 +2864,7 @@ def load_rd_api_key(required: bool = False) -> str | None:
 
 def _is_tower_phase(phase: str) -> bool:
     """Check if a phase involves tower generation."""
-    return phase in ("turrets", "bases")
+    return phase in ("turrets", "bases", "evo-turrets")
 
 
 def main():
@@ -2324,7 +2872,7 @@ def main():
         description="Generate Goligee pixel art assets via PixelLab and/or Retro Diffusion API"
     )
     parser.add_argument("--phase", choices=[
-        "turrets", "bases", "enemy-chars", "enemy-anims",
+        "turrets", "bases", "evo-turrets", "enemy-chars", "enemy-anims",
         "projectiles", "effects", "city", "animated",
         "tiles", "tilesets", "ui", "props", "bosses", "all",
     ], help="Which phase/category to generate")
@@ -2336,6 +2884,8 @@ def main():
                         help="Comma-separated tower names to generate (e.g. rubber_bullet,tear_gas)")
     parser.add_argument("--enemies", type=str, default=None,
                         help="Comma-separated enemy names to generate (e.g. rioter,drummer)")
+    parser.add_argument("--variants", type=str, default=None,
+                        help="Comma-separated evo variant keys (e.g. rubber_bullet_a5,tear_gas_b5)")
     parser.add_argument("--test-foundation", action="store_true",
                         help="Test pipeline with 1 tower + 1 enemy")
     parser.add_argument("--single", type=str, help="Generate a single asset by name")
@@ -2362,6 +2912,15 @@ def main():
         for e in enemy_filter:
             if e not in ENEMIES:
                 print(f"ERROR: Unknown enemy '{e}'. Available: {', '.join(ENEMIES.keys())}")
+                sys.exit(1)
+
+    # Parse variant filter
+    variant_filter = None
+    if args.variants:
+        variant_filter = [v.strip() for v in args.variants.split(",")]
+        for v in variant_filter:
+            if v not in TIER5_VARIANTS:
+                print(f"ERROR: Unknown variant '{v}'. Available: {', '.join(TIER5_VARIANTS.keys())}")
                 sys.exit(1)
 
     # Determine which backends are needed
@@ -2407,10 +2966,20 @@ def main():
             gen_turrets(pl_client, names=target_names)
             gen_bases(pl_client, names=target_names)
 
+    def run_evo_turrets():
+        """Generate evo turrets using the selected backend."""
+        if use_rd and rd_client:
+            gen_evo_turrets_rd(rd_client, pl_client,
+                               names=tower_filter, variants_filter=variant_filter)
+        else:
+            gen_evo_turrets(pl_client,
+                            names=tower_filter, variants_filter=variant_filter)
+
     if args.test_foundation:
         gen_test_foundation(pl_client)
     elif phase == "all":
         run_towers()
+        run_evo_turrets()
         gen_enemy_characters(pl_client)
         gen_enemy_animations(pl_client)
         gen_projectiles(pl_client)
@@ -2423,7 +2992,9 @@ def main():
         gen_props(pl_client)
         gen_ui(pl_client)
     elif phase:
-        if _is_tower_phase(phase):
+        if phase == "evo-turrets":
+            run_evo_turrets()
+        elif _is_tower_phase(phase):
             run_towers()
         else:
             phase_map = {

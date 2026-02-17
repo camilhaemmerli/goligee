@@ -207,5 +207,6 @@ area_of_effect = 0.0
 pierce_count = 1
 crit_chance = 0.0
 crit_multiplier = 2.0
+can_target_flying = false
 on_hit_effects = [SubResource("burn_effect")]
 upgrade_paths = [SubResource("path_a"), SubResource("path_c")]

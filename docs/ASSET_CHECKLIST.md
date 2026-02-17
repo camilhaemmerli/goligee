@@ -179,14 +179,14 @@ Each enemy needs: 8-direction walk cycle (4 frames each = 32 frames per enemy).
 
 | # | Icon | File | Status |
 |---|------|------|--------|
-| 1 | Rubber Bullet Turret | `ui/icon_tower_rubber_bullet.png` | [ ] |
-| 2 | Tear Gas Launcher | `ui/icon_tower_tear_gas.png` | [ ] |
-| 3 | Water Cannon | `ui/icon_tower_water_cannon.png` | [ ] |
-| 4 | Taser Grid | `ui/icon_tower_taser_grid.png` | [ ] |
-| 5 | Surveillance Hub | `ui/icon_tower_surveillance.png` | [ ] |
-| 6 | Pepper Spray Emitter | `ui/icon_tower_pepper_spray.png` | [ ] |
-| 7 | LRAD Cannon | `ui/icon_tower_lrad.png` | [ ] |
-| 8 | Microwave Emitter | `ui/icon_tower_microwave.png` | [ ] |
+| 1 | Rubber Bullet Turret | `ui/icon_tower_rubber_bullet.png` | [x] |
+| 2 | Tear Gas Launcher | `ui/icon_tower_tear_gas.png` | [x] |
+| 3 | Water Cannon | `ui/icon_tower_water_cannon.png` | [x] |
+| 4 | Taser Grid | `ui/icon_tower_taser_grid.png` | [x] |
+| 5 | Surveillance Hub | `ui/icon_tower_surveillance.png` | [x] |
+| 6 | Pepper Spray Emitter | `ui/icon_tower_pepper_spray.png` | [x] |
+| 7 | LRAD Cannon | `ui/icon_tower_lrad.png` | [x] |
+| 8 | Microwave Emitter | `ui/icon_tower_microwave.png` | [x] |
 
 ### Damage Type Icons
 
@@ -223,7 +223,7 @@ Each enemy needs: 8-direction walk cycle (4 frames each = 32 frames per enemy).
 | 2 | Freeze | `ui/icon_ability_freeze.png` | [ ] |
 | 3 | Funding | `ui/icon_ability_funding.png` | [ ] |
 
-**Progress: 0/28 UI icon sprites**
+**Progress: 8/28 UI icon sprites**
 
 ---
 
@@ -261,7 +261,7 @@ Each enemy needs: 8-direction walk cycle (4 frames each = 32 frames per enemy).
 | Effect frames | 0 | 50 |
 | City buildings | 2 | 6 |
 | Animated details | 0 | 12 |
-| UI icons | 0 | 28 |
+| UI icons | 8 | 28 |
 | Props | 12 | 12 |
-| **TOTAL** | **598** | **852** |
+| **TOTAL** | **606** | **852** |
 

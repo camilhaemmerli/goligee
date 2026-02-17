@@ -6,9 +6,6 @@ extends Control
 var _blackletter_font: Font
 var _music_player: AudioStreamPlayer
 
-# Figma colours
-const RUST := Color("#A23813")
-const RUST_DARK := Color("#771F00")
 
 const THEME_SONG_PATH := "res://assets/audio/music/theme_song.mp3"
 const MUSIC_FADE_IN := 2.0
@@ -126,42 +123,33 @@ func _setup_start_button() -> void:
 	btn.text = "Start"
 	btn.add_theme_font_override("font", _blackletter_font)
 	btn.add_theme_font_size_override("font_size", 34)
-	btn.add_theme_color_override("font_color", Color.WHITE)
-	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", Color("#D8C8A8"))
 
-	# Normal — rust bg with eerie glowing border
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = RUST
-	normal.border_color = Color("#C85830")
-	normal.set_border_width_all(3)
-	normal.set_corner_radius_all(0)
+	# Apply primary 3D bevel, then override margins + shadow for the big start btn
+	ButtonStyles.apply_primary(btn)
+
+	# Larger margins and shadow for the hero button
+	var normal := btn.get_theme_stylebox("normal").duplicate() as StyleBoxFlat
 	normal.content_margin_left = 40
 	normal.content_margin_right = 40
 	normal.content_margin_top = 8
 	normal.content_margin_bottom = 8
-	# Outer glow via shadow
-	normal.shadow_color = Color("#A23813A0")
 	normal.shadow_size = 8
 	btn.add_theme_stylebox_override("normal", normal)
 
-	# Hover — brighter glow
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#B84420")
-	hover.border_color = Color("#E08050")
-	hover.shadow_color = Color("#D85030C0")
+	var hover := btn.get_theme_stylebox("hover").duplicate() as StyleBoxFlat
+	hover.content_margin_left = 40
+	hover.content_margin_right = 40
+	hover.content_margin_top = 8
+	hover.content_margin_bottom = 8
 	hover.shadow_size = 12
 	btn.add_theme_stylebox_override("hover", hover)
 
-	# Pressed
-	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = RUST_DARK
-	pressed.border_color = Color("#A04020")
-	pressed.shadow_size = 4
+	var pressed := btn.get_theme_stylebox("pressed").duplicate() as StyleBoxFlat
+	pressed.content_margin_left = 40
+	pressed.content_margin_right = 40
+	pressed.content_margin_top = 9
+	pressed.content_margin_bottom = 7
 	btn.add_theme_stylebox_override("pressed", pressed)
-
-	# No focus ring
-	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
 	# Centered, near bottom (~75% down the screen)
 	btn.set_anchors_preset(PRESET_CENTER_BOTTOM)
@@ -182,10 +170,10 @@ func _setup_start_button() -> void:
 
 func _start_glow_pulse(btn: Button, style: StyleBoxFlat) -> void:
 	# Eerie pulsating border glow — cycles between dim and bright
-	var dim_border := Color("#A04020")
-	var bright_border := Color("#E89060")
-	var dim_shadow := Color("#A2381360")
-	var bright_shadow := Color("#D85030D0")
+	var dim_border := Color("#B03030")
+	var bright_border := Color("#F08070")
+	var dim_shadow := Color("#D0404060")
+	var bright_shadow := Color("#D04040D0")
 
 	_btn_glow_tween = create_tween().set_loops()
 	_btn_glow_tween.tween_method(func(t: float) -> void:

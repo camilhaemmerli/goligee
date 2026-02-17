@@ -51,6 +51,8 @@ var _cancel_build_btn: Button
 var _game_over_overlay: ColorRect
 var _game_over_label: Label
 var _restart_btn: Button
+var _victory_banner: TextureRect
+var _confetti_nodes: Array[Control] = []
 
 # Kill counter (bottom-right, above upgrade panel)
 var _kill_counter_label: Label
@@ -67,7 +69,6 @@ const COL_PANEL_BORDER := Color("#121216")
 const COL_CARD_BORDER := Color("#28282C")
 const COL_MUTED := Color("#808898")
 const COL_GOLD := Color("#F2D864")
-const COL_RUST := Color("#A23813")
 const COL_AMBER := Color("#D8A040")
 const COL_GREEN := Color("#A0D8A0")
 const COL_RED := Color("#D04040")
@@ -79,8 +80,8 @@ const COL_APPROVAL_FULL := Color("#A0D8A0")
 const COL_APPROVAL_LOW := Color("#D04040")
 const COL_BAR_BG := Color("#1E1E22")
 
-const APPROVAL_BAR_W := 140.0
-const APPROVAL_BAR_H := 12.0
+const APPROVAL_BAR_W := 180.0
+const APPROVAL_BAR_H := 16.0
 const HUD_MARGIN := 36.0  # inner margin from viewport edges
 
 
@@ -123,21 +124,21 @@ func _ready() -> void:
 func _create_budget_display() -> void:
 	_budget_container = Control.new()
 	_budget_container.position = Vector2(HUD_MARGIN, HUD_MARGIN)
-	_budget_container.custom_minimum_size = Vector2(180, 56)
+	_budget_container.custom_minimum_size = Vector2(220, 68)
 	_budget_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_budget_container)
 
 	var header := Label.new()
 	header.text = "TAXPAYER BUDGET"
-	header.add_theme_font_size_override("font_size", 12)
+	header.add_theme_font_size_override("font_size", 16)
 	header.add_theme_color_override("font_color", Color.WHITE)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_budget_container.add_child(header)
 
 	_budget_value_label = Label.new()
 	_budget_value_label.text = "$0"
-	_budget_value_label.position = Vector2(0, 16)
-	_budget_value_label.add_theme_font_size_override("font_size", 36)
+	_budget_value_label.position = Vector2(0, 20)
+	_budget_value_label.add_theme_font_size_override("font_size", 42)
 	_budget_value_label.add_theme_color_override("font_color", Color.WHITE)
 	if _blackletter_font:
 		_budget_value_label.add_theme_font_override("font", _blackletter_font)
@@ -146,8 +147,8 @@ func _create_budget_display() -> void:
 
 	# Floating change label
 	_budget_change_label = Label.new()
-	_budget_change_label.position = Vector2(HUD_MARGIN, HUD_MARGIN + 54)
-	_budget_change_label.add_theme_font_size_override("font_size", 10)
+	_budget_change_label.position = Vector2(HUD_MARGIN, HUD_MARGIN + 66)
+	_budget_change_label.add_theme_font_size_override("font_size", 14)
 	_budget_change_label.modulate.a = 0.0
 	_budget_change_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_budget_change_label)
@@ -184,10 +185,10 @@ func _create_approval_bar() -> void:
 # ---------------------------------------------------------------------------
 
 func _create_wave_circle() -> void:
-	const CIRCLE_SIZE := 60
+	const CIRCLE_SIZE := 100
 	const BOX_PAD := 10
 	const BOX_W := CIRCLE_SIZE + BOX_PAD * 2
-	const HEADER_H := 18  # height of the wave name header line
+	const HEADER_H := 24  # height of the wave name header line
 
 	# Wave name label — top-right, same line as "TAXPAYER BUDGET"
 	_wave_name_label = Label.new()
@@ -195,10 +196,10 @@ func _create_wave_circle() -> void:
 	_wave_name_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_wave_name_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_wave_name_label.offset_right = -HUD_MARGIN
-	_wave_name_label.offset_left = -HUD_MARGIN - 200.0
+	_wave_name_label.offset_left = -HUD_MARGIN - 260.0
 	_wave_name_label.offset_top = HUD_MARGIN
 	_wave_name_label.offset_bottom = HUD_MARGIN + HEADER_H
-	_wave_name_label.add_theme_font_size_override("font_size", 12)
+	_wave_name_label.add_theme_font_size_override("font_size", 22)
 	_wave_name_label.add_theme_color_override("font_color", Color.WHITE)
 	_wave_name_label.clip_text = true
 	_wave_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -208,7 +209,7 @@ func _create_wave_circle() -> void:
 	var box_top := HUD_MARGIN + HEADER_H + 4
 	var box_h := CIRCLE_SIZE + BOX_PAD * 2  # circle + padding
 
-	_wave_circle_container = PanelContainer.new()
+	_wave_circle_container = Control.new()
 	_wave_circle_container.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_wave_circle_container.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_wave_circle_container.grow_vertical = Control.GROW_DIRECTION_END
@@ -217,21 +218,14 @@ func _create_wave_circle() -> void:
 	_wave_circle_container.offset_top = box_top
 	_wave_circle_container.offset_bottom = box_top + box_h
 	_wave_circle_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var box_style := StyleBoxFlat.new()
-	box_style.bg_color = Color(0, 0, 0, 0.45)
-	box_style.set_corner_radius_all(6)
-	box_style.content_margin_left = BOX_PAD
-	box_style.content_margin_right = BOX_PAD
-	box_style.content_margin_top = BOX_PAD
-	box_style.content_margin_bottom = BOX_PAD
-	_wave_circle_container.add_theme_stylebox_override("panel", box_style)
 	add_child(_wave_circle_container)
 
 	# Inner layout — centered content
 	var vbox := VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_theme_constant_override("separation", 2)
+	vbox.position = Vector2(BOX_PAD, BOX_PAD)
+	vbox.size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wave_circle_container.add_child(vbox)
 
@@ -265,7 +259,7 @@ func _create_wave_circle() -> void:
 	_wave_number_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_wave_number_label.position = Vector2.ZERO
 	_wave_number_label.size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
-	_wave_number_label.add_theme_font_size_override("font_size", 20)
+	_wave_number_label.add_theme_font_size_override("font_size", 34)
 	_wave_number_label.add_theme_color_override("font_color", Color.WHITE)
 	if _blackletter_font:
 		_wave_number_label.add_theme_font_override("font", _blackletter_font)
@@ -283,33 +277,18 @@ const _SPEED_LABELS := ["1x", "2x", "3x"]
 func _create_speed_controls() -> void:
 	_speed_btn = Button.new()
 	_speed_btn.text = "1x"
-	_speed_btn.custom_minimum_size = Vector2(32, 16)
+	_speed_btn.custom_minimum_size = Vector2(46, 24)
 	_speed_btn.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	_speed_btn.grow_horizontal = Control.GROW_DIRECTION_END
 	_speed_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_speed_btn.offset_left = HUD_MARGIN
-	_speed_btn.offset_right = HUD_MARGIN + 32.0
+	_speed_btn.offset_right = HUD_MARGIN + 46.0
 	_speed_btn.offset_bottom = -HUD_MARGIN
-	_speed_btn.offset_top = -(HUD_MARGIN + 16.0)
+	_speed_btn.offset_top = -(HUD_MARGIN + 24.0)
 	_speed_btn.pressed.connect(_on_speed_toggle_pressed)
 
-	for state_name in ["normal", "hover", "pressed"]:
-		var sb := StyleBoxFlat.new()
-		match state_name:
-			"normal": sb.bg_color = Color("#2A2A30")
-			"hover": sb.bg_color = Color("#3A3A40")
-			"pressed": sb.bg_color = Color("#4A4A50")
-		sb.border_color = Color("#3A3A40")
-		sb.set_border_width_all(1)
-		sb.set_corner_radius_all(4)
-		sb.content_margin_left = 4
-		sb.content_margin_right = 4
-		sb.content_margin_top = 1
-		sb.content_margin_bottom = 1
-		_speed_btn.add_theme_stylebox_override(state_name, sb)
-
-	_speed_btn.add_theme_font_size_override("font_size", 8)
-	_speed_btn.add_theme_color_override("font_color", COL_MUTED)
+	ButtonStyles.apply_utility(_speed_btn)
+	_speed_btn.add_theme_font_size_override("font_size", 12)
 	add_child(_speed_btn)
 
 
@@ -333,7 +312,7 @@ func _create_center_banners() -> void:
 	_wave_banner.set_anchors_preset(Control.PRESET_CENTER)
 	_wave_banner.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_wave_banner.grow_vertical = Control.GROW_DIRECTION_BOTH
-	_wave_banner.add_theme_font_size_override("font_size", 16)
+	_wave_banner.add_theme_font_size_override("font_size", 22)
 	_wave_banner.add_theme_color_override("font_color", COL_GREEN)
 	if _blackletter_font:
 		_wave_banner.add_theme_font_override("font", _blackletter_font)
@@ -345,8 +324,8 @@ func _create_center_banners() -> void:
 	_streak_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_streak_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_streak_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_streak_label.offset_top = 22.0
-	_streak_label.add_theme_font_size_override("font_size", 9)
+	_streak_label.offset_top = 26.0
+	_streak_label.add_theme_font_size_override("font_size", 14)
 	_streak_label.add_theme_color_override("font_color", Color.WHITE)
 	_streak_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_streak_label)
@@ -355,8 +334,8 @@ func _create_center_banners() -> void:
 	_last_stand_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_last_stand_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_last_stand_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_last_stand_label.offset_top = 34.0
-	_last_stand_label.add_theme_font_size_override("font_size", 10)
+	_last_stand_label.offset_top = 44.0
+	_last_stand_label.add_theme_font_size_override("font_size", 16)
 	_last_stand_label.add_theme_color_override("font_color", COL_RED)
 	if _blackletter_font:
 		_last_stand_label.add_theme_font_override("font", _blackletter_font)
@@ -371,35 +350,19 @@ func _create_center_banners() -> void:
 func _create_send_wave_btn() -> void:
 	_send_wave_btn = Button.new()
 	_send_wave_btn.text = "SEND WAVE"
-	_send_wave_btn.custom_minimum_size = Vector2(90, 22)
+	_send_wave_btn.custom_minimum_size = Vector2(120, 32)
 	_send_wave_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_send_wave_btn.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_send_wave_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_send_wave_btn.offset_top = -54.0
-	_send_wave_btn.offset_bottom = -32.0
-	_send_wave_btn.offset_left = -45.0
-	_send_wave_btn.offset_right = 45.0
+	_send_wave_btn.offset_top = -62.0
+	_send_wave_btn.offset_bottom = -30.0
+	_send_wave_btn.offset_left = -60.0
+	_send_wave_btn.offset_right = 60.0
 	_send_wave_btn.visible = false
 	_send_wave_btn.pressed.connect(_on_send_wave_pressed)
 
-	# Brutalist button style
-	for state in ["normal", "hover", "pressed"]:
-		var sb := StyleBoxFlat.new()
-		sb.set_corner_radius_all(0)
-		sb.border_color = COL_RUST if state == "normal" else Color("#C04820")
-		sb.set_border_width_all(2)
-		sb.content_margin_left = 8
-		sb.content_margin_right = 8
-		sb.content_margin_top = 2
-		sb.content_margin_bottom = 2
-		match state:
-			"normal": sb.bg_color = Color("#1A1A1E")
-			"hover": sb.bg_color = Color("#252528")
-			"pressed": sb.bg_color = COL_RUST
-		_send_wave_btn.add_theme_stylebox_override(state, sb)
-
-	_send_wave_btn.add_theme_font_size_override("font_size", 9)
-	_send_wave_btn.add_theme_color_override("font_color", Color.WHITE)
+	ButtonStyles.apply_accent(_send_wave_btn)
+	_send_wave_btn.add_theme_font_size_override("font_size", 13)
 	if _blackletter_font:
 		_send_wave_btn.add_theme_font_override("font", _blackletter_font)
 	add_child(_send_wave_btn)
@@ -412,28 +375,18 @@ func _create_send_wave_btn() -> void:
 func _create_cancel_build_btn() -> void:
 	_cancel_build_btn = Button.new()
 	_cancel_build_btn.text = "X"
-	_cancel_build_btn.custom_minimum_size = Vector2(28, 28)
+	_cancel_build_btn.custom_minimum_size = Vector2(38, 38)
 	_cancel_build_btn.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	_cancel_build_btn.grow_horizontal = Control.GROW_DIRECTION_END
 	_cancel_build_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_cancel_build_btn.offset_left = HUD_MARGIN
 	_cancel_build_btn.offset_bottom = -(HUD_MARGIN + 50.0)
-	_cancel_build_btn.offset_top = -(HUD_MARGIN + 78.0)
-	_cancel_build_btn.offset_right = HUD_MARGIN + 28.0
+	_cancel_build_btn.offset_top = -(HUD_MARGIN + 88.0)
+	_cancel_build_btn.offset_right = HUD_MARGIN + 38.0
 	_cancel_build_btn.visible = false
 	_cancel_build_btn.pressed.connect(func(): SignalBus.build_mode_exited.emit())
 
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = COL_PANEL_BG
-	sb.border_color = COL_RUST
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(0)
-	sb.content_margin_left = 4
-	sb.content_margin_right = 4
-	sb.content_margin_top = 2
-	sb.content_margin_bottom = 2
-	_cancel_build_btn.add_theme_stylebox_override("normal", sb)
-
+	ButtonStyles.apply_accent(_cancel_build_btn)
 	add_child(_cancel_build_btn)
 
 
@@ -450,7 +403,7 @@ func _create_kill_counter() -> void:
 	_kill_counter_label.offset_right = -HUD_MARGIN
 	_kill_counter_label.offset_bottom = -(HUD_MARGIN + 80.0)
 	_kill_counter_label.offset_left = -(HUD_MARGIN + 140.0)
-	_kill_counter_label.add_theme_font_size_override("font_size", 8)
+	_kill_counter_label.add_theme_font_size_override("font_size", 12)
 	_kill_counter_label.add_theme_color_override("font_color", COL_GREEN)
 	_kill_counter_label.visible = false
 	_kill_counter_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -469,29 +422,50 @@ func _create_game_over_overlay() -> void:
 	_game_over_overlay.visible = false
 	add_child(_game_over_overlay)
 
+	# Victory banner image (hidden by default, shown on victory)
+	_victory_banner = TextureRect.new()
+	var banner_tex := load("res://assets/sprites/ui/victory_banner.png")
+	if banner_tex:
+		_victory_banner.texture = banner_tex
+	_victory_banner.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	_victory_banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_victory_banner.set_anchors_preset(Control.PRESET_CENTER)
+	_victory_banner.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_victory_banner.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_victory_banner.offset_left = -160.0
+	_victory_banner.offset_right = 160.0
+	_victory_banner.offset_top = -180.0
+	_victory_banner.offset_bottom = 140.0
+	_victory_banner.visible = false
+	_game_over_overlay.add_child(_victory_banner)
+
 	_game_over_label = Label.new()
 	_game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_game_over_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_game_over_label.set_anchors_preset(Control.PRESET_CENTER)
 	_game_over_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_game_over_label.grow_vertical = Control.GROW_DIRECTION_BOTH
-	_game_over_label.offset_top = -30.0
-	_game_over_label.add_theme_font_size_override("font_size", 24)
+	_game_over_label.offset_top = -40.0
+	_game_over_label.add_theme_font_size_override("font_size", 30)
 	if _blackletter_font:
 		_game_over_label.add_theme_font_override("font", _blackletter_font)
 	_game_over_overlay.add_child(_game_over_label)
 
 	_restart_btn = Button.new()
 	_restart_btn.text = "RESTART"
-	_restart_btn.custom_minimum_size = Vector2(100, 28)
+	_restart_btn.custom_minimum_size = Vector2(140, 38)
 	_restart_btn.set_anchors_preset(Control.PRESET_CENTER)
 	_restart_btn.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_restart_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_restart_btn.offset_top = 10.0
-	_restart_btn.offset_bottom = 38.0
-	_restart_btn.offset_left = -50.0
-	_restart_btn.offset_right = 50.0
+	_restart_btn.offset_bottom = 48.0
+	_restart_btn.offset_left = -70.0
+	_restart_btn.offset_right = 70.0
 	_restart_btn.pressed.connect(_on_restart_pressed)
+	ButtonStyles.apply_primary(_restart_btn)
+	if _blackletter_font:
+		_restart_btn.add_theme_font_override("font", _blackletter_font)
+	_restart_btn.add_theme_font_size_override("font_size", 18)
 	_game_over_overlay.add_child(_restart_btn)
 
 
@@ -516,10 +490,10 @@ func _update_budget_display(old_amount: int, new_amount: int) -> void:
 		_budget_change_label.text = ("+" if diff > 0 else "") + str(diff)
 		_budget_change_label.add_theme_color_override("font_color", COL_GREEN if diff > 0 else COL_RED)
 		_budget_change_label.modulate.a = 1.0
-		_budget_change_label.position.y = HUD_MARGIN + 54.0
+		_budget_change_label.position.y = HUD_MARGIN + 66.0
 		var ft := create_tween()
 		ft.set_parallel(true)
-		ft.tween_property(_budget_change_label, "position:y", HUD_MARGIN + 40.0, 0.6)
+		ft.tween_property(_budget_change_label, "position:y", HUD_MARGIN + 50.0, 0.6)
 		ft.tween_property(_budget_change_label, "modulate:a", 0.0, 0.6).set_delay(0.2)
 
 
@@ -621,7 +595,7 @@ func _rounded_rect_points(x: float, y: float, w: float, h: float, r: float) -> P
 
 
 func _make_fallback_circle() -> ImageTexture:
-	const SIZE := 60
+	const SIZE := 100
 	const HALF := SIZE / 2
 	var img := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
 	var center := Vector2(HALF, HALF)
@@ -638,7 +612,7 @@ func _make_fallback_circle() -> ImageTexture:
 
 
 func _make_circle_portrait(portrait_tex: Texture2D) -> ImageTexture:
-	const SIZE := 60
+	const SIZE := 100
 	const HALF := SIZE / 2
 	var radius := HALF - 5.0
 	var center := Vector2(HALF, HALF)
@@ -665,7 +639,7 @@ func _make_circle_portrait(portrait_tex: Texture2D) -> ImageTexture:
 				# Start with beige background
 				var final_col := COL_CIRCLE_BG
 				if sx >= 0 and sx < fill and sy >= 0 and sy < fill:
-					var px := src.get_pixel(sx, sy)
+					var px: Color = src.get_pixel(sx, sy)
 					# Alpha-blend portrait over beige
 					final_col = Color(
 						COL_CIRCLE_BG.r * (1.0 - px.a) + px.r * px.a,
@@ -712,7 +686,7 @@ func _update_wave_circle(wave_number: int) -> void:
 	_wave_progress_ring.queue_redraw()
 
 	# Bounce tween
-	_wave_circle_tex.pivot_offset = Vector2(30, 30)
+	_wave_circle_tex.pivot_offset = Vector2(50, 50)
 	_wave_number_label.pivot_offset = _wave_number_label.size / 2.0
 	var bt := create_tween()
 	bt.tween_property(_wave_circle_tex, "scale", Vector2(1.15, 1.15), 0.1)
@@ -722,9 +696,9 @@ func _update_wave_circle(wave_number: int) -> void:
 
 func _draw_progress_ring() -> void:
 	# Draw a circular arc showing wave progress (enemies gone / total)
-	var center := Vector2(30, 30)  # half of 60px circle
-	var outer_r := 29.0
-	var ring_width := 3.0
+	var center := Vector2(50, 50)  # half of 100px circle
+	var outer_r := 49.0
+	var ring_width := 4.0
 	var point_count := 64
 
 	# Background track (dark ring)
@@ -810,13 +784,47 @@ func _on_game_over(victory: bool) -> void:
 
 	if victory:
 		_game_over_label.text = "ORDER RESTORED"
-		_game_over_label.add_theme_color_override("font_color", COL_GREEN)
-		_game_over_label.add_theme_font_size_override("font_size", 24)
+		_game_over_label.add_theme_color_override("font_color", COL_GOLD)
+		_game_over_label.add_theme_font_size_override("font_size", 36)
+		_game_over_label.offset_top = 148.0
+		_game_over_overlay.color = Color(0.0, 0.0, 0.0, 0.0)
 		_game_over_overlay.visible = true
+		_game_over_label.modulate.a = 0.0
+		_restart_btn.modulate.a = 0.0
+		_restart_btn.offset_top = 190.0
+		_restart_btn.offset_bottom = 228.0
+		# Banner: start small + transparent, scale up with bounce
+		_victory_banner.visible = true
+		_victory_banner.modulate.a = 0.0
+		_victory_banner.pivot_offset = _victory_banner.size / 2.0
+		_victory_banner.scale = Vector2(0.5, 0.5)
+		# Animated entrance
+		var tw := create_tween()
+		tw.tween_property(_game_over_overlay, "color:a", 0.8, 0.8) \
+			.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+		tw.tween_property(_victory_banner, "modulate:a", 1.0, 0.6) \
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		tw.parallel().tween_property(_victory_banner, "scale", Vector2(1.05, 1.05), 0.5) \
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+		tw.tween_property(_victory_banner, "scale", Vector2(1.0, 1.0), 0.2) \
+			.set_ease(Tween.EASE_IN_OUT)
+		tw.tween_property(_game_over_label, "modulate:a", 1.0, 0.6) \
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		tw.tween_property(_restart_btn, "modulate:a", 1.0, 0.4) \
+			.set_ease(Tween.EASE_OUT)
+		tw.tween_callback(_spawn_confetti)
+		# Gentle title pulse loop
+		tw.tween_callback(func():
+			var pulse := create_tween().set_loops()
+			pulse.tween_property(_game_over_label, "modulate",
+				Color(1.3, 1.2, 0.8, 1.0), 1.0).set_ease(Tween.EASE_IN_OUT)
+			pulse.tween_property(_game_over_label, "modulate",
+				Color(1.0, 1.0, 1.0, 1.0), 1.0).set_ease(Tween.EASE_IN_OUT)
+		)
 	else:
 		_game_over_label.text = "REGIME CHANGE"
 		_game_over_label.add_theme_color_override("font_color", COL_RED)
-		_game_over_label.add_theme_font_size_override("font_size", 36)
+		_game_over_label.add_theme_font_size_override("font_size", 42)
 		_game_over_overlay.color = Color(0.0, 0.0, 0.0, 0.0)
 		_game_over_overlay.visible = true
 		_game_over_label.modulate.a = 0.0
@@ -974,8 +982,8 @@ func _build_post_game_ui(victory: bool) -> void:
 	stats_label.set_anchors_preset(Control.PRESET_CENTER)
 	stats_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	stats_label.grow_vertical = Control.GROW_DIRECTION_BOTH
-	stats_label.offset_top = 50.0
-	stats_label.add_theme_font_size_override("font_size", 8)
+	stats_label.offset_top = 236.0 if victory else 56.0
+	stats_label.add_theme_font_size_override("font_size", 12)
 	stats_label.add_theme_color_override("font_color", Color("#A0A8B0"))
 
 	var secs: int = int(stats.get("time_played", 0.0))
@@ -1008,11 +1016,62 @@ func _build_post_game_ui(victory: bool) -> void:
 			what_if.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			what_if.set_anchors_preset(Control.PRESET_CENTER)
 			what_if.grow_horizontal = Control.GROW_DIRECTION_BOTH
-			what_if.offset_top = 80.0
-			what_if.add_theme_font_size_override("font_size", 9)
+			what_if.offset_top = 86.0
+			what_if.add_theme_font_size_override("font_size", 13)
 			what_if.add_theme_color_override("font_color", COL_AMBER)
 			what_if.text = "Last " + ename + " escaped with " + str(hp) + " HP"
 			_game_over_overlay.add_child(what_if)
+
+
+func _spawn_confetti() -> void:
+	var vp_size := get_viewport().get_visible_rect().size
+	var colors: Array[Color] = [
+		COL_GOLD, COL_AMBER, COL_GREEN, Color("#F0E0C0"),
+		Color("#D06030"), Color("#50A0D0"), Color.WHITE,
+	]
+	for i in 40:
+		var particle := ColorRect.new()
+		var c: Color = colors[i % colors.size()]
+		particle.color = c
+		var w := randf_range(3.0, 7.0)
+		var h := randf_range(3.0, 10.0)
+		particle.custom_minimum_size = Vector2(w, h)
+		particle.size = Vector2(w, h)
+		var start_x := randf_range(0.0, vp_size.x)
+		var start_y := randf_range(-60.0, -20.0)
+		particle.position = Vector2(start_x, start_y)
+		particle.rotation = randf_range(0.0, TAU)
+		particle.modulate.a = randf_range(0.7, 1.0)
+		_game_over_overlay.add_child(particle)
+		_confetti_nodes.append(particle)
+		# Animate: fall down with drift + spin
+		var end_y := vp_size.y + 40.0
+		var drift := randf_range(-80.0, 80.0)
+		var duration := randf_range(2.5, 5.0)
+		var delay := randf_range(0.0, 1.5)
+		var tw := create_tween()
+		tw.tween_interval(delay)
+		tw.tween_property(particle, "position:y", end_y, duration) \
+			.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		tw.parallel().tween_property(particle, "position:x",
+			start_x + drift, duration)
+		tw.parallel().tween_property(particle, "rotation",
+			particle.rotation + randf_range(TAU * 2, TAU * 5), duration)
+		tw.parallel().tween_property(particle, "modulate:a", 0.0,
+			duration * 0.3).set_delay(duration * 0.7)
+	# Repeat confetti waves
+	var loop_tw := create_tween()
+	loop_tw.tween_interval(4.0)
+	loop_tw.tween_callback(_spawn_confetti_wave)
+
+
+func _spawn_confetti_wave() -> void:
+	# Clean up old particles
+	for node in _confetti_nodes:
+		if is_instance_valid(node):
+			node.queue_free()
+	_confetti_nodes.clear()
+	_spawn_confetti()
 
 
 func _on_build_mode_entered_hud(_tower_data: TowerData) -> void:

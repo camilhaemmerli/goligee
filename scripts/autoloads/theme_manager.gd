@@ -113,6 +113,14 @@ func _load_tower_skin_from_assets(tower_data: TowerData) -> TowerSkinData:
 
 
 func _load_tower_icon(tower_id: String, folder_id: String) -> Texture2D:
+	# Symbolic icons first (smooth 128px silhouettes)
+	var symbolic := "res://assets/sprites/ui/symbolic_tower_%s.png" % tower_id
+	if ResourceLoader.exists(symbolic):
+		return load(symbolic) as Texture2D
+	if folder_id != tower_id:
+		var symbolic_alias := "res://assets/sprites/ui/symbolic_tower_%s.png" % folder_id
+		if ResourceLoader.exists(symbolic_alias):
+			return load(symbolic_alias) as Texture2D
 	var primary := "res://assets/sprites/ui/icon_tower_%s.png" % tower_id
 	if ResourceLoader.exists(primary):
 		return load(primary) as Texture2D

@@ -1,10 +1,12 @@
-[gd_resource type="Resource" script_class="WaveData" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="WaveData" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="1_wd"]
 [ext_resource type="Script" path="res://scripts/resources/spawn_sequence_data.gd" id="2_ssd"]
 [ext_resource type="Resource" path="res://data/enemies/orc.tres" id="3_orc"]
 [ext_resource type="Resource" path="res://data/enemies/skeleton.tres" id="4_skeleton"]
 [ext_resource type="Resource" path="res://data/enemies/goblin.tres" id="5_goblin"]
+[ext_resource type="Resource" path="res://data/enemies/press_drone.tres" id="6_drone"]
+[ext_resource type="Resource" path="res://data/enemies/news_helicopter.tres" id="7_heli"]
 
 [sub_resource type="Resource" id="seq_1"]
 script = ExtResource("2_ssd")
@@ -36,10 +38,28 @@ spawn_point_index = 0
 hp_multiplier = 2.5
 speed_multiplier = 1.6
 
+[sub_resource type="Resource" id="seq_4"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("6_drone")
+count = 10
+spawn_interval = 0.6
+start_delay = 3.0
+spawn_point_index = 0
+hp_multiplier = 3.0
+
+[sub_resource type="Resource" id="seq_5"]
+script = ExtResource("2_ssd")
+enemy_data = ExtResource("7_heli")
+count = 2
+spawn_interval = 6.0
+start_delay = 8.0
+spawn_point_index = 0
+hp_multiplier = 2.0
+
 [resource]
 script = ExtResource("1_wd")
 wave_number = 18
 wave_type = 1
-spawn_sequences = [SubResource("seq_1"), SubResource("seq_2"), SubResource("seq_3")]
+spawn_sequences = [SubResource("seq_1"), SubResource("seq_2"), SubResource("seq_3"), SubResource("seq_4"), SubResource("seq_5")]
 gold_bonus = 10
 pre_wave_delay = 5.0

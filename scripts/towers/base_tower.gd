@@ -132,6 +132,7 @@ func _init_from_data() -> void:
 	attack_timer.wait_time = 1.0 / tower_data.fire_rate
 	attack_timer.start()
 
+	targeting.can_target_flying = tower_data.can_target_flying
 	_update_range_shape(tower_data.base_range)
 	upgrade.init(tower_data)
 	_apply_theme_skin()

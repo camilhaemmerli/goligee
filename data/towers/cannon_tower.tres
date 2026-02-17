@@ -210,4 +210,5 @@ area_of_effect = 1.5
 pierce_count = 1
 crit_chance = 0.0
 crit_multiplier = 2.0
+can_target_flying = false
 upgrade_paths = [SubResource("path_a"), SubResource("path_c")]

@@ -130,6 +130,200 @@ static func create_agitator_elite() -> ImageTexture:
 	return create_enemy_figure(Color("#A04050"), Color("#D04040"))
 
 
+static func create_press_drone() -> ImageTexture:
+	## 16x16 quadcopter body: center module, 4 arms, motor mounts, camera lens.
+	## Rotors are a separate overlay — see create_press_drone_rotors().
+	var size := 16
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var body := Color("#3A3A4A")
+	var body_hi := Color("#4A4A5A")
+	var arm := Color("#505060")
+	var motor := Color("#2A2A38")
+	var motor_hi := Color("#606070")
+	var lens := Color("#D04040")
+	var led_front := Color("#40D060")
+	var led_rear := Color("#D04040")
+
+	# Central body: 4x4 with shading (top-left lighter)
+	for y in range(6, 10):
+		for x in range(6, 10):
+			img.set_pixel(x, y, body_hi if (x + y < 14) else body)
+	# Camera gimbal (slightly darker center underside)
+	img.set_pixel(7, 8, Color("#2A2A38"))
+	img.set_pixel(8, 8, Color("#2A2A38"))
+	# Camera lens
+	img.set_pixel(7, 9, lens)
+	img.set_pixel(8, 9, lens)
+	# Front LED
+	img.set_pixel(7, 6, led_front)
+	# Rear LEDs
+	img.set_pixel(7, 9, led_rear)
+
+	# Four diagonal arms (2px thick for visibility)
+	# NW arm
+	img.set_pixel(5, 5, arm); img.set_pixel(4, 4, arm); img.set_pixel(5, 4, arm)
+	# NE arm
+	img.set_pixel(10, 5, arm); img.set_pixel(11, 4, arm); img.set_pixel(10, 4, arm)
+	# SW arm
+	img.set_pixel(5, 10, arm); img.set_pixel(4, 11, arm); img.set_pixel(5, 11, arm)
+	# SE arm
+	img.set_pixel(10, 10, arm); img.set_pixel(11, 11, arm); img.set_pixel(10, 11, arm)
+
+	# Motor mounts at arm tips (2x2 dark blocks)
+	for center in [Vector2i(3, 3), Vector2i(12, 3), Vector2i(3, 12), Vector2i(12, 12)]:
+		for dy in range(0, 2):
+			for dx in range(0, 2):
+				var px: int = center.x - 1 + dx
+				var py: int = center.y - 1 + dy
+				if px >= 0 and px < size and py >= 0 and py < size:
+					img.set_pixel(px, py, motor if (dx + dy < 2) else motor_hi)
+
+	return ImageTexture.create_from_image(img)
+
+
+static func create_press_drone_rotors(frame: int) -> ImageTexture:
+	## 16x16 rotor overlay for quadcopter. Alternates blade orientation.
+	## frame 0: blades horizontal (—), frame 1: blades vertical (|)
+	var size := 16
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var blade := Color("#A0A8B8", 0.7)
+	var blur := Color("#808898", 0.35)
+
+	# Motor centers (same as body motor mounts)
+	var centers := [Vector2i(3, 3), Vector2i(12, 3), Vector2i(3, 12), Vector2i(12, 12)]
+	for c in centers:
+		if frame == 0:
+			# Horizontal blades: 5px wide line through motor
+			for dx in range(-2, 3):
+				var px: int = c.x + dx
+				if px >= 0 and px < size:
+					img.set_pixel(px, c.y, blade)
+					# Blur above and below
+					if c.y - 1 >= 0:
+						img.set_pixel(px, c.y - 1, blur)
+					if c.y + 1 < size:
+						img.set_pixel(px, c.y + 1, blur)
+		else:
+			# Vertical blades: 5px tall line through motor
+			for dy in range(-2, 3):
+				var py: int = c.y + dy
+				if py >= 0 and py < size:
+					img.set_pixel(c.x, py, blade)
+					# Blur left and right
+					if c.x - 1 >= 0:
+						img.set_pixel(c.x - 1, py, blur)
+					if c.x + 1 < size:
+						img.set_pixel(c.x + 1, py, blur)
+
+	return ImageTexture.create_from_image(img)
+
+
+static func create_news_helicopter() -> ImageTexture:
+	## 16x16 helicopter body: fuselage, tail boom, cockpit window, skids.
+	## Main rotor is a separate overlay — see create_news_helicopter_rotor().
+	var size := 16
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var body := Color("#505868")
+	var body_hi := Color("#606878")
+	var dark := Color("#383E48")
+	var window := Color("#70B0D0")
+	var window_hi := Color("#90D0E8")
+	var tail := Color("#404850")
+	var tail_dark := Color("#303840")
+	var stripe := Color("#D04040")
+	var hub := Color("#2A2A38")
+	var skid := Color("#303038")
+
+	# Fuselage: oval body, shaded (top-right lighter for top-down iso)
+	for y in range(5, 12):
+		var row_half: int = 4 if (y >= 7 and y <= 9) else (3 if (y >= 6 and y <= 10) else 2)
+		for x in range(8 - row_half, 8 + row_half):
+			var c := body_hi if (x >= 8 and y <= 8) else body
+			if y == 5 or y == 11:
+				c = dark  # Top/bottom edge darker
+			img.set_pixel(x, y, c)
+
+	# Cockpit windshield (front/right of fuselage)
+	img.set_pixel(10, 7, window_hi)
+	img.set_pixel(10, 8, window)
+	img.set_pixel(11, 7, window_hi)
+	img.set_pixel(11, 8, window)
+	img.set_pixel(9, 7, window)
+
+	# Stripe along fuselage side
+	for x in range(5, 10):
+		img.set_pixel(x, 10, stripe)
+
+	# Tail boom (extends left from body)
+	for x in range(1, 5):
+		img.set_pixel(x, 8, tail)
+		img.set_pixel(x, 9, tail_dark)
+
+	# Tail fin
+	img.set_pixel(1, 7, tail)
+	img.set_pixel(1, 6, tail)
+	img.set_pixel(0, 7, tail_dark)
+
+	# Tail rotor disc (small horizontal blur at tail tip)
+	img.set_pixel(0, 5, Color("#A0A8B8", 0.5))
+	img.set_pixel(1, 5, Color("#A0A8B8", 0.5))
+	img.set_pixel(2, 5, Color("#A0A8B8", 0.5))
+
+	# Rotor hub on top of fuselage (dark dot)
+	img.set_pixel(7, 7, hub)
+	img.set_pixel(8, 7, hub)
+
+	# Skids (landing gear, visible below fuselage)
+	for x in range(5, 11):
+		img.set_pixel(x, 13, skid)
+	for x in range(6, 10):
+		img.set_pixel(x, 12, skid)
+
+	return ImageTexture.create_from_image(img)
+
+
+static func create_news_helicopter_rotor(frame: int) -> ImageTexture:
+	## 16x16 main rotor overlay for helicopter. 2-blade rotor in 2 orientations.
+	## frame 0: diagonal NE-SW, frame 1: diagonal NW-SE
+	var size := 16
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var blade := Color("#B0B8C8", 0.6)
+	var tip := Color("#C0C8D8", 0.8)
+	var blur := Color("#808898", 0.25)
+
+	# Rotor hub center at (7.5, 7) — between pixels 7 and 8
+	var cx := 7
+	var cy := 7
+
+	if frame == 0:
+		# Blade A: extends upper-right to lower-left
+		for i in range(-6, 7):
+			var px: int = cx + i
+			var py: int = cy - (i / 2)
+			if px >= 0 and px < size and py >= 0 and py < size:
+				var c := tip if (abs(i) >= 5) else blade
+				img.set_pixel(px, py, c)
+				# Motion blur: adjacent pixels
+				if py - 1 >= 0:
+					img.set_pixel(px, py - 1, blur)
+				if py + 1 < size:
+					img.set_pixel(px, py + 1, blur)
+	else:
+		# Blade B: rotated ~90deg — extends upper-left to lower-right
+		for i in range(-6, 7):
+			var px: int = cx + i
+			var py: int = cy + (i / 2)
+			if px >= 0 and px < size and py >= 0 and py < size:
+				var c := tip if (abs(i) >= 5) else blade
+				img.set_pixel(px, py, c)
+				if py - 1 >= 0:
+					img.set_pixel(px, py - 1, blur)
+				if py + 1 < size:
+					img.set_pixel(px, py + 1, blur)
+
+	return ImageTexture.create_from_image(img)
+
+
 static func create_mob_boss() -> ImageTexture:
 	# Larger, more imposing figure
 	var size := 16

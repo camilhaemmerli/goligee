@@ -28,6 +28,7 @@ const _CROWD_PATHS: PackedStringArray = [
 ]
 const _SPECIAL_IDS: PackedStringArray = [
 	"shield_wall", "union_boss", "armored_van", "infiltrator",
+	"press_drone", "news_helicopter",
 ]
 
 

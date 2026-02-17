@@ -56,6 +56,13 @@ const DAMAGE_COLORS := {
 
 var _flash_material: ShaderMaterial
 
+## Flying enemy rotor animation
+var _rotor_sprite: Sprite2D
+var _rotor_textures: Array[Texture2D] = []
+var _rotor_frame: int = 0
+var _rotor_timer: float = 0.0
+const ROTOR_FRAME_TIME := 0.06
+
 
 func _ready() -> void:
 	if enemy_data:
@@ -69,6 +76,10 @@ func _ready() -> void:
 					sprite.texture = EntitySprites.create_protestor()
 				"shield_wall":
 					sprite.texture = EntitySprites.create_agitator_elite()
+				"press_drone":
+					sprite.texture = EntitySprites.create_press_drone()
+				"news_helicopter":
+					sprite.texture = EntitySprites.create_news_helicopter()
 				_:
 					sprite.texture = EntitySprites.create_protestor()
 		else:
@@ -92,8 +103,64 @@ func _ready() -> void:
 	health_bar.max_value = health.max_hp
 	health_bar.value = health.current_hp
 
-	if not is_flying():
+	if is_flying():
+		_setup_flying_visuals()
+	else:
 		PathfindingManager.path_updated.connect(_on_path_updated)
+
+
+func _setup_flying_visuals() -> void:
+	const FLY_OFFSET := -16.0
+	z_index = 10
+
+	# Shift visual nodes up to simulate altitude (position stays at ground level)
+	var visual: CanvasItem = animated_sprite if _use_animated else sprite
+	visual.position.y += FLY_OFFSET
+	health_bar.position.y += FLY_OFFSET
+
+	# Ground shadow: semi-transparent dark ellipse at ground level
+	var shadow_img := Image.create(20, 10, false, Image.FORMAT_RGBA8)
+	var shadow_color := Color(0, 0, 0, 0.3)
+	for y in 10:
+		for x in 20:
+			var dx := (x - 10.0) / 10.0
+			var dy := (y - 5.0) / 5.0
+			if dx * dx + dy * dy <= 1.0:
+				shadow_img.set_pixel(x, y, shadow_color)
+	var shadow_sprite := Sprite2D.new()
+	shadow_sprite.texture = ImageTexture.create_from_image(shadow_img)
+	shadow_sprite.z_index = -1
+	add_child(shadow_sprite)
+
+	# Rotor overlay animation (child of visual so it inherits bob + offset)
+	if enemy_data and enemy_data.enemy_id:
+		match enemy_data.enemy_id:
+			"press_drone":
+				_rotor_textures = [
+					EntitySprites.create_press_drone_rotors(0),
+					EntitySprites.create_press_drone_rotors(1),
+				]
+			"news_helicopter":
+				_rotor_textures = [
+					EntitySprites.create_news_helicopter_rotor(0),
+					EntitySprites.create_news_helicopter_rotor(1),
+				]
+	if not _rotor_textures.is_empty():
+		_rotor_sprite = Sprite2D.new()
+		_rotor_sprite.texture = _rotor_textures[0]
+		_rotor_sprite.z_index = 1
+		visual.add_child(_rotor_sprite)
+
+	# Gentle bobbing tween on the visual node
+	_setup_flying_bob(visual)
+
+
+func _setup_flying_bob(visual: CanvasItem) -> void:
+	var base_y: float = visual.position.y
+	var tween := create_tween()
+	tween.set_loops()
+	tween.tween_property(visual, "position:y", base_y - 3.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(visual, "position:y", base_y + 3.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 func _init_from_data() -> void:
@@ -187,6 +254,14 @@ func apply_wave_modifiers(modifiers: Dictionary) -> void:
 
 
 func _process(delta: float) -> void:
+	# Animate rotor blades for flying enemies
+	if _rotor_sprite and not _rotor_textures.is_empty():
+		_rotor_timer += delta
+		if _rotor_timer >= ROTOR_FRAME_TIME:
+			_rotor_timer -= ROTOR_FRAME_TIME
+			_rotor_frame = (_rotor_frame + 1) % _rotor_textures.size()
+			_rotor_sprite.texture = _rotor_textures[_rotor_frame]
+
 	# Move along waypoints
 	if _waypoints.is_empty() or _waypoint_index >= _waypoints.size():
 		return
@@ -278,6 +353,13 @@ func _on_died() -> void:
 		if animated_sprite.sprite_frames.has_animation(death_anim):
 			animated_sprite.play(death_anim)
 			await animated_sprite.animation_finished
+
+	# Flying enemies: stop rotors, drop visual to ground level on death
+	if is_flying():
+		visual.position.y = 0.0
+		if _rotor_sprite:
+			_rotor_sprite.queue_free()
+			_rotor_sprite = null
 
 	# Show corpse: tint dark, lower z-index so living enemies walk over
 	visual.modulate = Color("#3A3A3E")
