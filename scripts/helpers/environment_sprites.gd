@@ -25,7 +25,7 @@ static func create_barricade() -> ImageTexture:
 	var img := Image.create(32, 16, false, Image.FORMAT_RGBA8)
 	var main := Color("#484850")
 	var shadow := Color("#3A3A3E")
-	var stripe := Color("#D8A040")  # Warning stripe
+	var stripe := Color("#F0F0F0")  # Warning stripe
 
 	# Main body (angled rectangle)
 	for y in range(4, 14):
@@ -56,7 +56,7 @@ static func create_wire_coil() -> ImageTexture:
 static func create_graffiti_tag(seed_val: int) -> ImageTexture:
 	# Small pixel text/tag — 12x6
 	var img := Image.create(12, 6, false, Image.FORMAT_RGBA8)
-	var colors := [Color("#D04040"), Color("#D8A040"), Color("#A0D8A0")]
+	var colors := [Color("#D04040"), Color("#F0F0F0"), Color("#A0D8A0")]
 	var tag_color: Color = colors[seed_val % colors.size()]
 	# Random pixel cluster resembling a tag
 	for i in range(8):

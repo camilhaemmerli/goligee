@@ -267,7 +267,7 @@ func _build_demonstrator_briefing() -> void:
 	title.text = manif_name
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 18)
-	title.add_theme_color_override("font_color", Color("#D8A040"))
+	title.add_theme_color_override("font_color", Color("#F0F0F0"))
 	if _blackletter_font:
 		title.add_theme_font_override("font", _blackletter_font)
 	vbox.add_child(title)

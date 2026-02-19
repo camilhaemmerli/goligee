@@ -53,6 +53,11 @@ func start_waves() -> void:
 	_start_next_wave()
 
 
+## Start the next wave directly (called by game.gd after indicator click).
+func advance_wave() -> void:
+	_start_next_wave()
+
+
 func _start_next_wave() -> void:
 	current_wave_index += 1
 	if current_wave_index >= waves.size():
@@ -60,11 +65,6 @@ func _start_next_wave() -> void:
 		return
 
 	var wave := waves[current_wave_index]
-
-	# Manifestation briefing at the start of each 5-wave group (1, 6, 11, ...)
-	if (wave.wave_number - 1) % 5 == 0:
-		SignalBus.presidential_briefing_requested.emit(wave.wave_number)
-		await SignalBus.presidential_briefing_dismissed
 
 	_wave_had_leak = false
 	SignalBus.wave_started.emit(wave.wave_number)
@@ -162,6 +162,17 @@ func _on_wave_cleared() -> void:
 		EconomyManager.add_gold(bonus)
 
 	SignalBus.wave_completed.emit(wave.wave_number)
+
+	# Check if next wave is a manifestation start (wave_number % 5 == 1)
+	var next_idx := current_wave_index + 1
+	if next_idx < waves.size():
+		var next_wave := waves[next_idx]
+		if (next_wave.wave_number - 1) % 5 == 0:
+			# Manifestation boundary — game.gd will show briefing + indicator
+			SignalBus.manifestation_ready.emit(next_wave.wave_number)
+			return
+
+	# Normal auto-advance with 5s timer
 	_waiting_for_next_wave = true
 	_between_wave_timer = 5.0
 

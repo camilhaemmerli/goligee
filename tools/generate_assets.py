@@ -1469,6 +1469,19 @@ ENEMIES = {
                 "defiant stance, sign held at angle while marching",
         "size": (32, 32),
     },
+    "press_drone": {
+        "desc": "small quadcopter drone, four rotor arms, compact dark body, "
+                "red camera lens underneath, spinning propeller blur, "
+                "flying aerial vehicle seen from above, news media drone",
+        "size": (32, 32),
+    },
+    "news_helicopter": {
+        "desc": "small news helicopter, main rotor on top, tail boom, "
+                "red and white paint scheme with NEWS marking, "
+                "cockpit windshield, flying aerial vehicle seen from above, "
+                "skids landing gear underneath",
+        "size": (32, 32),
+    },
 }
 
 # ---------------------------------------------------------------------------

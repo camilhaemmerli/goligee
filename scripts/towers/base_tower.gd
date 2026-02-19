@@ -55,6 +55,12 @@ const TASER_LINK_FLICKER_INTERVAL := 0.15
 var _link_flicker_timer: float = 0.0
 var _is_taser: bool = false
 
+# Camera zone suppression (news helicopter ability)
+var _suppression_count: int = 0
+var _rec_dot: Node2D
+const REC_DOT_COLOR := Color("#E04040")
+const SUPPRESSED_MODULATE := Color(0.5, 0.5, 0.5, 1.0)
+
 
 func _ready() -> void:
 	if tower_data:
@@ -111,6 +117,21 @@ func _ready() -> void:
 		SignalBus.tower_sold.connect(_on_taser_neighbor_sold)
 		# Defer initial link refresh so our tile_pos is set by the placer first
 		_refresh_taser_links.call_deferred()
+
+	# Tower body for camera zone detection (layer 6)
+	var tower_body := Area2D.new()
+	tower_body.name = "TowerBody"
+	tower_body.collision_layer = 0
+	tower_body.collision_mask = 0
+	tower_body.set_collision_layer_value(6, true)
+	tower_body.monitorable = true
+	tower_body.monitoring = false
+	var body_shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 8.0
+	body_shape.shape = circle
+	tower_body.add_child(body_shape)
+	add_child(tower_body)
 
 	set_process(false)  # Only enable when synergy glow or taser links are active
 
@@ -207,6 +228,8 @@ func _on_enemy_exited_range(area: Area2D) -> void:
 
 
 func _on_attack_timer() -> void:
+	if is_suppressed():
+		return
 	var target := targeting.update_target(global_position)
 	if target:
 		_aim_at(target.global_position)
@@ -318,11 +341,11 @@ func _on_enemy_killed(enemy: Node2D, _gold: int) -> void:
 		if kill_count in KILL_MILESTONES:
 			SignalBus.tower_kill_milestone.emit(self, kill_count)
 			var tween := create_tween()
-			tween.tween_property(sprite, "modulate", Color("#D8A040"), 0.15)
+			tween.tween_property(sprite, "modulate", Color("#F0F0F0"), 0.15)
 			tween.tween_property(sprite, "modulate", Color.WHITE, 0.3)
 			if turret_sprite.visible:
 				var t2 := create_tween()
-				t2.tween_property(turret_sprite, "modulate", Color("#D8A040"), 0.15)
+				t2.tween_property(turret_sprite, "modulate", Color("#F0F0F0"), 0.15)
 				t2.tween_property(turret_sprite, "modulate", Color.WHITE, 0.3)
 
 
@@ -330,7 +353,7 @@ func _draw() -> void:
 	if not _show_range or not tower_data:
 		return
 	var radius := _get_current_range() * 32.0
-	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 64, Color("#A0D8A040"), 1.0)
+	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 64, Color("#A0F0F0F0"), 1.0)
 	draw_circle(Vector2.ZERO, radius, Color("#A0D8A010"))
 
 
@@ -383,7 +406,7 @@ func _spawn_crossfire_popup(target: Node2D) -> void:
 	var label := Label.new()
 	label.text = "CROSSFIRE"
 	label.add_theme_font_size_override("font_size", 8)
-	label.add_theme_color_override("font_color", Color("#D8A040"))
+	label.add_theme_color_override("font_color", Color("#F0F0F0"))
 	label.add_theme_color_override("font_outline_color", Color("#1A1A1E"))
 	label.add_theme_constant_override("outline_size", 2)
 	label.global_position = target.global_position + Vector2(-20, -24)
@@ -487,7 +510,65 @@ func _draw_synergy_glow() -> void:
 		_synergy_node.draw_line(pts[i], pts[i + 1], outline_color, 2.0)
 
 
+# -- Camera zone suppression API --
+
+func is_suppressed() -> bool:
+	return _suppression_count > 0
+
+
+func suppress() -> void:
+	# Surveillance hub is immune — the watchers watch back
+	if tower_data and tower_data.tower_id == "surveillance_hub":
+		return
+	_suppression_count += 1
+	if _suppression_count == 1:
+		_apply_suppression_visuals()
+		attack_timer.paused = true
+		SignalBus.tower_suppressed.emit(self)
+
+
+func unsuppress() -> void:
+	if tower_data and tower_data.tower_id == "surveillance_hub":
+		return
+	_suppression_count = max(_suppression_count - 1, 0)
+	if _suppression_count == 0:
+		_remove_suppression_visuals()
+		attack_timer.paused = false
+		SignalBus.tower_unsuppressed.emit(self)
+
+
+func _apply_suppression_visuals() -> void:
+	modulate = SUPPRESSED_MODULATE
+	# Pulsing REC dot indicator
+	_rec_dot = Node2D.new()
+	_rec_dot.z_index = 100
+	add_child(_rec_dot)
+	_rec_dot.draw.connect(_draw_rec_dot)
+	# Pulse the REC dot alpha
+	var tween := _rec_dot.create_tween()
+	tween.set_loops()
+	tween.tween_property(_rec_dot, "modulate:a", 0.3, 0.4).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(_rec_dot, "modulate:a", 1.0, 0.4).set_trans(Tween.TRANS_SINE)
+	_rec_dot.queue_redraw()
+
+
+func _remove_suppression_visuals() -> void:
+	modulate = Color.WHITE
+	if _rec_dot and is_instance_valid(_rec_dot):
+		_rec_dot.queue_free()
+		_rec_dot = null
+
+
+func _draw_rec_dot() -> void:
+	# Red circle + "REC" text above the tower
+	_rec_dot.draw_circle(Vector2(10, -28), 3.0, REC_DOT_COLOR)
+	_rec_dot.draw_string(ThemeDB.fallback_font, Vector2(15, -24), "REC",
+		HORIZONTAL_ALIGNMENT_LEFT, -1, 7, REC_DOT_COLOR)
+
+
 func sell() -> void:
+	_suppression_count = 0
+	_remove_suppression_visuals()
 	_clear_taser_links()
 	var refund := get_sell_value()
 	EconomyManager.add_gold(refund)

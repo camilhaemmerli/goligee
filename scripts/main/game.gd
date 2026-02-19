@@ -38,6 +38,8 @@ var _barrel_nodes: Array[Node2D] = []
 var _debug_label: Label = null
 var _debug_enabled: bool = false
 var _music_player: AudioStreamPlayer
+var _spawn_indicator: SpawnIndicator
+var _waves_started: bool = false
 
 
 func _ready() -> void:
@@ -190,12 +192,19 @@ func _ready() -> void:
 	# Restart handler
 	SignalBus.restart_requested.connect(_on_restart)
 
-	# Presidential briefing popup
-	SignalBus.presidential_briefing_requested.connect(_on_briefing_requested)
+	# Manifestation flow: briefing → spawn indicator → wave start
+	SignalBus.manifestation_ready.connect(_on_manifestation_ready)
 
 	# Government building damage states tied to approval rating
 	SignalBus.lives_changed.connect(_on_lives_changed_building)
 	_setup_govt_damage_textures()
+
+	# Spawn indicator at first spawn tile
+	_spawn_indicator = SpawnIndicator.new()
+	if not spawn_tiles.is_empty():
+		_spawn_indicator.position = tile_map.map_to_local(spawn_tiles[0])
+	$World.add_child(_spawn_indicator)
+	_spawn_indicator.clicked.connect(_on_spawn_indicator_clicked)
 
 	# Vignette overlay
 	var vignette_layer := CanvasLayer.new()
@@ -211,12 +220,14 @@ func _ready() -> void:
 		vignette_rect.material = mat
 	vignette_layer.add_child(vignette_rect)
 
-	# Background music
+	# Background music — starts during intro comic
 	_setup_bgm()
 
-	# Start the game
+	# Intro comic → briefing → spawn indicator → waves
 	GameManager.start_game()
-	WaveManager.start_waves()
+	var intro := IntroComic.new()
+	add_child(intro)
+	intro.finished.connect(func(): _show_manifestation_briefing(1))
 
 
 func _process(delta: float) -> void:
@@ -259,6 +270,24 @@ func _unhandled_input(event: InputEvent) -> void:
 			_debug_label.position = Vector2(4, 20)
 			$HUD.add_child(_debug_label)
 
+	# DEBUG: F5 = spawn flying enemy test wave (press_drone + news_helicopter)
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F5:
+		EconomyManager.add_gold(9999)
+		var drone_data := load("res://data/enemies/press_drone.tres") as EnemyData
+		var heli_data := load("res://data/enemies/news_helicopter.tres") as EnemyData
+		if drone_data:
+			for i in 5:
+				var t := create_tween()
+				t.tween_interval(i * 0.6)
+				t.tween_callback(func(): WaveManager.spawn_enemy_requested.emit(drone_data, 0, {"hp_multiplier": 3.0}))
+				WaveManager.enemies_alive += 1
+		if heli_data:
+			for i in 2:
+				var t := create_tween()
+				t.tween_interval(1.0 + i * 3.0)
+				t.tween_callback(func(): WaveManager.spawn_enemy_requested.emit(heli_data, 0, {"hp_multiplier": 2.0}))
+				WaveManager.enemies_alive += 1
+
 
 func _shake_camera(intensity: float, duration: float) -> void:
 	_shake_intensity = intensity
@@ -277,10 +306,30 @@ func _on_restart() -> void:
 	get_tree().reload_current_scene()
 
 
-func _on_briefing_requested(wave_number: int) -> void:
+func _show_manifestation_briefing(wave_number: int) -> void:
 	var briefing := ManifestationBriefing.new()
 	add_child(briefing)
 	briefing.show_briefing(wave_number)
+	# When dismissed, show the spawn indicator
+	SignalBus.presidential_briefing_dismissed.connect(
+		_on_briefing_dismissed_show_indicator, CONNECT_ONE_SHOT)
+
+
+func _on_briefing_dismissed_show_indicator() -> void:
+	_spawn_indicator.show_indicator()
+
+
+func _on_spawn_indicator_clicked() -> void:
+	_spawn_indicator.hide_indicator()
+	if not _waves_started:
+		_waves_started = true
+		WaveManager.start_waves()
+	else:
+		WaveManager.advance_wave()
+
+
+func _on_manifestation_ready(next_wave_number: int) -> void:
+	_show_manifestation_briefing(next_wave_number)
 
 
 func _on_enemy_killed_shake(enemy: Node2D, _gold: int) -> void:

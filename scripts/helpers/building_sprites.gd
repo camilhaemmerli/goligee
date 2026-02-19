@@ -17,7 +17,7 @@ static func create_government_building() -> ImageTexture:
 	var wall_lit := Color("#484850")
 	var wall_shadow := Color("#3A3A3E")
 	var wall_dark := Color("#2E2E32")
-	var window_lit := Color("#D8A040")   # Warm amber glow
+	var window_lit := Color("#F0F0F0")   # Cool white glow
 	var window_dark := Color("#1E1E22")
 	var door_color := Color("#1A1A1E")
 	var column_color := Color("#60606A")
@@ -160,7 +160,7 @@ static func create_apartment_block() -> ImageTexture:
 	var wall_lit := Color("#404048")
 	var wall_dark := Color("#32323A")
 	var roof_color := Color("#484850")
-	var window_lit := Color("#D8A040")
+	var window_lit := Color("#F0F0F0")
 	var window_dark := Color("#1E1E22")
 
 	# Walls

@@ -123,7 +123,7 @@ static func create_enemy_figure(body_color: Color, accent_color: Color) -> Image
 
 
 static func create_protestor() -> ImageTexture:
-	return create_enemy_figure(Color("#D06040"), Color("#D8A040"))
+	return create_enemy_figure(Color("#D06040"), Color("#F0F0F0"))
 
 
 static func create_agitator_elite() -> ImageTexture:

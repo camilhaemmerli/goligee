@@ -12,6 +12,8 @@ signal enemy_damaged(enemy: Node2D, amount: float, damage_type: Enums.DamageType
 signal tower_placed(tower: Node2D, tile_pos: Vector2i)
 signal tower_sold(tower: Node2D, refund: int)
 signal tower_upgraded(tower: Node2D, path_index: int, tier: int)
+signal tower_suppressed(tower: Node2D)
+signal tower_unsuppressed(tower: Node2D)
 
 # -- Waves --
 signal wave_started(wave_number: int)
@@ -45,6 +47,7 @@ signal tower_kill_milestone(tower: Node2D, kill_count: int)
 # -- Presidential Briefing --
 signal presidential_briefing_requested(wave_number: int)
 signal presidential_briefing_dismissed()
+signal manifestation_ready(next_wave_number: int)
 
 # -- UI --
 signal tower_selected(tower: Node2D)

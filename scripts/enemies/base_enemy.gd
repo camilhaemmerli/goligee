@@ -63,6 +63,28 @@ var _rotor_frame: int = 0
 var _rotor_timer: float = 0.0
 const ROTOR_FRAME_TIME := 0.06
 
+## Drone zig-zag (press_drone only)
+var _zigzag_enabled: bool = false
+var _zigzag_perpendicular: Vector2 = Vector2.ZERO
+var _zigzag_time: float = 0.0
+var _zigzag_current_offset: float = 0.0
+const ZIGZAG_AMPLITUDE := 12.0
+const ZIGZAG_FREQUENCY := 3.5
+
+## Shadow reference for breathing animation
+var _shadow_sprite: Sprite2D
+
+## News helicopter camera zone
+var _camera_zone: Area2D
+var _camera_beam_node: Node2D
+var _suppressed_towers: Array[Node2D] = []
+const CAMERA_ZONE_RADIUS := 32.0  # ~1 tile
+const CAMERA_ORBIT_RADIUS := 32.0  # Offset from helicopter center
+const CAMERA_ORBIT_SPEED := 0.25  # Rotations per second
+const CAMERA_BEAM_COLOR := Color("#E0C060", 0.15)
+const CAMERA_BEAM_OUTLINE := Color("#E0C060", 0.35)
+var _camera_orbit_angle: float = 0.0
+
 
 func _ready() -> void:
 	if enemy_data:
@@ -127,10 +149,16 @@ func _setup_flying_visuals() -> void:
 			var dy := (y - 5.0) / 5.0
 			if dx * dx + dy * dy <= 1.0:
 				shadow_img.set_pixel(x, y, shadow_color)
-	var shadow_sprite := Sprite2D.new()
-	shadow_sprite.texture = ImageTexture.create_from_image(shadow_img)
-	shadow_sprite.z_index = -1
-	add_child(shadow_sprite)
+	_shadow_sprite = Sprite2D.new()
+	_shadow_sprite.texture = ImageTexture.create_from_image(shadow_img)
+	_shadow_sprite.z_index = -1
+	add_child(_shadow_sprite)
+
+	# Shadow breathing: scale synced with bob (grows when high, shrinks when low)
+	var shadow_tween := create_tween()
+	shadow_tween.set_loops()
+	shadow_tween.tween_property(_shadow_sprite, "scale", Vector2(1.08, 1.08), 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	shadow_tween.tween_property(_shadow_sprite, "scale", Vector2(0.92, 0.92), 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 	# Rotor overlay animation (child of visual so it inherits bob + offset)
 	if enemy_data and enemy_data.enemy_id:
@@ -153,6 +181,10 @@ func _setup_flying_visuals() -> void:
 
 	# Gentle bobbing tween on the visual node
 	_setup_flying_bob(visual)
+
+	# News helicopter camera zone
+	if enemy_data and enemy_data.enemy_id == "news_helicopter":
+		_setup_camera_zone()
 
 
 func _setup_flying_bob(visual: CanvasItem) -> void:
@@ -240,6 +272,12 @@ func setup_path(spawn_index: int) -> void:
 	_total_path_length = _calculate_path_length(_waypoints)
 	_distance_traveled = 0.0
 
+	# Zig-zag for press_drone: compute perpendicular to overall flight direction
+	if enemy_data and enemy_data.enemy_id == "press_drone" and _waypoints.size() >= 2:
+		_zigzag_enabled = true
+		var flight_dir := (_waypoints[_waypoints.size() - 1] - _waypoints[0]).normalized()
+		_zigzag_perpendicular = Vector2(-flight_dir.y, flight_dir.x)
+
 
 func apply_wave_modifiers(modifiers: Dictionary) -> void:
 	if modifiers.has("hp_multiplier"):
@@ -270,6 +308,10 @@ func _process(delta: float) -> void:
 	var current_speed := base_speed * slow_factor
 	var move_budget := current_speed * 32.0 * delta
 
+	# Remove previous zig-zag offset before moving along path
+	if _zigzag_enabled:
+		global_position -= _zigzag_perpendicular * _zigzag_current_offset
+
 	# Track movement direction for animation
 	var prev_pos := global_position
 
@@ -288,10 +330,26 @@ func _process(delta: float) -> void:
 			_distance_traveled += move_budget
 			move_budget = 0.0
 
+	# Apply zig-zag offset after movement
+	if _zigzag_enabled:
+		_zigzag_time += delta
+		_zigzag_current_offset = sin(_zigzag_time * ZIGZAG_FREQUENCY * TAU) * ZIGZAG_AMPLITUDE
+		global_position += _zigzag_perpendicular * _zigzag_current_offset
+
 	# Update walk animation direction and velocity for crossfire
 	var move_dir := global_position - prev_pos
 	velocity = move_dir
 	_update_animation_direction(move_dir)
+
+	# Orbit camera zone around helicopter and redraw beam
+	if _camera_zone and is_instance_valid(_camera_zone):
+		_camera_orbit_angle += CAMERA_ORBIT_SPEED * TAU * delta
+		_camera_zone.position = Vector2(
+			cos(_camera_orbit_angle),
+			sin(_camera_orbit_angle) * 0.5  # Isometric Y squash
+		) * CAMERA_ORBIT_RADIUS
+	if _camera_beam_node and is_instance_valid(_camera_beam_node):
+		_camera_beam_node.queue_redraw()
 
 	# Apply DoT (raw damage, bypasses armor but uses proper death handling)
 	var dot_dmg := status_effects.get_dot_damage(delta)
@@ -333,6 +391,7 @@ func _on_path_updated(spawn_index: int) -> void:
 
 
 func _on_died() -> void:
+	_cleanup_camera_zone()
 	SignalBus.enemy_killed.emit(self, loot.gold_reward)
 	_spawn_gold_coins()
 	set_process(false)
@@ -357,9 +416,13 @@ func _on_died() -> void:
 	# Flying enemies: stop rotors, drop visual to ground level on death
 	if is_flying():
 		visual.position.y = 0.0
+		_zigzag_enabled = false
 		if _rotor_sprite:
 			_rotor_sprite.queue_free()
 			_rotor_sprite = null
+		if _shadow_sprite and is_instance_valid(_shadow_sprite):
+			_shadow_sprite.queue_free()
+			_shadow_sprite = null
 
 	# Show corpse: tint dark, lower z-index so living enemies walk over
 	visual.modulate = Color("#3A3A3E")
@@ -429,6 +492,7 @@ func _play_hit_reaction() -> void:
 
 
 func _reached_end() -> void:
+	_cleanup_camera_zone()
 	var hp_ratio := health.current_hp / health.max_hp if health.max_hp > 0.0 else 1.0
 	if hp_ratio < 0.1 and hp_ratio > 0.0:
 		SignalBus.near_miss.emit(self, health.current_hp)
@@ -566,6 +630,108 @@ func get_vulnerability_modifier() -> float:
 
 func get_armor_shred() -> float:
 	return status_effects.get_armor_shred()
+
+
+# -- News Helicopter Camera Zone --
+
+func _setup_camera_zone() -> void:
+	# Area2D at ground level (child of root, not visual offset) that detects tower bodies
+	_camera_zone = Area2D.new()
+	_camera_zone.name = "CameraZone"
+	_camera_zone.collision_layer = 0
+	_camera_zone.collision_mask = 0
+	_camera_zone.set_collision_mask_value(6, true)  # Detect tower bodies on layer 6
+	_camera_zone.monitoring = true
+	_camera_zone.monitorable = false
+	var zone_shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = CAMERA_ZONE_RADIUS
+	zone_shape.shape = circle
+	_camera_zone.add_child(zone_shape)
+	add_child(_camera_zone)
+
+	_camera_zone.area_entered.connect(_on_tower_entered_camera)
+	_camera_zone.area_exited.connect(_on_tower_exited_camera)
+
+	# Camera beam visual node (custom draw)
+	_camera_beam_node = Node2D.new()
+	_camera_beam_node.name = "CameraBeam"
+	_camera_beam_node.z_index = 5
+	add_child(_camera_beam_node)
+	_camera_beam_node.draw.connect(_draw_camera_beam)
+	_camera_beam_node.queue_redraw()
+
+
+func _on_tower_entered_camera(area: Area2D) -> void:
+	var tower := area.get_parent()
+	if tower is BaseTower:
+		tower.suppress()
+		if not _suppressed_towers.has(tower):
+			_suppressed_towers.append(tower)
+
+
+func _on_tower_exited_camera(area: Area2D) -> void:
+	var tower := area.get_parent()
+	if tower is BaseTower:
+		tower.unsuppress()
+		_suppressed_towers.erase(tower)
+
+
+func _cleanup_camera_zone() -> void:
+	# Unsuppress all tracked towers
+	for tower in _suppressed_towers:
+		if is_instance_valid(tower) and tower is BaseTower:
+			tower.unsuppress()
+	_suppressed_towers.clear()
+
+	if _camera_zone and is_instance_valid(_camera_zone):
+		_camera_zone.queue_free()
+		_camera_zone = null
+	if _camera_beam_node and is_instance_valid(_camera_beam_node):
+		_camera_beam_node.queue_free()
+		_camera_beam_node = null
+
+
+func _draw_camera_beam() -> void:
+	if not _camera_beam_node or not _camera_zone:
+		return
+	# Visual node is offset up; beam goes from helicopter to orbiting ground zone
+	var visual: CanvasItem = animated_sprite if _use_animated else sprite
+	var top_y: float = visual.position.y  # Negative (above ground)
+	var zone_pos: Vector2 = _camera_zone.position  # Orbiting offset from helicopter
+
+	# Triangular cone: narrow at helicopter, wide at orbiting ground zone
+	var top_half_w := 4.0
+	var bottom_half_w := CAMERA_ZONE_RADIUS * 0.4
+	# Perpendicular to beam direction for cone width
+	var beam_dir := (zone_pos - Vector2(0, top_y))
+	var perp := Vector2(-beam_dir.y, beam_dir.x).normalized()
+
+	var beam_points := PackedVector2Array([
+		Vector2(-perp.x * top_half_w, top_y - perp.y * top_half_w),
+		Vector2(perp.x * top_half_w, top_y + perp.y * top_half_w),
+		zone_pos + perp * bottom_half_w,
+		zone_pos - perp * bottom_half_w,
+	])
+	_camera_beam_node.draw_colored_polygon(beam_points, CAMERA_BEAM_COLOR)
+
+	# Ground ellipse at orbiting zone position
+	var ellipse_hw := CAMERA_ZONE_RADIUS * 0.6
+	var ellipse_hh := CAMERA_ZONE_RADIUS * 0.3
+	var segments := 32
+	# Fill
+	var ellipse_fill := PackedVector2Array()
+	for i in segments:
+		var angle := float(i) / float(segments) * TAU
+		ellipse_fill.append(zone_pos + Vector2(cos(angle) * ellipse_hw, sin(angle) * ellipse_hh))
+	_camera_beam_node.draw_colored_polygon(ellipse_fill, CAMERA_BEAM_COLOR)
+	# Outline
+	for i in segments:
+		var a0 := float(i) / float(segments) * TAU
+		var a1 := float(i + 1) / float(segments) * TAU
+		var p0 := zone_pos + Vector2(cos(a0) * ellipse_hw, sin(a0) * ellipse_hh)
+		var p1 := zone_pos + Vector2(cos(a1) * ellipse_hw, sin(a1) * ellipse_hh)
+		_camera_beam_node.draw_line(p0, p1, CAMERA_BEAM_OUTLINE, 1.0)
 
 
 func _calculate_path_length(path: PackedVector2Array) -> float:

@@ -21,7 +21,8 @@ var _approval_tween: Tween
 # Wave circle (top-right)
 var _wave_circle_container: Control
 var _wave_number_label: Label
-var _wave_name_label: Label
+var _wave_title_flash: Label
+var _wave_title_tween: Tween
 var _wave_circle_tex: TextureRect
 var _wave_progress_ring: Control  # custom draw arc
 
@@ -69,7 +70,7 @@ const COL_PANEL_BORDER := Color("#121216")
 const COL_CARD_BORDER := Color("#28282C")
 const COL_MUTED := Color("#808898")
 const COL_GOLD := Color("#F2D864")
-const COL_AMBER := Color("#D8A040")
+const COL_AMBER := Color("#F0F0F0")
 const COL_GREEN := Color("#A0D8A0")
 const COL_RED := Color("#D04040")
 const COL_PILL_BG := Color("#08080A")
@@ -190,20 +191,26 @@ func _create_wave_circle() -> void:
 	const BOX_W := CIRCLE_SIZE + BOX_PAD * 2
 	const HEADER_H := 24  # height of the wave name header line
 
-	# Wave name label — top-right, same line as "TAXPAYER BUDGET"
-	_wave_name_label = Label.new()
-	_wave_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_wave_name_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_wave_name_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_wave_name_label.offset_right = -HUD_MARGIN
-	_wave_name_label.offset_left = -HUD_MARGIN - 260.0
-	_wave_name_label.offset_top = HUD_MARGIN
-	_wave_name_label.offset_bottom = HUD_MARGIN + HEADER_H
-	_wave_name_label.add_theme_font_size_override("font_size", 22)
-	_wave_name_label.add_theme_color_override("font_color", Color.WHITE)
-	_wave_name_label.clip_text = true
-	_wave_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_wave_name_label)
+	# Wave title flash — center screen, appears briefly on wave start
+	_wave_title_flash = Label.new()
+	_wave_title_flash.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_wave_title_flash.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_wave_title_flash.set_anchors_preset(Control.PRESET_CENTER)
+	_wave_title_flash.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_wave_title_flash.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_wave_title_flash.offset_left = -240.0
+	_wave_title_flash.offset_right = 240.0
+	_wave_title_flash.offset_top = -30.0
+	_wave_title_flash.offset_bottom = 30.0
+	_wave_title_flash.add_theme_font_size_override("font_size", 28)
+	_wave_title_flash.add_theme_color_override("font_color", Color.WHITE)
+	_wave_title_flash.add_theme_color_override("font_outline_color", Color("#1A1A1E"))
+	_wave_title_flash.add_theme_constant_override("outline_size", 4)
+	if _blackletter_font:
+		_wave_title_flash.add_theme_font_override("font", _blackletter_font)
+	_wave_title_flash.modulate.a = 0.0
+	_wave_title_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_wave_title_flash)
 
 	# Dark semi-transparent box — below the wave name header
 	var box_top := HUD_MARGIN + HEADER_H + 4
@@ -661,9 +668,10 @@ func _make_circle_portrait(portrait_tex: Texture2D) -> ImageTexture:
 func _update_wave_circle(wave_number: int) -> void:
 	_wave_number_label.text = str(wave_number)
 
+	# Flash wave title briefly at center screen
 	var manif_name := WaveNames.get_manifestation_name(wave_number)
 	var wave_name := WaveNames.get_wave_name(wave_number)
-	_wave_name_label.text = manif_name + " — " + wave_name
+	_flash_wave_title(manif_name + " — " + wave_name)
 
 	# Update circle portrait when manifestation leader changes
 	var manif_leader := WaveNames.get_manifestation_leader_id(wave_number)
@@ -856,6 +864,23 @@ func _show_wave_banner(wave_number: int) -> void:
 	_banner_tween.tween_property(_wave_banner, "modulate:a", 1.0, 0.25)
 	_banner_tween.tween_interval(1.5)
 	_banner_tween.tween_property(_wave_banner, "modulate:a", 0.0, 0.25)
+
+
+func _flash_wave_title(title_text: String) -> void:
+	_wave_title_flash.text = title_text
+	if _wave_title_tween:
+		_wave_title_tween.kill()
+	_wave_title_tween = create_tween()
+	_wave_title_flash.modulate.a = 0.0
+	_wave_title_flash.scale = Vector2(0.8, 0.8)
+	_wave_title_flash.pivot_offset = _wave_title_flash.size / 2.0
+	_wave_title_tween.tween_property(_wave_title_flash, "modulate:a", 1.0, 0.3) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_wave_title_tween.parallel().tween_property(_wave_title_flash, "scale", Vector2.ONE, 0.3) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_wave_title_tween.tween_interval(1.2)
+	_wave_title_tween.tween_property(_wave_title_flash, "modulate:a", 0.0, 0.4) \
+		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 
 
 func _on_streak_changed(count: int) -> void:
