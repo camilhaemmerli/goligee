@@ -49,6 +49,16 @@ signal presidential_briefing_requested(wave_number: int)
 signal presidential_briefing_dismissed()
 signal manifestation_ready(next_wave_number: int)
 
+# -- Abilities --
+signal ability_placement_started(ability_data: SpecialAbilityData)
+signal ability_placement_cancelled()
+signal ability_activated(ability_id: String, world_pos: Vector2)
+signal ability_completed(ability_id: String)
+signal ability_unlocked(ability_data: SpecialAbilityData)
+
+# -- Effects --
+signal chemical_impact(position: Vector2, intensity: float)
+
 # -- UI --
 signal tower_selected(tower: Node2D)
 signal tower_deselected()

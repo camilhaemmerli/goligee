@@ -89,5 +89,6 @@ func _on_impact() -> void:
 	else:
 		get_tree().current_scene.add_child(cloud)
 
+	SignalBus.chemical_impact.emit(_end_pos, 1.0)
 	_fade_trail()
 	queue_free()

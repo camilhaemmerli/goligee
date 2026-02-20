@@ -38,11 +38,23 @@ var _barrel_nodes: Array[Node2D] = []
 var _debug_label: Label = null
 var _debug_enabled: bool = false
 var _music_player: AudioStreamPlayer
+var _fog_manager: FogManager
 var _spawn_indicator: SpawnIndicator
 var _waves_started: bool = false
+var _intro_cover: CanvasLayer
 
 
 func _ready() -> void:
+	# Black overlay immediately to prevent map flash before intro comic
+	_intro_cover = CanvasLayer.new()
+	_intro_cover.layer = 19
+	var cover_rect := ColorRect.new()
+	cover_rect.color = Color.BLACK
+	cover_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cover_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_intro_cover.add_child(cover_rect)
+	add_child(_intro_cover)
+
 	# Set up groups for lookups
 	projectile_container.add_to_group("projectiles")
 	effects_container.add_to_group("effects")
@@ -98,6 +110,15 @@ func _ready() -> void:
 
 	# Initialize pathfinding
 	PathfindingManager.initialize(tile_map, spawn_tiles, goal_tiles)
+
+	# Initialize abilities
+	var ability_list: Array[SpecialAbilityData] = [
+		load("res://data/abilities/agent_provocateur.tres") as SpecialAbilityData,
+		load("res://data/abilities/gas_airstrike.tres") as SpecialAbilityData,
+		load("res://data/abilities/water_cannon_truck.tres") as SpecialAbilityData,
+	]
+	AbilityManager.initialize(ability_list, tile_map, effects_container)
+	SignalBus.ability_activated.connect(_on_ability_activated)
 
 	# Load and assign wave data
 	WaveManager.waves = [
@@ -202,7 +223,7 @@ func _ready() -> void:
 	# Spawn indicator at first spawn tile
 	_spawn_indicator = SpawnIndicator.new()
 	if not spawn_tiles.is_empty():
-		_spawn_indicator.position = tile_map.map_to_local(spawn_tiles[0])
+		_spawn_indicator.position = tile_map.map_to_local(spawn_tiles[0]) + Vector2(0, -16)
 	$World.add_child(_spawn_indicator)
 	_spawn_indicator.clicked.connect(_on_spawn_indicator_clicked)
 
@@ -220,6 +241,11 @@ func _ready() -> void:
 		vignette_rect.material = mat
 	vignette_layer.add_child(vignette_rect)
 
+	# Atmospheric fog/gas overlay (intensifies with chemical towers)
+	_fog_manager = FogManager.new()
+	add_child(_fog_manager)
+	_fog_manager.setup(self, _camera, effects_container)
+
 	# Background music — starts during intro comic
 	_setup_bgm()
 
@@ -227,7 +253,10 @@ func _ready() -> void:
 	GameManager.start_game()
 	var intro := IntroComic.new()
 	add_child(intro)
-	intro.finished.connect(func(): _show_manifestation_briefing(1))
+	intro.finished.connect(func():
+		_intro_cover.queue_free()
+		_show_manifestation_briefing(1)
+	)
 
 
 func _process(delta: float) -> void:
@@ -304,6 +333,21 @@ func _set_camera_pos(pos: Vector2) -> void:
 func _on_restart() -> void:
 	Engine.time_scale = 1.0
 	get_tree().reload_current_scene()
+
+
+func _on_ability_activated(ability_id: String, world_pos: Vector2) -> void:
+	var ability_scene: Node2D
+	match ability_id:
+		"agent_provocateur":
+			ability_scene = AgentProvocateur.new()
+		"gas_airstrike":
+			ability_scene = GasAirstrike.new()
+		"water_cannon_truck":
+			ability_scene = WaterCannonTruck.new()
+		_:
+			return
+	effects_container.add_child(ability_scene)
+	ability_scene.init(world_pos, tile_map)
 
 
 func _show_manifestation_briefing(wave_number: int) -> void:
