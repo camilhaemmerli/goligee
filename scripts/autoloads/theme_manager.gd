@@ -7,17 +7,17 @@ signal theme_changed()
 var current_theme: ThemeData
 
 # 8-direction turret order matches BaseTower.DIRS.
-const TOWER_TURRET_DIRS := ["s", "sw", "w", "nw", "n", "ne", "e", "se"]
+const TOWER_TURRET_DIRS = ["s", "sw", "w", "nw", "n", "ne", "e", "se"]
 
 # Temporary asset folder aliases to keep older naming conventions working.
-const TOWER_ASSET_ALIASES := {
+const TOWER_ASSET_ALIASES = {
 	"surveillance_hub": "surveillance",
 	"lrad_cannon": "lrad",
 	"microwave_emitter": "microwave",
 }
 
 # Per-tower turret Y offset (turret drawn above base).
-const TURRET_Y_OFFSETS := {
+const TURRET_Y_OFFSETS = {
 	"rubber_bullet": 0.0,
 	"taser_grid": -14.0,
 	"surveillance": -18.0,
@@ -154,7 +154,7 @@ func populate_enemy_skins_from_assets(theme: ThemeData) -> void:
 	dir.list_dir_end()
 
 
-const ENEMY_WALK_DIRS := ["e", "ne", "n", "nw", "w", "sw", "s", "se"]
+const ENEMY_WALK_DIRS = ["e", "ne", "n", "nw", "w", "sw", "s", "se"]
 
 func _load_enemy_skin_from_assets(enemy_id: String) -> EnemySkinData:
 	var folder := "res://assets/sprites/enemies/%s/" % enemy_id

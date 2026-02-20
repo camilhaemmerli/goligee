@@ -4,15 +4,15 @@ extends BaseProjectile
 ## Draws a Line2D water jet from muzzle to target that extends outward,
 ## damages all enemies along the line, then fades out.
 
-const EXTEND_DURATION := 0.15
-const LINGER_DURATION := 0.1
-const FADE_DURATION := 0.15
-const LINE_HIT_WIDTH := 14.0  # Perpendicular distance for line sweep (px)
+const EXTEND_DURATION = 0.15
+const LINGER_DURATION = 0.1
+const FADE_DURATION = 0.15
+const LINE_HIT_WIDTH = 14.0  # Perpendicular distance for line sweep (px)
 
-const COLOR_CORE := Color("#80C0E0")
-const COLOR_EDGE := Color("#4080B0")
-const COLOR_SPRAY := Color("#A0D8F0", 0.6)
-const COLOR_SPLASH := Color("#B0E0F0")
+const COLOR_CORE = Color("#80C0E0")
+const COLOR_EDGE = Color("#4080B0")
+const COLOR_SPRAY = Color("#A0D8F0", 0.6)
+const COLOR_SPLASH = Color("#B0E0F0")
 
 var _start_pos: Vector2
 var _end_pos: Vector2
@@ -124,7 +124,9 @@ func _deal_line_damage() -> void:
 		return
 	var line_norm := line_dir / line_len
 
-	var enemies := get_tree().get_nodes_in_group("enemies")
+	var query_center := (_start_pos + _end_pos) * 0.5
+	var query_radius := line_len * 0.5 + LINE_HIT_WIDTH
+	var enemies := SpatialGrid.get_enemies_in_radius(query_center, query_radius)
 	for enemy in enemies:
 		if not enemy is Node2D:
 			continue
@@ -143,7 +145,7 @@ func _deal_line_damage() -> void:
 
 func _spawn_splash_particles() -> void:
 	for i in randi_range(3, 5):
-		var drop := ColorRect.new()
+		var drop := VFXPool.acquire_rect()
 		drop.size = Vector2(2, 2)
 		drop.color = COLOR_SPLASH
 		drop.global_position = _end_pos + Vector2(-1, -1)
@@ -155,4 +157,4 @@ func _spawn_splash_particles() -> void:
 		tween.set_parallel(true)
 		tween.tween_property(drop, "global_position", end_pos, 0.2).set_ease(Tween.EASE_OUT)
 		tween.tween_property(drop, "modulate:a", 0.0, 0.2)
-		tween.chain().tween_callback(drop.queue_free)
+		tween.chain().tween_callback(VFXPool.release_rect.bind(drop))

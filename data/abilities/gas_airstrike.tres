@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SpecialAbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/special_ability_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+ability_id = "gas_airstrike"
+display_name = "GAS STRIKE"
+description = "Call in a chemical airstrike. A jet drops gas canisters along the strike corridor."
+thematic_name = "EXECUTIVE DECREE #2"
+cooldown = 45.0
+duration = 4.0
+unlock_wave = 6
+placement_type = 2
+requires_path_proximity = false
+path_proximity_radius = 0.0
+effect_radius = 40.0

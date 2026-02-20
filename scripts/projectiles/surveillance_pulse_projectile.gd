@@ -5,18 +5,18 @@ extends BaseProjectile
 ## Applies damage immediately, then draws expanding concentric scan-rings
 ## with drifting data-spec particles.
 
-const EFFECT_DURATION := 0.9
-const EXPAND_SPEED := 180.0   # px/s — reaches ~160px in 0.9s
-const MAX_RADIUS := 160.0     # 5.0 range * 32px
+const EFFECT_DURATION = 0.9
+const EXPAND_SPEED = 180.0   # px/s — reaches ~160px in 0.9s
+const MAX_RADIUS = 160.0     # 5.0 range * 32px
 
 # Colors — cold surveillance blue, eerie glow
-const RING_COLOR := Color("#80A8D0", 0.6)
-const FILL_COLOR := Color("#4060A0", 0.05)
-const INNER_GLOW := Color("#6090C0", 0.08)
-const PARTICLE_COLOR := Color("#90B8E0")
-const ARC_WIDTH := 1.5
-const NUM_RINGS := 4
-const RING_SPACING := 10.0
+const RING_COLOR = Color("#80A8D0", 0.6)
+const FILL_COLOR = Color("#4060A0", 0.05)
+const INNER_GLOW = Color("#6090C0", 0.08)
+const PARTICLE_COLOR = Color("#90B8E0")
+const ARC_WIDTH = 1.5
+const NUM_RINGS = 4
+const RING_SPACING = 10.0
 
 var _elapsed: float = 0.0
 var _current_radius: float = 0.0
@@ -45,7 +45,7 @@ func _apply_themed_sprite() -> void:
 
 func _spawn_data_particles() -> void:
 	for i in randi_range(8, 12):
-		var spec := ColorRect.new()
+		var spec := VFXPool.acquire_rect()
 		# Rectangular "data bit" specs — 1x1 or 2x1
 		spec.size = Vector2(2, 1) if randf() > 0.5 else Vector2(1, 1)
 		spec.color = PARTICLE_COLOR
@@ -61,7 +61,7 @@ func _spawn_data_particles() -> void:
 		tween.set_parallel(true)
 		tween.tween_property(spec, "global_position", end_pos, dur).set_ease(Tween.EASE_OUT)
 		tween.tween_property(spec, "modulate:a", 0.0, dur)
-		tween.chain().tween_callback(spec.queue_free)
+		tween.chain().tween_callback(VFXPool.release_rect.bind(spec))
 
 
 func _process(delta: float) -> void:

@@ -30,7 +30,7 @@ var velocity: Vector2 = Vector2.ZERO  ## Last frame movement direction (for cros
 
 ## Corpse cleanup: track lingering corpses globally, cap at 30
 static var _corpses: Array[Node2D] = []
-const MAX_CORPSES := 30
+const MAX_CORPSES = 30
 
 ## Whether this enemy uses AnimatedSprite2D for walk cycles
 var _use_animated: bool = false
@@ -40,10 +40,10 @@ var _current_dir: String = "se"
 var _speed_burst_triggered: bool = false
 
 # 8-direction animation: snap movement angle to nearest direction
-const DIR_NAMES := ["e", "se", "s", "sw", "w", "nw", "n", "ne"]
+const DIR_NAMES = ["e", "se", "s", "sw", "w", "nw", "n", "ne"]
 
 # Damage type color map for floating numbers
-const DAMAGE_COLORS := {
+const DAMAGE_COLORS = {
 	Enums.DamageType.KINETIC: Color("#E0D0C8"),
 	Enums.DamageType.CHEMICAL: Color("#E08040"),
 	Enums.DamageType.HYDRAULIC: Color("#80C0E0"),
@@ -61,15 +61,15 @@ var _rotor_sprite: Sprite2D
 var _rotor_textures: Array[Texture2D] = []
 var _rotor_frame: int = 0
 var _rotor_timer: float = 0.0
-const ROTOR_FRAME_TIME := 0.06
+const ROTOR_FRAME_TIME = 0.06
 
 ## Drone zig-zag (press_drone only)
 var _zigzag_enabled: bool = false
 var _zigzag_perpendicular: Vector2 = Vector2.ZERO
 var _zigzag_time: float = 0.0
 var _zigzag_current_offset: float = 0.0
-const ZIGZAG_AMPLITUDE := 12.0
-const ZIGZAG_FREQUENCY := 3.5
+const ZIGZAG_AMPLITUDE = 12.0
+const ZIGZAG_FREQUENCY = 3.5
 
 ## Shadow reference for breathing animation
 var _shadow_sprite: Sprite2D
@@ -78,11 +78,11 @@ var _shadow_sprite: Sprite2D
 var _camera_zone: Area2D
 var _camera_beam_node: Node2D
 var _suppressed_towers: Array[Node2D] = []
-const CAMERA_ZONE_RADIUS := 32.0  # ~1 tile
-const CAMERA_ORBIT_RADIUS := 32.0  # Offset from helicopter center
-const CAMERA_ORBIT_SPEED := 0.25  # Rotations per second
-const CAMERA_BEAM_COLOR := Color("#E0C060", 0.15)
-const CAMERA_BEAM_OUTLINE := Color("#E0C060", 0.35)
+const CAMERA_ZONE_RADIUS = 32.0  # ~1 tile
+const CAMERA_ORBIT_RADIUS = 32.0  # Offset from helicopter center
+const CAMERA_ORBIT_SPEED = 0.25  # Rotations per second
+const CAMERA_BEAM_COLOR = Color("#E0C060", 0.15)
+const CAMERA_BEAM_OUTLINE = Color("#E0C060", 0.35)
 var _camera_orbit_angle: float = 0.0
 
 
@@ -125,6 +125,8 @@ func _ready() -> void:
 	health_bar.max_value = health.max_hp
 	health_bar.value = health.current_hp
 
+	SpatialGrid.register(self)
+
 	if is_flying():
 		_setup_flying_visuals()
 	else:
@@ -132,7 +134,7 @@ func _ready() -> void:
 
 
 func _setup_flying_visuals() -> void:
-	const FLY_OFFSET := -16.0
+	const FLY_OFFSET = -16.0
 	z_index = 10
 
 	# Shift visual nodes up to simulate altitude (position stays at ground level)
@@ -341,6 +343,9 @@ func _process(delta: float) -> void:
 	velocity = move_dir
 	_update_animation_direction(move_dir)
 
+	# Update spatial grid cell
+	SpatialGrid.update_position(self)
+
 	# Orbit camera zone around helicopter and redraw beam
 	if _camera_zone and is_instance_valid(_camera_zone):
 		_camera_orbit_angle += CAMERA_ORBIT_SPEED * TAU * delta
@@ -391,6 +396,7 @@ func _on_path_updated(spawn_index: int) -> void:
 
 
 func _on_died() -> void:
+	SpatialGrid.unregister(self)
 	_cleanup_camera_zone()
 	SignalBus.enemy_killed.emit(self, loot.gold_reward)
 	_spawn_gold_coins()
@@ -492,6 +498,7 @@ func _play_hit_reaction() -> void:
 
 
 func _reached_end() -> void:
+	SpatialGrid.unregister(self)
 	_cleanup_camera_zone()
 	var hp_ratio := health.current_hp / health.max_hp if health.max_hp > 0.0 else 1.0
 	if hp_ratio < 0.1 and hp_ratio > 0.0:
@@ -505,7 +512,7 @@ func _reached_end() -> void:
 # -- Game Juice Effects --
 
 func _spawn_damage_number(amount: float, damage_type: Enums.DamageType, is_crit: bool) -> void:
-	var label := Label.new()
+	var label := VFXPool.acquire_label()
 	var text := str(int(amount))
 	if is_crit:
 		text += "!"
@@ -529,7 +536,7 @@ func _spawn_damage_number(amount: float, damage_type: Enums.DamageType, is_crit:
 	tween.set_parallel(true)
 	tween.tween_property(label, "position:y", label.position.y - 20.0, 0.8)
 	tween.tween_property(label, "modulate:a", 0.0, 0.8)
-	tween.chain().tween_callback(label.queue_free)
+	tween.chain().tween_callback(VFXPool.release_label.bind(label))
 
 
 func _flash_damage() -> void:
@@ -552,7 +559,7 @@ func _spawn_impact_sparks(damage_type: Enums.DamageType) -> void:
 	var spark_color: Color = DAMAGE_COLORS.get(damage_type, Color("#C8A040"))
 	var spark_count := 3
 	for i in spark_count:
-		var spark := ColorRect.new()
+		var spark := VFXPool.acquire_rect()
 		spark.size = Vector2(2, 2)
 		spark.color = spark_color
 		spark.global_position = global_position + Vector2(-1, -1)
@@ -564,13 +571,13 @@ func _spawn_impact_sparks(damage_type: Enums.DamageType) -> void:
 		tween.set_parallel(true)
 		tween.tween_property(spark, "global_position", target_pos, 0.2).set_ease(Tween.EASE_OUT)
 		tween.tween_property(spark, "modulate:a", 0.0, 0.2)
-		tween.chain().tween_callback(spark.queue_free)
+		tween.chain().tween_callback(VFXPool.release_rect.bind(spark))
 
 
 func _spawn_gold_coins() -> void:
 	var coin_count := clampi(loot.gold_reward / 5, 3, 5)
 	for i in coin_count:
-		var coin := ColorRect.new()
+		var coin := VFXPool.acquire_rect()
 		coin.size = Vector2(4, 4)
 		coin.color = Color("#E0C060")
 		coin.global_position = global_position + Vector2(-2, -2)
@@ -588,11 +595,11 @@ func _spawn_gold_coins() -> void:
 			tween.tween_interval(delay)
 		tween.tween_property(coin, "global_position", mid_point, 0.2).set_ease(Tween.EASE_OUT)
 		tween.tween_property(coin, "global_position", target_pos, 0.3).set_ease(Tween.EASE_IN)
-		tween.tween_callback(coin.queue_free)
+		tween.tween_callback(VFXPool.release_rect.bind(coin))
 
 
 func _spawn_near_miss_label() -> void:
-	var label := Label.new()
+	var label := VFXPool.acquire_label()
 	var hp_left := int(health.current_hp)
 	label.text = "Almost! " + str(hp_left) + " HP left!"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -605,7 +612,7 @@ func _spawn_near_miss_label() -> void:
 	tween.set_parallel(true)
 	tween.tween_property(label, "position:y", label.position.y - 28.0, 1.5)
 	tween.tween_property(label, "modulate:a", 0.0, 1.5)
-	tween.chain().tween_callback(label.queue_free)
+	tween.chain().tween_callback(VFXPool.release_label.bind(label))
 
 
 # -- Public API for targeting system --
@@ -630,6 +637,29 @@ func get_vulnerability_modifier() -> float:
 
 func get_armor_shred() -> float:
 	return status_effects.get_armor_shred()
+
+
+## Push enemy backward along its path by `distance` pixels.
+## Used by Agent Provocateur to make enemies retreat.
+func push_back_on_path(distance: float) -> void:
+	if _waypoints.is_empty() or is_flying():
+		return
+	var remaining := distance
+	while remaining > 0.0 and _waypoint_index > 0:
+		var prev_wp := _waypoints[_waypoint_index - 1]
+		var to_prev := prev_wp - global_position
+		var dist := to_prev.length()
+		if dist <= remaining:
+			global_position = prev_wp
+			remaining -= dist
+			_distance_traveled -= dist
+			_waypoint_index -= 1
+		else:
+			global_position += to_prev.normalized() * remaining
+			_distance_traveled -= remaining
+			remaining = 0.0
+	_distance_traveled = maxf(_distance_traveled, 0.0)
+	SpatialGrid.update_position(self)
 
 
 # -- News Helicopter Camera Zone --

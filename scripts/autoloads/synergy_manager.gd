@@ -11,7 +11,7 @@ signal synergy_changed(tower: Node2D)
 ##   bonus_a / bonus_b: damage multiplier per stack (e.g. 1.25 = +25%)
 ##   rate_a / rate_b: fire rate multiplier per stack (optional, default 1.0)
 ##   max_stacks: cap on how many neighbors count
-const SYNERGIES := [
+const SYNERGIES = [
 	{
 		"id": "power_grid",
 		"name": "POWER GRID",
@@ -79,7 +79,7 @@ const SYNERGIES := [
 	},
 ]
 
-const SYNERGY_RANGE := 3  ## Chebyshev distance in tiles
+const SYNERGY_RANGE = 3  ## Chebyshev distance in tiles
 
 ## Map of tile position → tower reference
 var _tower_grid: Dictionary = {}  # Vector2i -> BaseTower

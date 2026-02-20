@@ -7,10 +7,10 @@ var _blackletter_font: Font
 var _music_player: AudioStreamPlayer
 
 
-const THEME_SONG_PATH := "res://assets/audio/music/theme_song.mp3"
-const MUSIC_FADE_IN := 2.0
-const MUSIC_FADE_OUT := 1.2
-const MUSIC_VOLUME_DB := -6.0
+const THEME_SONG_PATH = "res://assets/audio/music/theme_song.mp3"
+const MUSIC_FADE_IN = 2.0
+const MUSIC_FADE_OUT = 1.2
+const MUSIC_VOLUME_DB = -6.0
 
 
 var _fade_overlay: ColorRect

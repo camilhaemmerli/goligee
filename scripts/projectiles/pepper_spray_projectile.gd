@@ -4,15 +4,15 @@ extends BaseProjectile
 ## Draws a cone-shaped Line2D spray from muzzle to target that fans out,
 ## damages all enemies along the cone, then fades with drifting mist.
 
-const EXTEND_DURATION := 0.08
-const LINGER_DURATION := 0.1
-const FADE_DURATION := 0.15
-const LINE_HIT_WIDTH := 12.0  # Perpendicular distance for line sweep (px)
+const EXTEND_DURATION = 0.08
+const LINGER_DURATION = 0.1
+const FADE_DURATION = 0.15
+const LINE_HIT_WIDTH = 12.0  # Perpendicular distance for line sweep (px)
 
-const COLOR_CORE := Color("#F0A030")
-const COLOR_EDGE := Color("#E07020", 0.6)
-const COLOR_MIST := Color("#E09030", 0.4)
-const COLOR_DROP := Color("#F0B040")
+const COLOR_CORE = Color("#F0A030")
+const COLOR_EDGE = Color("#E07020", 0.6)
+const COLOR_MIST = Color("#E09030", 0.4)
+const COLOR_DROP = Color("#F0B040")
 
 var _start_pos: Vector2
 var _end_pos: Vector2
@@ -131,7 +131,9 @@ func _deal_line_damage() -> void:
 		return
 	var line_norm := line_dir / line_len
 
-	var enemies := get_tree().get_nodes_in_group("enemies")
+	var query_center := (_start_pos + _end_pos) * 0.5
+	var query_radius := line_len * 0.5 + LINE_HIT_WIDTH
+	var enemies := SpatialGrid.get_enemies_in_radius(query_center, query_radius)
 	for enemy in enemies:
 		if not enemy is Node2D:
 			continue
@@ -147,7 +149,7 @@ func _deal_line_damage() -> void:
 
 func _spawn_droplets() -> void:
 	for i in randi_range(3, 5):
-		var drop := ColorRect.new()
+		var drop := VFXPool.acquire_rect()
 		drop.size = Vector2(2, 2)
 		drop.color = COLOR_DROP
 		drop.global_position = _end_pos + Vector2(-1, -1)
@@ -159,4 +161,4 @@ func _spawn_droplets() -> void:
 		tween.set_parallel(true)
 		tween.tween_property(drop, "global_position", end_pos, 0.2).set_ease(Tween.EASE_OUT)
 		tween.tween_property(drop, "modulate:a", 0.0, 0.2)
-		tween.chain().tween_callback(drop.queue_free)
+		tween.chain().tween_callback(VFXPool.release_rect.bind(drop))

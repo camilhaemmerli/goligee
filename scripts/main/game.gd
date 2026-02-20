@@ -204,6 +204,7 @@ func _ready() -> void:
 
 	# Camera shake on enemy kills
 	SignalBus.enemy_killed.connect(_on_enemy_killed_shake)
+	SignalBus.screen_shake.connect(_shake_camera)
 
 	SignalBus.enemy_damaged.connect(_on_enemy_damaged_stats)
 	SignalBus.enemy_killed.connect(_on_enemy_killed_stats)
@@ -332,6 +333,8 @@ func _set_camera_pos(pos: Vector2) -> void:
 
 func _on_restart() -> void:
 	Engine.time_scale = 1.0
+	SpatialGrid.clear()
+	VFXPool.reset_pool()
 	get_tree().reload_current_scene()
 
 

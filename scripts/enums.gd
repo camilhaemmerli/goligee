@@ -85,3 +85,9 @@ enum WaveType {
 	HORDE,
 	EVENT,
 }
+
+## Special ability placement state.
+enum AbilityState {
+	IDLE,
+	PLACING,
+}

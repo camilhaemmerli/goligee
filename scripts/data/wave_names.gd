@@ -3,7 +3,7 @@ class_name WaveNames
 ## Lookup by wave number (1-based).
 
 # -- Manifestation groups (every 5 waves) --
-const MANIFESTATION_LEADERS := {
+const MANIFESTATION_LEADERS = {
 	1: "rioter",
 	2: "union_boss",
 	3: "grandma",
@@ -14,7 +14,7 @@ const MANIFESTATION_LEADERS := {
 	8: "armored_van",
 }
 
-const MANIFESTATION_NAMES := {
+const MANIFESTATION_NAMES = {
 	1: "THE FIRST GATHERING",
 	2: "LABOR UPRISING",
 	3: "THE ELDERS' MARCH",
@@ -25,7 +25,7 @@ const MANIFESTATION_NAMES := {
 	8: "FINAL OFFENSIVE",
 }
 
-const LEADER_MESSAGES := {
+const LEADER_MESSAGES = {
 	1: "Listen up, bootlicker! We're done asking nicely. The people are in the streets and your little guard towers won't stop us. This is just the beginning — a taste of what's coming. Try to keep up!",
 	2: "The workers have spoken, and the answer is NO. No more poverty wages, no more broken promises. We've organized every factory floor in the district. Your budget won't buy you out of this one, comrade.",
 	3: "You think rubber bullets scare ME? I survived the bread lines of '89, boy. My knitting circle has more backbone than your entire security apparatus. We're marching, and we brought sandwiches.",
@@ -36,7 +36,7 @@ const LEADER_MESSAGES := {
 	8: "This is it. Everything we've built, every alliance, every sacrifice — it all comes down to this moment. Full mobilization. Every soul in this city who believes in freedom is at your gates. History is watching.",
 }
 
-const INFO := {
+const INFO = {
 	1: {"name": "Unauthorized Loitering", "leader": "rioter"},
 	2: {"name": "Disorderly Conduct", "leader": "rioter"},
 	3: {"name": "Anonymous Troublemakers", "leader": "masked"},

@@ -2,8 +2,8 @@ class_name TearGasProjectile
 extends BaseProjectile
 ## Lobbed tear gas grenade with parabolic arc. Spawns a TearGasCloud on impact.
 
-const FLIGHT_DURATION := 0.6
-const ARC_HEIGHT := 40.0
+const FLIGHT_DURATION = 0.6
+const ARC_HEIGHT = 40.0
 
 var _start_pos: Vector2
 var _end_pos: Vector2

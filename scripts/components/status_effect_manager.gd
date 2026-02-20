@@ -8,6 +8,13 @@ signal effect_removed(effect_type: Enums.StatusEffectType)
 ## Active effects: key = StatusEffectType, value = Array of {data, remaining_time, stacks}
 var _active_effects: Dictionary = {}
 
+## Cache — recomputed only when effects change
+var _cache_dirty: bool = true
+var _cached_slow: float = 1.0
+var _cached_dot_dps: float = 0.0
+var _cached_vuln: float = 1.0
+var _cached_armor_shred: float = 0.0
+
 
 func apply_effect(data: StatusEffectData) -> void:
 	if randf() > data.apply_chance:
@@ -25,6 +32,7 @@ func apply_effect(data: StatusEffectData) -> void:
 			"data": data,
 			"remaining": data.duration,
 		})
+		_cache_dirty = true
 		effect_applied.emit(effect_type)
 	else:
 		# Refresh the oldest stack's duration
@@ -44,11 +52,14 @@ func _process(delta: float) -> void:
 			stack_list[i]["remaining"] -= delta
 			if stack_list[i]["remaining"] <= 0.0:
 				stack_list.remove_at(i)
+				_cache_dirty = true
 			i -= 1
 
 		if stack_list.is_empty():
 			to_remove.append(effect_type)
 
+	if not to_remove.is_empty():
+		_cache_dirty = true
 	for effect_type in to_remove:
 		_active_effects.erase(effect_type)
 		effect_removed.emit(effect_type)
@@ -58,55 +69,72 @@ func has_effect(effect_type: Enums.StatusEffectType) -> bool:
 	return _active_effects.has(effect_type) and not _active_effects[effect_type].is_empty()
 
 
-func get_slow_factor() -> float:
-	## Returns the combined slow multiplier (1.0 = no slow, 0.0 = frozen).
-	if has_effect(Enums.StatusEffectType.FREEZE):
-		return 0.0
-	if has_effect(Enums.StatusEffectType.STUN):
-		return 0.0
+func _recompute_cache() -> void:
+	_cache_dirty = false
 
-	var factor := 1.0
-	if _active_effects.has(Enums.StatusEffectType.SLOW):
-		for stack in _active_effects[Enums.StatusEffectType.SLOW]:
-			var data: StatusEffectData = stack["data"]
-			factor *= (1.0 - data.potency)
-	return max(factor, 0.0)
+	# Slow
+	if has_effect(Enums.StatusEffectType.FREEZE) or has_effect(Enums.StatusEffectType.STUN):
+		_cached_slow = 0.0
+	else:
+		var factor := 1.0
+		if _active_effects.has(Enums.StatusEffectType.SLOW):
+			for stack in _active_effects[Enums.StatusEffectType.SLOW]:
+				var data: StatusEffectData = stack["data"]
+				factor *= (1.0 - data.potency)
+		_cached_slow = max(factor, 0.0)
 
-
-func get_dot_damage(delta: float) -> float:
-	## Returns total damage-over-time to apply this frame.
-	var total := 0.0
-
+	# DoT DPS
+	var dot_total := 0.0
 	for effect_type in [Enums.StatusEffectType.POISON, Enums.StatusEffectType.BURN]:
 		if _active_effects.has(effect_type):
 			for stack in _active_effects[effect_type]:
 				var data: StatusEffectData = stack["data"]
-				total += data.potency * delta
+				dot_total += data.potency
+	_cached_dot_dps = dot_total
 
-	return total
-
-
-func get_vulnerability_modifier() -> float:
-	## Returns damage multiplier from MARK effects.
-	var modifier := 1.0
+	# Vulnerability
+	var vuln := 1.0
 	if _active_effects.has(Enums.StatusEffectType.MARK):
 		for stack in _active_effects[Enums.StatusEffectType.MARK]:
 			var data: StatusEffectData = stack["data"]
-			modifier += data.potency
-	return modifier
+			vuln += data.potency
+	_cached_vuln = vuln
 
-
-func get_armor_shred() -> float:
-	## Returns total armor shred fraction (0.0 = no shred, 1.0 = fully shredded).
-	var total := 0.0
+	# Armor shred
+	var shred := 0.0
 	if _active_effects.has(Enums.StatusEffectType.ARMOR_SHRED):
 		for stack in _active_effects[Enums.StatusEffectType.ARMOR_SHRED]:
 			var data: StatusEffectData = stack["data"]
-			total += data.potency
-	return min(total, 1.0)
+			shred += data.potency
+	_cached_armor_shred = min(shred, 1.0)
+
+
+func get_slow_factor() -> float:
+	if _cache_dirty:
+		_recompute_cache()
+	return _cached_slow
+
+
+func get_dot_damage(delta: float) -> float:
+	if _cache_dirty:
+		_recompute_cache()
+	return _cached_dot_dps * delta
+
+
+func get_vulnerability_modifier() -> float:
+	if _cache_dirty:
+		_recompute_cache()
+	return _cached_vuln
+
+
+func get_armor_shred() -> float:
+	if _cache_dirty:
+		_recompute_cache()
+	return _cached_armor_shred
 
 
 func purge_all() -> void:
 	for effect_type in _active_effects.keys():
 		effect_removed.emit(effect_type)
 	_active_effects.clear()
+	_cache_dirty = true

@@ -5,10 +5,10 @@ extends Node2D
 
 signal clicked
 
-const COL_RED := Color("#D04040")
-const COL_RED_BRIGHT := Color("#E05050")
-const COL_RED_DIM := Color("#8A2020")
-const COL_RED_GLOW := Color("#D0404040")  # with alpha
+const COL_RED = Color("#D04040")
+const COL_RED_BRIGHT = Color("#E05050")
+const COL_RED_DIM = Color("#8A2020")
+const COL_RED_GLOW = Color("#D0404040")  # with alpha
 
 var _area: Area2D
 var _pulse_t: float = 0.0

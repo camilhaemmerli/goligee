@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SpecialAbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/special_ability_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+ability_id = "water_cannon_truck"
+display_name = "WATER CANNON"
+description = "Place a riot truck on the path. It drives backward toward spawn, pushing agitators back with hydraulic force."
+thematic_name = "EXECUTIVE DECREE #3"
+cooldown = 55.0
+duration = 12.0
+unlock_wave = 11
+placement_type = 1
+requires_path_proximity = true
+path_proximity_radius = 64.0
+effect_radius = 56.0

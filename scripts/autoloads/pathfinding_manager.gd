@@ -10,6 +10,7 @@ var _tile_map: TileMapLayer
 var _spawn_tiles: Array[Vector2i] = []
 var _goal_tiles: Array[Vector2i] = []
 var _cached_paths: Dictionary = {}  # spawn_index -> PackedVector2Array (world coords)
+var _cached_tile_paths: Dictionary = {}  # spawn_index -> Array[Vector2i] (tile coords)
 
 
 func initialize(tile_map: TileMapLayer, spawn_tiles: Array[Vector2i], goal_tiles: Array[Vector2i]) -> void:
@@ -70,14 +71,14 @@ func place_tower(tile_pos: Vector2i) -> void:
 	if not _astar:
 		return
 	_astar.set_point_solid(tile_pos, true)
-	_recalculate_all_paths()
+	_recalculate_affected_paths(tile_pos)
 
 
 func remove_tower(tile_pos: Vector2i) -> void:
 	if not _astar:
 		return
 	_astar.set_point_solid(tile_pos, false)
-	_recalculate_all_paths()
+	_recalculate_affected_paths(tile_pos)
 
 
 func get_path_for_spawn(index: int) -> PackedVector2Array:
@@ -100,12 +101,31 @@ func _recalculate_all_paths() -> void:
 		_recalculate_path(i)
 
 
+func _recalculate_affected_paths(changed_tile: Vector2i) -> void:
+	for i in _spawn_tiles.size():
+		# Check if changed tile is on or adjacent to any tile in the cached path
+		if _cached_tile_paths.has(i):
+			var tile_path: Array = _cached_tile_paths[i]
+			var affected := false
+			for tp in tile_path:
+				var dx := absi(changed_tile.x - tp.x)
+				var dy := absi(changed_tile.y - tp.y)
+				if maxi(dx, dy) <= 1:  # Chebyshev distance
+					affected = true
+					break
+			if not affected:
+				continue
+		# No cached path or path is affected — recalculate
+		_recalculate_path(i)
+
+
 func _recalculate_path(spawn_index: int) -> void:
 	if not _astar or not _tile_map:
 		return
 
 	var spawn := _spawn_tiles[spawn_index]
 	var best_path: PackedVector2Array = PackedVector2Array()
+	var best_tile_path: Array[Vector2i] = []
 
 	# Find shortest path to any goal tile
 	for goal in _goal_tiles:
@@ -114,9 +134,21 @@ func _recalculate_path(spawn_index: int) -> void:
 			if best_path.is_empty() or tile_path.size() < best_path.size():
 				# Convert tile coords to world coords
 				var world_path := PackedVector2Array()
+				best_tile_path = []
 				for tile_pos in tile_path:
 					world_path.append(_tile_map.map_to_local(tile_pos))
+					best_tile_path.append(Vector2i(tile_pos))
 				best_path = world_path
 
+	# Only emit if path actually changed
+	var prev_tile_path: Array = _cached_tile_paths.get(spawn_index, [])
+	_cached_tile_paths[spawn_index] = best_tile_path
 	_cached_paths[spawn_index] = best_path
-	path_updated.emit(spawn_index)
+
+	if best_tile_path.size() != prev_tile_path.size():
+		path_updated.emit(spawn_index)
+		return
+	for j in best_tile_path.size():
+		if best_tile_path[j] != prev_tile_path[j]:
+			path_updated.emit(spawn_index)
+			return

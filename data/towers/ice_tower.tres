@@ -36,67 +36,67 @@ unlocks_ability = SubResource("slow_c1")
 [sub_resource type="Resource" id="freeze_c2"]
 script = ExtResource("7_sed")
 effect_type = 1
-duration = 1.0
+duration = 1.2
 potency = 1.0
 stack_limit = 1
-apply_chance = 0.2
+apply_chance = 0.25
 
 [sub_resource type="Resource" id="tier_c2"]
 script = ExtResource("5_utd")
 tier_name = "Cryo Jet"
 description = "Flash-freeze for flash mobs"
-cost = 2
+cost = 3
 unlocks_ability = SubResource("freeze_c2")
 
 [sub_resource type="Resource" id="freeze_c3"]
 script = ExtResource("7_sed")
 effect_type = 1
-duration = 1.0
+duration = 1.2
 potency = 1.0
 stack_limit = 1
-apply_chance = 0.3
+apply_chance = 0.35
 
 [sub_resource type="Resource" id="tier_c3"]
 script = ExtResource("5_utd")
 tier_name = "Sub-Zero Mix"
 description = "Antifreeze? No, this is pro-freeze."
-cost = 3
+cost = 4
 unlocks_ability = SubResource("freeze_c3")
 
 [sub_resource type="Resource" id="freeze_c4"]
 script = ExtResource("7_sed")
 effect_type = 1
-duration = 1.5
+duration = 1.8
 potency = 1.0
 stack_limit = 1
-apply_chance = 0.4
+apply_chance = 0.5
 
 [sub_resource type="Resource" id="tier_c4"]
 script = ExtResource("5_utd")
 tier_name = "Permafrost Compound"
 description = "Winter came. It's not leaving."
-cost = 5
+cost = 7
 unlocks_ability = SubResource("freeze_c4")
 
 [sub_resource type="Resource" id="freeze_c5"]
 script = ExtResource("7_sed")
 effect_type = 1
-duration = 2.0
+duration = 2.4
 potency = 1.0
 stack_limit = 1
-apply_chance = 0.5
+apply_chance = 0.6
 
 [sub_resource type="Resource" id="mod_c5_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 1.0
+value = 1.5
 
 [sub_resource type="Resource" id="tier_c5"]
 script = ExtResource("5_utd")
 tier_name = "Absolute Zero"
 description = "Thermodynamics called. We told them to shut up and comply."
-cost = 8
+cost = 12
 stat_modifiers = [SubResource("mod_c5_aoe")]
 unlocks_ability = SubResource("freeze_c5")
 

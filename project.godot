@@ -26,6 +26,9 @@ UpgradeRegistry="*res://scripts/autoloads/upgrade_registry.gd"
 ThemeManager="*res://scripts/autoloads/theme_manager.gd"
 PathfindingManager="*res://scripts/autoloads/pathfinding_manager.gd"
 SynergyManager="*res://scripts/autoloads/synergy_manager.gd"
+SpatialGrid="*res://scripts/autoloads/spatial_grid.gd"
+VFXPool="*res://scripts/autoloads/vfx_pool.gd"
+AbilityManager="*res://scripts/autoloads/ability_manager.gd"
 
 [display]
 

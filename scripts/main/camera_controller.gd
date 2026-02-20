@@ -4,11 +4,11 @@ extends Camera2D
 ## Attached to the Camera2D created in game.gd.
 
 ## Zoom limits
-const ZOOM_MIN := 0.80
-const ZOOM_MAX := 2.0
-const ZOOM_DEFAULT := 0.95
-const ZOOM_STEP := 0.05
-const ZOOM_SPEED := 8.0  # lerp speed
+const ZOOM_MIN = 0.80
+const ZOOM_MAX = 2.0
+const ZOOM_DEFAULT = 0.95
+const ZOOM_STEP = 0.05
+const ZOOM_SPEED = 8.0  # lerp speed
 
 ## Pan
 var _map_bounds := Rect2()  # world-space bounds of the playable area + border

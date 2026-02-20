@@ -58,6 +58,7 @@ signal ability_unlocked(ability_data: SpecialAbilityData)
 
 # -- Effects --
 signal chemical_impact(position: Vector2, intensity: float)
+signal screen_shake(intensity: float, duration: float)
 
 # -- UI --
 signal tower_selected(tower: Node2D)

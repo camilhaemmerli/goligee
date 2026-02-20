@@ -4,21 +4,21 @@ extends BaseProjectile
 ## Applies damage immediately, then draws expanding concentric ring arcs
 ## and a screen-space distortion shader that warps the background.
 
-const EFFECT_DURATION := 0.6
-const EXPAND_SPEED := 200.0       # px/s — reaches ~120px in 0.6s (~4 tiles)
-const MAX_RADIUS := 120.0
+const EFFECT_DURATION = 0.6
+const EXPAND_SPEED = 200.0       # px/s — reaches ~120px in 0.6s (~4 tiles)
+const MAX_RADIUS = 120.0
 
-const ARC_COLOR := Color("#80E060", 0.6)
-const FILL_COLOR := Color("#80E060", 0.05)
-const PARTICLE_COLOR := Color("#A0E080")
-const ARC_WIDTH := 2.0
-const NUM_RINGS := 3
-const RING_SPACING := 12.0
+const ARC_COLOR = Color("#80E060", 0.6)
+const FILL_COLOR = Color("#80E060", 0.05)
+const PARTICLE_COLOR = Color("#A0E080")
+const ARC_WIDTH = 2.0
+const NUM_RINGS = 3
+const RING_SPACING = 12.0
 
 # Shader uniforms
-const SHADER_STRENGTH_START := 0.012
-const SHADER_WAVE_WIDTH := 0.12
-const SHADER_RING_FREQ := 3.0
+const SHADER_STRENGTH_START = 0.012
+const SHADER_WAVE_WIDTH = 0.12
+const SHADER_RING_FREQ = 3.0
 
 var _elapsed: float = 0.0
 var _current_radius: float = 0.0
@@ -92,7 +92,7 @@ func _setup_distortion_overlay() -> void:
 
 func _spawn_pressure_particles() -> void:
 	for i in randi_range(6, 8):
-		var spec := ColorRect.new()
+		var spec := VFXPool.acquire_rect()
 		spec.size = Vector2(2, 2)
 		spec.color = PARTICLE_COLOR
 		spec.global_position = global_position + Vector2(-1, -1)
@@ -106,7 +106,7 @@ func _spawn_pressure_particles() -> void:
 		tween.set_parallel(true)
 		tween.tween_property(spec, "global_position", end_pos, 0.3).set_ease(Tween.EASE_OUT)
 		tween.tween_property(spec, "modulate:a", 0.0, 0.3)
-		tween.chain().tween_callback(spec.queue_free)
+		tween.chain().tween_callback(VFXPool.release_rect.bind(spec))
 
 
 func _process(delta: float) -> void:

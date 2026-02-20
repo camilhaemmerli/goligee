@@ -13,95 +13,95 @@
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="mod_a1_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.3
+value = 1.4
 
 [sub_resource type="Resource" id="tier_a1"]
 script = ExtResource("5_utd")
 tier_name = "Wide Dispersal"
 description = "More coverage, more compliance"
-cost = 2
+cost = 3
 stat_modifiers = [SubResource("mod_a1_aoe"), SubResource("mod_a1_dmg")]
 
 [sub_resource type="Resource" id="mod_a2_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="mod_a2_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.5
+value = 1.6
 
 [sub_resource type="Resource" id="tier_a2"]
 script = ExtResource("5_utd")
 tier_name = "Nerve Agent"
 description = "Geneva suggestion, really"
-cost = 4
+cost = 5
 stat_modifiers = [SubResource("mod_a2_aoe"), SubResource("mod_a2_dmg")]
 
 [sub_resource type="Resource" id="mod_a3_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="mod_a3_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.3
+value = 1.5
 
 [sub_resource type="Resource" id="tier_a3"]
 script = ExtResource("5_utd")
 tier_name = "Binary Agent"
 description = "Two chemicals, one purpose: suffering"
-cost = 6
+cost = 8
 stat_modifiers = [SubResource("mod_a3_aoe"), SubResource("mod_a3_dmg")]
 
 [sub_resource type="Resource" id="mod_a4_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="mod_a4_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.4
+value = 1.6
 
 [sub_resource type="Resource" id="tier_a4"]
 script = ExtResource("5_utd")
 tier_name = "Weaponized Compound"
 description = "The lab report is redacted for your safety"
-cost = 10
+cost = 13
 stat_modifiers = [SubResource("mod_a4_aoe"), SubResource("mod_a4_dmg")]
 
 [sub_resource type="Resource" id="mod_a5_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 1.0
+value = 1.5
 
 [sub_resource type="Resource" id="mod_a5_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.5
+value = 1.8
 
 [sub_resource type="Resource" id="tier_a5"]
 script = ExtResource("5_utd")
 tier_name = "Forbidden Protocol"
 description = "Banned by 194 countries. Approved by the one that matters."
-cost = 16
+cost = 22
 stat_modifiers = [SubResource("mod_a5_aoe"), SubResource("mod_a5_dmg")]
 
 [sub_resource type="Resource" id="path_a"]
@@ -115,7 +115,7 @@ tiers = [SubResource("tier_a1"), SubResource("tier_a2"), SubResource("tier_a3"),
 script = ExtResource("7_sed")
 effect_type = 2
 duration = 3.0
-potency = 3.0
+potency = 3.75
 stack_limit = 3
 apply_chance = 1.0
 
@@ -123,14 +123,14 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Lingering Fumes"
 description = "The gift that keeps on giving"
-cost = 2
+cost = 3
 unlocks_ability = SubResource("poison_c1")
 
 [sub_resource type="Resource" id="poison_c2"]
 script = ExtResource("7_sed")
 effect_type = 2
 duration = 4.0
-potency = 5.0
+potency = 6.25
 stack_limit = 5
 apply_chance = 1.0
 
@@ -138,14 +138,14 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Persistent Compound"
 description = "Still crying? That's the residual agent working as intended."
-cost = 4
+cost = 5
 unlocks_ability = SubResource("poison_c2")
 
 [sub_resource type="Resource" id="poison_c3"]
 script = ExtResource("7_sed")
 effect_type = 2
 duration = 4.0
-potency = 6.0
+potency = 7.5
 stack_limit = 5
 apply_chance = 1.0
 
@@ -153,14 +153,14 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Mutagenic Residue"
 description = "Side effects may include compliance and extra fingers"
-cost = 6
+cost = 8
 unlocks_ability = SubResource("poison_c3")
 
 [sub_resource type="Resource" id="burn_c4"]
 script = ExtResource("7_sed")
 effect_type = 3
 duration = 3.0
-potency = 4.0
+potency = 5.0
 stack_limit = 3
 apply_chance = 1.0
 
@@ -168,14 +168,14 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Thermite Additive"
 description = "Now it burns AND poisons. Synergy!"
-cost = 10
+cost = 13
 unlocks_ability = SubResource("burn_c4")
 
 [sub_resource type="Resource" id="poison_c5"]
 script = ExtResource("7_sed")
 effect_type = 2
 duration = 5.0
-potency = 8.0
+potency = 10.0
 stack_limit = 8
 apply_chance = 1.0
 
@@ -183,7 +183,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Doomsday Agent"
 description = "The area will be habitable again in 50 years. Probably."
-cost = 16
+cost = 22
 unlocks_ability = SubResource("poison_c5")
 
 [sub_resource type="Resource" id="path_c"]

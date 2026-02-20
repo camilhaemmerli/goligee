@@ -18,7 +18,7 @@ var _ghost_valid: bool = false
 var _confirmed_tile: Vector2i = Vector2i(-999, -999)  ## Sentinel for two-tap placement
 var _confirm_icon: Sprite2D  ## Green checkmark shown when tile is primed
 
-const TOWER_SCALE := 0.75
+const TOWER_SCALE = 0.75
 
 
 func _ready() -> void:
@@ -110,6 +110,9 @@ func _on_build_mode_exited() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if AbilityManager.is_placing():
+		return
+
 	if not _placing:
 		if event.is_action_pressed("select"):
 			_try_select(get_global_mouse_position())

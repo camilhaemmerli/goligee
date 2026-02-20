@@ -3,8 +3,8 @@ extends RefCounted
 ## Places environmental props (barricades, debris, graffiti, vehicles, etc.)
 ## across the playing field to sell the post-apocalyptic atmosphere.
 
-const TILE_W := 64
-const TILE_H := 32
+const TILE_W = 64
+const TILE_H = 32
 
 
 static func build_environment(container: Node2D, tile_map: TileMapLayer) -> void:

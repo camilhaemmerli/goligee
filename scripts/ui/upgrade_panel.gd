@@ -10,10 +10,10 @@ extends PanelContainer
 var _selected_tower: BaseTower
 var _blackletter_font: Font
 
-const COL_PANEL_BG := Color("#1A1A1E")
-const COL_BORDER := Color("#28282C")
-const COL_GOLD := Color("#F2D864")
-const COL_MUTED := Color("#808898")
+const COL_PANEL_BG = Color("#1A1A1E")
+const COL_BORDER = Color("#28282C")
+const COL_GOLD = Color("#F2D864")
+const COL_MUTED = Color("#808898")
 
 
 func _ready() -> void:

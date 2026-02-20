@@ -4,8 +4,8 @@ class_name ButtonStyles
 
 # -- Color palette --
 const PRIMARY       := Color("#D04040")
-const PRIMARY_HOVER := Color("#D85050")
-const PRIMARY_PRESS := Color("#B03030")
+const PRIMARY_HOVER = Color("#D85050")
+const PRIMARY_PRESS = Color("#B03030")
 const HIGHLIGHT     := Color("#E86060")  # top bevel / bright edge
 const SHADOW        := Color("#801818")  # bottom bevel / shadow
 const PANEL_BG      := Color("#1A1A1E")
@@ -13,7 +13,7 @@ const SURFACE       := Color("#2A2A30")
 const TEXT_PRIMARY   := Color("#FFFFFF")
 const TEXT_MUTED     := Color("#808898")
 const DISABLED_BG   := Color("#2A2A30")
-const DISABLED_BORDER := Color("#3A3A40")
+const DISABLED_BORDER = Color("#3A3A40")
 
 
 ## Red bg, 3D bevel, white text — the default action button.

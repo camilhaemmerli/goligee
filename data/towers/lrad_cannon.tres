@@ -22,89 +22,89 @@ apply_chance = 1.0
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.4
+value = 1.5
 
 [sub_resource type="Resource" id="tier_a1"]
 script = ExtResource("5_utd")
 tier_name = "Bass Boost"
 description = "Subsonic frequencies for subsonic compliance"
-cost = 3
+cost = 4
 stat_modifiers = [SubResource("mod_a1_dmg")]
 
 [sub_resource type="Resource" id="mod_a2_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.4
+value = 1.5
 
 [sub_resource type="Resource" id="mod_a2_range"]
 script = ExtResource("6_smd")
 stat_name = "base_range"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="tier_a2"]
 script = ExtResource("5_utd")
 tier_name = "Directional Array"
 description = "Focused sonic beam. Earplugs not included."
-cost = 6
+cost = 8
 stat_modifiers = [SubResource("mod_a2_dmg"), SubResource("mod_a2_range")]
 
 [sub_resource type="Resource" id="mod_a3_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.3
+value = 1.5
 
 [sub_resource type="Resource" id="mod_a3_range"]
 script = ExtResource("6_smd")
 stat_name = "base_range"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="tier_a3"]
 script = ExtResource("5_utd")
 tier_name = "Concert-Grade Array"
 description = "Front row seats. Attendance is mandatory."
-cost = 9
+cost = 12
 stat_modifiers = [SubResource("mod_a3_dmg"), SubResource("mod_a3_range")]
 
 [sub_resource type="Resource" id="mod_a4_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.4
+value = 1.6
 
 [sub_resource type="Resource" id="mod_a4_crit"]
 script = ExtResource("6_smd")
 stat_name = "crit_chance"
 operation = 0
-value = 0.05
+value = 0.06
 
 [sub_resource type="Resource" id="tier_a4"]
 script = ExtResource("5_utd")
 tier_name = "Resonance Cannon"
 description = "Finds the resonant frequency of your skeleton"
-cost = 15
+cost = 20
 stat_modifiers = [SubResource("mod_a4_dmg"), SubResource("mod_a4_crit")]
 
 [sub_resource type="Resource" id="mod_a5_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.5
+value = 1.8
 
 [sub_resource type="Resource" id="mod_a5_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 0.5
+value = 0.8
 
 [sub_resource type="Resource" id="tier_a5"]
 script = ExtResource("5_utd")
 tier_name = "Sonic Annihilator"
 description = "The last thing they'll hear. Also the loudest thing anyone has ever heard."
-cost = 24
+cost = 32
 stat_modifiers = [SubResource("mod_a5_dmg"), SubResource("mod_a5_aoe")]
 
 [sub_resource type="Resource" id="path_a"]
@@ -118,91 +118,91 @@ tiers = [SubResource("tier_a1"), SubResource("tier_a2"), SubResource("tier_a3"),
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 0.3
+value = 0.4
 
 [sub_resource type="Resource" id="tier_b1"]
 script = ExtResource("5_utd")
 tier_name = "Harmonic Resonance"
 description = "Sympathetic vibrations at civilian frequency"
-cost = 3
+cost = 4
 stat_modifiers = [SubResource("mod_b1_aoe")]
 
 [sub_resource type="Resource" id="mod_b2_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="mod_b2_rate"]
 script = ExtResource("6_smd")
 stat_name = "fire_rate"
 operation = 1
-value = 1.2
+value = 1.3
 
 [sub_resource type="Resource" id="tier_b2"]
 script = ExtResource("5_utd")
 tier_name = "Doppler Array"
 description = "Moving targets receive bonus discomfort"
-cost = 6
+cost = 8
 stat_modifiers = [SubResource("mod_b2_aoe"), SubResource("mod_b2_rate")]
 
 [sub_resource type="Resource" id="mod_b3_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="mod_b3_rate"]
 script = ExtResource("6_smd")
 stat_name = "fire_rate"
 operation = 1
-value = 1.15
+value = 1.25
 
 [sub_resource type="Resource" id="tier_b3"]
 script = ExtResource("5_utd")
 tier_name = "Waveform Optimizer"
 description = "Peak performance at peak decibels"
-cost = 9
+cost = 12
 stat_modifiers = [SubResource("mod_b3_aoe"), SubResource("mod_b3_rate")]
 
 [sub_resource type="Resource" id="mod_b4_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="mod_b4_rate"]
 script = ExtResource("6_smd")
 stat_name = "fire_rate"
 operation = 1
-value = 1.2
+value = 1.3
 
 [sub_resource type="Resource" id="tier_b4"]
 script = ExtResource("5_utd")
 tier_name = "Harmonic Cascade"
 description = "When one frequency isn't enough, try all of them"
-cost = 15
+cost = 20
 stat_modifiers = [SubResource("mod_b4_aoe"), SubResource("mod_b4_rate")]
 
 [sub_resource type="Resource" id="mod_b5_aoe"]
 script = ExtResource("6_smd")
 stat_name = "area_of_effect"
 operation = 0
-value = 1.0
+value = 1.5
 
 [sub_resource type="Resource" id="stun_b5"]
 script = ExtResource("7_sed")
 effect_type = 5
-duration = 0.5
+duration = 0.6
 potency = 1.0
 stack_limit = 1
-apply_chance = 0.15
+apply_chance = 0.18
 
 [sub_resource type="Resource" id="tier_b5"]
 script = ExtResource("5_utd")
 tier_name = "Sonic Boom"
 description = "Causes temporary deafness and permanent regret about attending this protest"
-cost = 24
+cost = 32
 stat_modifiers = [SubResource("mod_b5_aoe")]
 unlocks_ability = SubResource("stun_b5")
 
@@ -217,7 +217,7 @@ tiers = [SubResource("tier_b1"), SubResource("tier_b2"), SubResource("tier_b3"),
 script = ExtResource("7_sed")
 effect_type = 0
 duration = 2.0
-potency = 0.2
+potency = 0.25
 stack_limit = 1
 apply_chance = 1.0
 
@@ -225,14 +225,14 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Disorientation Pulse"
 description = "Which way is the exit? There is no exit."
-cost = 3
+cost = 4
 unlocks_ability = SubResource("slow_c1")
 
 [sub_resource type="Resource" id="slow_c2"]
 script = ExtResource("7_sed")
 effect_type = 0
 duration = 2.5
-potency = 0.35
+potency = 0.4
 stack_limit = 1
 apply_chance = 1.0
 
@@ -240,13 +240,13 @@ apply_chance = 1.0
 script = ExtResource("6_smd")
 stat_name = "base_range"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="tier_c2"]
 script = ExtResource("5_utd")
 tier_name = "Nausea Frequency"
 description = "Weaponized motion sickness at 19Hz"
-cost = 6
+cost = 8
 stat_modifiers = [SubResource("mod_c2_range")]
 unlocks_ability = SubResource("slow_c2")
 
@@ -254,7 +254,7 @@ unlocks_ability = SubResource("slow_c2")
 script = ExtResource("7_sed")
 effect_type = 0
 duration = 2.0
-potency = 0.3
+potency = 0.35
 stack_limit = 1
 apply_chance = 1.0
 
@@ -262,13 +262,13 @@ apply_chance = 1.0
 script = ExtResource("6_smd")
 stat_name = "base_range"
 operation = 0
-value = 0.5
+value = 0.6
 
 [sub_resource type="Resource" id="tier_c3"]
 script = ExtResource("5_utd")
 tier_name = "Infrasound Emitter"
 description = "You can't hear it, but your organs can"
-cost = 9
+cost = 12
 stat_modifiers = [SubResource("mod_c3_range")]
 unlocks_ability = SubResource("slow_c3")
 
@@ -276,7 +276,7 @@ unlocks_ability = SubResource("slow_c3")
 script = ExtResource("7_sed")
 effect_type = 7
 duration = 3.0
-potency = 0.15
+potency = 0.2
 stack_limit = 1
 apply_chance = 1.0
 
@@ -284,14 +284,14 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Demoralization Frequency"
 description = "Tuned to the frequency of existential dread"
-cost = 15
+cost = 20
 unlocks_ability = SubResource("weaken_c4")
 
 [sub_resource type="Resource" id="slow_c5"]
 script = ExtResource("7_sed")
 effect_type = 0
-duration = 3.0
-potency = 0.5
+duration = 3.5
+potency = 0.6
 stack_limit = 1
 apply_chance = 1.0
 
@@ -299,7 +299,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Total Submission"
 description = "Free will is a privilege, not a right. Privilege revoked."
-cost = 24
+cost = 32
 unlocks_ability = SubResource("slow_c5")
 
 [sub_resource type="Resource" id="path_c"]

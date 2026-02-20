@@ -5,10 +5,10 @@ extends Node2D
 ## Helps with positioning buildings and decorations relative to the game area.
 ## Invisible at runtime.
 
-const MAP_W := 24
-const MAP_H := 14
-const HW := 32.0  # TILE_W / 2
-const HH := 16.0  # TILE_H / 2
+const MAP_W = 24
+const MAP_H = 14
+const HW = 32.0  # TILE_W / 2
+const HH = 16.0  # TILE_H / 2
 
 
 func _ready() -> void:

@@ -23,7 +23,7 @@ var _timer: float = 0.0
 
 var _trail: Line2D
 var _trail_points: PackedVector2Array = PackedVector2Array()
-const MAX_TRAIL_POINTS := 5
+const MAX_TRAIL_POINTS = 5
 
 @onready var sprite: Sprite2D = $Sprite2D
 
@@ -130,28 +130,28 @@ func _hit_target(hit_enemy: Node2D) -> void:
 
 
 func _apply_damage_to(enemy: Node2D) -> void:
+	if enemy is BaseEnemy:
+		var e := enemy as BaseEnemy
+		if not e.health:
+			return
+		if is_instance_valid(source_tower):
+			e.last_hit_by = source_tower
+		var resists: Dictionary = e.resistances.get_all() if e.resistances else {}
+		var vuln_mod := e.get_vulnerability_modifier()
+		var armor_shred := e.get_armor_shred()
+		e.health.take_damage(damage, damage_type, resists, vuln_mod, crit_chance, crit_multiplier, armor_shred)
+		if e.status_effects:
+			for effect in on_hit_effects:
+				e.status_effects.apply_effect(effect)
+		return
+
+	# Fallback for non-BaseEnemy nodes
 	var health := enemy.get_node_or_null("HealthComponent") as HealthComponent
 	if not health:
 		return
-
-	# Track kill attribution
-	if enemy is BaseEnemy and is_instance_valid(source_tower):
-		enemy.last_hit_by = source_tower
-
 	var resistance_comp := enemy.get_node_or_null("ResistanceComponent") as ResistanceComponent
 	var resists: Dictionary = resistance_comp.get_all() if resistance_comp else {}
-
-	var vuln_mod := 1.0
-	if enemy.has_method("get_vulnerability_modifier"):
-		vuln_mod = enemy.get_vulnerability_modifier()
-
-	var armor_shred := 0.0
-	if enemy.has_method("get_armor_shred"):
-		armor_shred = enemy.get_armor_shred()
-
-	health.take_damage(damage, damage_type, resists, vuln_mod, crit_chance, crit_multiplier, armor_shred)
-
-	# Apply on-hit status effects
+	health.take_damage(damage, damage_type, resists, 1.0, crit_chance, crit_multiplier, 0.0)
 	var effect_mgr := enemy.get_node_or_null("StatusEffectManager") as StatusEffectManager
 	if effect_mgr:
 		for effect in on_hit_effects:
@@ -159,18 +159,16 @@ func _apply_damage_to(enemy: Node2D) -> void:
 
 
 func _apply_aoe_damage(center: Vector2) -> void:
-	var enemies_group := get_tree().get_nodes_in_group("enemies")
-	for enemy in enemies_group:
-		if enemy is Node2D:
-			var dist := center.distance_to(enemy.global_position)
-			if dist <= aoe_radius * 32.0:  # Convert tile radius to pixels
-				_apply_damage_to(enemy)
+	var radius_px := aoe_radius * 32.0
+	var enemies_nearby := SpatialGrid.get_enemies_in_radius(center, radius_px)
+	for enemy in enemies_nearby:
+		_apply_damage_to(enemy)
 
 
 func _spawn_impact_particles() -> void:
 	var color := ThemeManager.get_damage_type_color(damage_type)
 	for i in randi_range(2, 4):
-		var shard := ColorRect.new()
+		var shard := VFXPool.acquire_rect()
 		shard.size = Vector2(2, 2)
 		shard.color = color
 		shard.global_position = global_position + Vector2(-1, -1)
@@ -182,7 +180,7 @@ func _spawn_impact_particles() -> void:
 		tween.set_parallel(true)
 		tween.tween_property(shard, "global_position", end_pos, 0.25).set_ease(Tween.EASE_OUT)
 		tween.tween_property(shard, "modulate:a", 0.0, 0.25)
-		tween.chain().tween_callback(shard.queue_free)
+		tween.chain().tween_callback(VFXPool.release_rect.bind(shard))
 
 
 func _fade_trail() -> void:

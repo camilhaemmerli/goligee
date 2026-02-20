@@ -3,18 +3,18 @@ extends Node2D
 ## Lingering tear gas smoke cloud that damages enemies within its radius.
 ## Uses two CPUParticles2D layers (burst + continuous) and a ground haze sprite.
 
-const CLOUD_DURATION := 3.0
-const FADE_DURATION := 1.0
-const DAMAGE_INTERVAL := 0.5
-const DAMAGE_RATIO := 0.4  ## Fraction of projectile damage per tick
-const CLOUD_RADIUS := 40.0  ## Pixels — enemies within this range take damage
+var cloud_duration := 3.0
+const FADE_DURATION = 1.0
+const DAMAGE_INTERVAL = 0.5
+const DAMAGE_RATIO = 0.4  ## Fraction of projectile damage per tick
+const CLOUD_RADIUS = 40.0  ## Pixels — enemies within this range take damage
 
 ## Colors matching CHEMICAL damage palette
-const COLOR_BURST := Color("#FFD080E0")   # Bright detonation flash
-const COLOR_START := Color("#E08040C0")   # Fresh chemical agent
-const COLOR_MID := Color("#C0703880")     # Settling gas
-const COLOR_END := Color("#8050281F")     # Dissipating haze
-const COLOR_HAZE := Color("#E080404D")    # Ground haze at 30%
+const COLOR_BURST = Color("#FFD080E0")   # Bright detonation flash
+const COLOR_START = Color("#E08040C0")   # Fresh chemical agent
+const COLOR_MID = Color("#C0703880")     # Settling gas
+const COLOR_END = Color("#8050281F")     # Dissipating haze
+const COLOR_HAZE = Color("#E080404D")    # Ground haze at 30%
 
 var damage_per_tick: float
 var damage_type: Enums.DamageType = Enums.DamageType.CHEMICAL
@@ -60,7 +60,7 @@ func _process(delta: float) -> void:
 		_ground_haze.modulate.a = pulse
 
 	# Start fade-out
-	if _elapsed >= CLOUD_DURATION and not _fading:
+	if _elapsed >= cloud_duration and not _fading:
 		_fading = true
 		_continuous_particles.emitting = false
 		var tween := create_tween()
@@ -69,40 +69,27 @@ func _process(delta: float) -> void:
 
 
 func _apply_cloud_damage() -> void:
-	var enemies := get_tree().get_nodes_in_group("enemies")
-	for enemy in enemies:
-		if not enemy is Node2D:
+	var enemies := SpatialGrid.get_enemies_in_radius(global_position, CLOUD_RADIUS)
+	for node in enemies:
+		if not node is BaseEnemy:
 			continue
-		var dist := global_position.distance_to(enemy.global_position)
-		if dist > CLOUD_RADIUS:
-			continue
-
-		var health := enemy.get_node_or_null("HealthComponent") as HealthComponent
-		if not health or health.is_dead:
+		var enemy: BaseEnemy = node as BaseEnemy
+		if not enemy.health or enemy.health.is_dead:
 			continue
 
 		# Track kill attribution
-		if enemy is BaseEnemy and is_instance_valid(source_tower):
+		if is_instance_valid(source_tower):
 			enemy.last_hit_by = source_tower
 
-		var resistance_comp := enemy.get_node_or_null("ResistanceComponent") as ResistanceComponent
-		var resists: Dictionary = resistance_comp.get_all() if resistance_comp else {}
-
-		var vuln_mod := 1.0
-		if enemy.has_method("get_vulnerability_modifier"):
-			vuln_mod = enemy.get_vulnerability_modifier()
-
-		var armor_shred := 0.0
-		if enemy.has_method("get_armor_shred"):
-			armor_shred = enemy.get_armor_shred()
-
-		health.take_damage(damage_per_tick, damage_type, resists, vuln_mod, 0.0, 1.0, armor_shred)
+		var resists: Dictionary = enemy.resistances.get_all() if enemy.resistances else {}
+		var vuln_mod := enemy.get_vulnerability_modifier()
+		var armor_shred := enemy.get_armor_shred()
+		enemy.health.take_damage(damage_per_tick, damage_type, resists, vuln_mod, 0.0, 1.0, armor_shred)
 
 		# Apply status effects (slow/poison from upgrades)
-		var effect_mgr := enemy.get_node_or_null("StatusEffectManager") as StatusEffectManager
-		if effect_mgr:
+		if enemy.status_effects:
 			for effect in on_hit_effects:
-				effect_mgr.apply_effect(effect)
+				enemy.status_effects.apply_effect(effect)
 
 
 func _setup_ground_haze() -> void:

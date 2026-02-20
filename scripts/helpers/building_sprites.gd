@@ -3,8 +3,8 @@ extends RefCounted
 ## Procedurally generates isometric building textures at runtime.
 ## Buildings are 3-face isometric boxes with windows, doors, and detail.
 
-const TILE_W := 64
-const TILE_H := 32
+const TILE_W = 64
+const TILE_H = 32
 
 
 static func create_government_building() -> ImageTexture:

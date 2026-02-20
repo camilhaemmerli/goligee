@@ -6,11 +6,11 @@ extends PanelContainer
 
 @onready var button_container: HBoxContainer = $HBox
 
-const CARD_SIZE := Vector2(78, 78)
-const BUTTON_GAP := 6
-const CORNER_RADIUS := 12
+const CARD_SIZE = Vector2(66, 66)
+const BUTTON_GAP = 6
+const CORNER_RADIUS = 12
 
-const CARD_DISABLED_ALPHA := 0.55
+const CARD_DISABLED_ALPHA = 0.55
 
 func _ready() -> void:
 	# Make the outer PanelContainer transparent

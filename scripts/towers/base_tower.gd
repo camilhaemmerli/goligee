@@ -25,17 +25,17 @@ var _turret_textures: Array[Texture2D] = []
 var _fire_turret_textures: Array[Texture2D] = []
 var _current_dir_idx: int = 7  # Track current aim direction for fire frame swap
 ## Direction names matching _turret_textures indices
-const DIRS := ["s", "sw", "w", "nw", "n", "ne", "e", "se"]
+const DIRS = ["s", "sw", "w", "nw", "n", "ne", "e", "se"]
 
-const KILL_MILESTONES := [25, 50, 100, 250, 500, 1000]
-const TOWER_SCALE := 0.75
+const KILL_MILESTONES = [25, 50, 100, 250, 500, 1000]
+const TOWER_SCALE = 0.75
 
 # Rank badge constants
-const BADGE_COLORS := [Color("#B08040"), Color("#A0A8B8"), Color("#FFD060")]  # bronze, silver, gold
-const BADGE_OUTLINE := Color("#1A1A1E")
-const CHEVRON_W := 6.0   # half-width of chevron V
-const CHEVRON_H := 3.0   # depth of V
-const CHEVRON_SPACING := 4.0
+const BADGE_COLORS = [Color("#B08040"), Color("#A0A8B8"), Color("#FFD060")]  # bronze, silver, gold
+const BADGE_OUTLINE = Color("#1A1A1E")
+const CHEVRON_W = 6.0   # half-width of chevron V
+const CHEVRON_H = 3.0   # depth of V
+const CHEVRON_SPACING = 4.0
 var _badge_node: Node2D
 var _total_upgrades: int = 0
 
@@ -47,19 +47,19 @@ var _synergy_rate_mult: float = 1.0
 
 # Taser tower-to-tower electric links
 var _taser_links: Dictionary = {}  # neighbor instance_id -> Line2D
-const TASER_LINK_RANGE := 3  # Chebyshev tile distance
-const TASER_LINK_COLOR := Color("#E0E060", 0.3)
-const TASER_LINK_JITTER := 4.0
-const TASER_LINK_SEGMENTS := 4
-const TASER_LINK_FLICKER_INTERVAL := 0.15
+const TASER_LINK_RANGE = 3  # Chebyshev tile distance
+const TASER_LINK_COLOR = Color("#E0E060", 0.3)
+const TASER_LINK_JITTER = 4.0
+const TASER_LINK_SEGMENTS = 4
+const TASER_LINK_FLICKER_INTERVAL = 0.15
 var _link_flicker_timer: float = 0.0
 var _is_taser: bool = false
 
 # Camera zone suppression (news helicopter ability)
 var _suppression_count: int = 0
 var _rec_dot: Node2D
-const REC_DOT_COLOR := Color("#E04040")
-const SUPPRESSED_MODULATE := Color(0.5, 0.5, 0.5, 1.0)
+const REC_DOT_COLOR = Color("#E04040")
+const SUPPRESSED_MODULATE = Color(0.5, 0.5, 0.5, 1.0)
 
 
 func _ready() -> void:
@@ -230,7 +230,7 @@ func _on_enemy_exited_range(area: Area2D) -> void:
 func _on_attack_timer() -> void:
 	if is_suppressed():
 		return
-	var target := targeting.update_target(global_position)
+	var target := targeting.update_target(global_position, attack_timer.wait_time)
 	if target:
 		_aim_at(target.global_position)
 		_fire_at(target)
@@ -403,7 +403,7 @@ func _play_recoil(target: Node2D) -> void:
 
 
 func _spawn_crossfire_popup(target: Node2D) -> void:
-	var label := Label.new()
+	var label := VFXPool.acquire_label()
 	label.text = "CROSSFIRE"
 	label.add_theme_font_size_override("font_size", 8)
 	label.add_theme_color_override("font_color", Color("#F0F0F0"))
@@ -415,11 +415,11 @@ func _spawn_crossfire_popup(target: Node2D) -> void:
 	var tween := label.create_tween()
 	tween.tween_property(label, "global_position:y", label.global_position.y - 16.0, 0.5)
 	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.5).set_delay(0.2)
-	tween.tween_callback(label.queue_free)
+	tween.tween_callback(VFXPool.release_label.bind(label))
 
 
 func _spawn_muzzle_flash() -> void:
-	var flash := ColorRect.new()
+	var flash := VFXPool.acquire_rect()
 	flash.size = Vector2(4, 4)
 	flash.color = ThemeManager.get_damage_type_color(weapon.damage_type)
 	# Position flash at muzzle point
@@ -428,7 +428,7 @@ func _spawn_muzzle_flash() -> void:
 	add_child(flash)
 	var tween := flash.create_tween()
 	tween.tween_property(flash, "modulate:a", 0.0, 0.1)
-	tween.tween_callback(flash.queue_free)
+	tween.tween_callback(VFXPool.release_rect.bind(flash))
 
 
 func _draw_rank_badge() -> void:

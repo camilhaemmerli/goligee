@@ -2,7 +2,7 @@ extends Node
 ## Centralized damage formula. All damage goes through here so that
 ## resistances, armor, modifiers, and crits are applied consistently.
 
-const ARMOR_CONSTANT := 100.0
+const ARMOR_CONSTANT = 100.0
 
 ## Armor-type multiplier matrix: ARMOR_MATRIX[damage_type][armor_type] -> float
 ## Row = DamageType enum index, Column = ArmorType enum index

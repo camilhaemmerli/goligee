@@ -12,7 +12,7 @@
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.5
+value = 1.6
 
 [sub_resource type="Resource" id="tier_a1"]
 script = ExtResource("5_utd")
@@ -25,70 +25,70 @@ stat_modifiers = [SubResource("mod_a1_dmg")]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.5
+value = 1.6
 
 [sub_resource type="Resource" id="tier_a2"]
 script = ExtResource("5_utd")
 tier_name = "Armor-Piercing Rounds"
 description = "Helmet? What helmet?"
-cost = 2
+cost = 3
 stat_modifiers = [SubResource("mod_a2_dmg")]
 
 [sub_resource type="Resource" id="mod_a3_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.3
+value = 1.5
 
 [sub_resource type="Resource" id="mod_a3_crit"]
 script = ExtResource("6_smd")
 stat_name = "crit_chance"
 operation = 0
-value = 0.05
+value = 0.06
 
 [sub_resource type="Resource" id="tier_a3"]
 script = ExtResource("5_utd")
 tier_name = "Depleted Core"
 description = "Ballistic research says ouch"
-cost = 3
+cost = 4
 stat_modifiers = [SubResource("mod_a3_dmg"), SubResource("mod_a3_crit")]
 
 [sub_resource type="Resource" id="mod_a4_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.4
+value = 1.6
 
 [sub_resource type="Resource" id="mod_a4_crit"]
 script = ExtResource("6_smd")
 stat_name = "crit_chance"
 operation = 0
-value = 0.05
+value = 0.06
 
 [sub_resource type="Resource" id="tier_a4"]
 script = ExtResource("5_utd")
 tier_name = "Tungsten Sabot"
 description = "Penetrates body armor and civil liberties"
-cost = 5
+cost = 7
 stat_modifiers = [SubResource("mod_a4_dmg"), SubResource("mod_a4_crit")]
 
 [sub_resource type="Resource" id="mod_a5_dmg"]
 script = ExtResource("6_smd")
 stat_name = "base_damage"
 operation = 1
-value = 1.5
+value = 1.8
 
 [sub_resource type="Resource" id="mod_a5_critmult"]
 script = ExtResource("6_smd")
 stat_name = "crit_multiplier"
 operation = 2
-value = 3.0
+value = 3.5
 
 [sub_resource type="Resource" id="tier_a5"]
 script = ExtResource("5_utd")
 tier_name = "Liquidator Round"
 description = "Named after the cleanup crews. How fitting."
-cost = 8
+cost = 12
 stat_modifiers = [SubResource("mod_a5_dmg"), SubResource("mod_a5_critmult")]
 
 [sub_resource type="Resource" id="path_a"]

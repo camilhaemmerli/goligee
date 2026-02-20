@@ -3,34 +3,34 @@ extends RefCounted
 ## Programmatically builds a TileSet and paints an isometric map at runtime.
 ## Called from game.gd before PathfindingManager init.
 
-const TILE_W := 64
-const TILE_H := 32
-const MAP_W := 24
-const MAP_H := 14
-const BORDER := 12  # extended ground tiles around the playable area
+const TILE_W = 64
+const TILE_H = 32
+const MAP_W = 24
+const MAP_H = 14
+const BORDER = 12  # extended ground tiles around the playable area
 
 # Atlas tile IDs — 5 functional types, 3 visuals
-const GROUND_A := Vector2i(0, 0)   # walkable + buildable
-const GROUND_B := Vector2i(1, 0)   # walkable + buildable
-const GROUND_C := Vector2i(2, 0)   # walkable + buildable
+const GROUND_A = Vector2i(0, 0)   # walkable + buildable
+const GROUND_B = Vector2i(1, 0)   # walkable + buildable
+const GROUND_C = Vector2i(2, 0)   # walkable + buildable
 const NOBUILD  := Vector2i(3, 0)   # walkable + NOT buildable (path / obstacles)
 const WALL     := Vector2i(4, 0)   # NOT walkable + NOT buildable (border)
 
-const TILE_COUNT := 5
+const TILE_COUNT = 5
 
 # Map atlas index → generated PNG filename. Slots 3,4 reuse ground visuals.
-const TILE_NAMES := [
+const TILE_NAMES = [
 	"concrete_a", "concrete_b", "concrete_c",
 	"concrete_a", "concrete_b",
 ]
 
 # Procedural fallback colors (all concrete grey, subtle variation)
-const CONCRETE_A := [Color("#4A4A52"), Color("#28282C"), Color("#3A3A3E")]
-const CONCRETE_B := [Color("#505058"), Color("#2C2C30"), Color("#3E3E42")]
-const CONCRETE_C := [Color("#464650"), Color("#26262A"), Color("#38383C")]
+const CONCRETE_A = [Color("#4A4A52"), Color("#28282C"), Color("#3A3A3E")]
+const CONCRETE_B = [Color("#505058"), Color("#2C2C30"), Color("#3E3E42")]
+const CONCRETE_C = [Color("#464650"), Color("#26262A"), Color("#38383C")]
 
-const EDGE_THICKNESS_PX := 1.0
-const EDGE_DARKEN := 0.15
+const EDGE_THICKNESS_PX = 1.0
+const EDGE_DARKEN = 0.15
 
 
 static func build_map(tile_map: TileMapLayer) -> Dictionary:

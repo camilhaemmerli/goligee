@@ -5,10 +5,10 @@ extends CanvasLayer
 
 signal finished
 
-const PANEL_COUNT := 3
-const HOLD_TIME := 2.5   # seconds per panel
-const FADE_TIME := 0.6   # fade between panels
-const FINAL_HOLD := 1.5  # hold on last panel before fading out
+const PANEL_COUNT = 3
+const HOLD_TIME = 2.5   # seconds per panel
+const FADE_TIME = 0.6   # fade between panels
+const FINAL_HOLD = 1.5  # hold on last panel before fading out
 
 var _root: Control
 var _bg: ColorRect

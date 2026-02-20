@@ -3,8 +3,8 @@ extends RefCounted
 ## Places procedurally generated isometric building sprites at specific tile
 ## positions around the playing field to frame the scene.
 
-const TILE_W := 64
-const TILE_H := 32
+const TILE_W = 64
+const TILE_H = 32
 
 
 static func build_structures(container: Node2D, tile_map: TileMapLayer) -> void:

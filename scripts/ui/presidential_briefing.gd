@@ -4,7 +4,7 @@ class_name ManifestationBriefing
 ## taunt; subsequent manifestation groups (wave 6, 11, …) show only the
 ## demonstrator taunt. Pauses the game tree while visible.
 
-const PRESIDENT_WELCOME := "These... AGITATORS are at my gates! I built this palace with taxpayer money — MY money — and I will NOT let some sign-waving delinquents ruin the view from my gold-plated balcony. You there, yes YOU — make them go away. Permanently."
+const PRESIDENT_WELCOME = "These... AGITATORS are at my gates! I built this palace with taxpayer money — MY money — and I will NOT let some sign-waving delinquents ruin the view from my gold-plated balcony. You there, yes YOU — make them go away. Permanently."
 
 # Paper/parchment palette
 const PAPER_BG      := Color("#F0E8D0")
@@ -15,11 +15,11 @@ const PAPER_SUBTLE   := Color("#6B5A3E")
 
 # Concrete palette (demonstrator panels)
 const CONCRETE_BG    := Color("#3A3A3E")
-const CONCRETE_BORDER := Color("#1A1A1E")
+const CONCRETE_BORDER = Color("#1A1A1E")
 const CONCRETE_INNER  := Color("#5A5A60")
 
-const PRESIDENTIAL_SIZE := Vector2(640, 480)
-const DEMONSTRATOR_SIZE := Vector2(600, 420)
+const PRESIDENTIAL_SIZE = Vector2(640, 480)
+const DEMONSTRATOR_SIZE = Vector2(600, 420)
 
 var _blackletter_font: Font
 var _panel: PanelContainer

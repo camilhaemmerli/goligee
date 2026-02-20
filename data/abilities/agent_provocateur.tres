@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SpecialAbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/special_ability_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+ability_id = "agent_provocateur"
+display_name = "AGENT PROVOCATEUR"
+description = "Deploy an undercover agent from HQ who walks among the agitators, stunning and scattering all nearby hostiles."
+thematic_name = "EXECUTIVE DECREE #1"
+cooldown = 60.0
+duration = 10.0
+unlock_wave = 1
+placement_type = 0
+requires_path_proximity = false
+path_proximity_radius = 0.0
+effect_radius = 100.0

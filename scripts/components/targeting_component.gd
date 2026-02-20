@@ -10,6 +10,9 @@ extends Node
 var current_target: Node2D = null
 var enemies_in_range: Array[Node2D] = []
 
+var _cleanup_timer: float = 0.0
+const CLEANUP_INTERVAL = 0.25
+
 
 func add_enemy(enemy: Node2D) -> void:
 	if enemy not in enemies_in_range:
@@ -22,17 +25,20 @@ func remove_enemy(enemy: Node2D) -> void:
 		current_target = null
 
 
-func update_target(tower_position: Vector2) -> Node2D:
-	# Clean up dead/freed references
-	var alive: Array[Node2D] = []
-	for e in enemies_in_range:
-		if is_instance_valid(e) and not e.is_queued_for_deletion():
-			alive.append(e)
-	enemies_in_range = alive
+func update_target(tower_position: Vector2, delta_since_last: float = 0.0) -> Node2D:
+	# Periodic full cleanup of dead/freed references
+	_cleanup_timer += delta_since_last
+	if _cleanup_timer >= CLEANUP_INTERVAL:
+		_cleanup_timer = 0.0
+		var alive: Array[Node2D] = []
+		for e in enemies_in_range:
+			if is_instance_valid(e) and not e.is_queued_for_deletion():
+				alive.append(e)
+		enemies_in_range = alive
 
 	var valid: Array[Node2D] = []
 	for e in enemies_in_range:
-		if _is_valid_target(e):
+		if is_instance_valid(e) and _is_valid_target(e):
 			valid.append(e)
 	if valid.is_empty():
 		current_target = null
@@ -89,10 +95,15 @@ func _get_strongest(enemies: Array[Node2D]) -> Node2D:
 	var best: Node2D = null
 	var best_hp := -1.0
 	for e in enemies:
-		var health := e.get_node_or_null("HealthComponent") as HealthComponent
-		if health and health.current_hp > best_hp:
-			best_hp = health.current_hp
-			best = e
+		if e is BaseEnemy:
+			if e.health and e.health.current_hp > best_hp:
+				best_hp = e.health.current_hp
+				best = e
+		else:
+			var health := e.get_node_or_null("HealthComponent") as HealthComponent
+			if health and health.current_hp > best_hp:
+				best_hp = health.current_hp
+				best = e
 	return best if best else (enemies[0] if not enemies.is_empty() else null)
 
 
@@ -100,10 +111,15 @@ func _get_weakest(enemies: Array[Node2D]) -> Node2D:
 	var best: Node2D = null
 	var best_hp := INF
 	for e in enemies:
-		var health := e.get_node_or_null("HealthComponent") as HealthComponent
-		if health and health.current_hp < best_hp:
-			best_hp = health.current_hp
-			best = e
+		if e is BaseEnemy:
+			if e.health and e.health.current_hp < best_hp:
+				best_hp = e.health.current_hp
+				best = e
+		else:
+			var health := e.get_node_or_null("HealthComponent") as HealthComponent
+			if health and health.current_hp < best_hp:
+				best_hp = health.current_hp
+				best = e
 	return best if best else (enemies[0] if not enemies.is_empty() else null)
 
 

@@ -98,6 +98,9 @@ func _spawn_wave(wave: WaveData) -> void:
 
 	timeline.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["time"] < b["time"])
 
+	# Grace period before first enemy appears
+	await get_tree().create_timer(1.5).timeout
+
 	var elapsed := 0.0
 	for entry in timeline:
 		var wait: float = entry["time"] - elapsed
@@ -113,9 +116,9 @@ func _spawn_wave(wave: WaveData) -> void:
 
 
 func _get_late_wave_hp_scale() -> float:
-	# After wave 5, add +10% HP per wave beyond 5
-	if current_wave_index >= 5:
-		return 1.0 + (current_wave_index - 5) * 0.1
+	# After wave 3, add +18% HP per wave beyond 3
+	if current_wave_index >= 2:
+		return 1.0 + (current_wave_index - 2) * 0.18
 	return 1.0
 
 

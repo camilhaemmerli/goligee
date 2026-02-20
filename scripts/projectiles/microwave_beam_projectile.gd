@@ -4,16 +4,16 @@ extends BaseProjectile
 ## Draws a hot orange/yellow Line2D ray from muzzle to target,
 ## damages all enemies along the line, then fades out.
 
-const EXTEND_DURATION := 0.1
-const LINGER_DURATION := 0.15
-const FADE_DURATION := 0.2
-const LINE_HIT_WIDTH := 10.0  # Perpendicular distance for line sweep (px)
+const EXTEND_DURATION = 0.1
+const LINGER_DURATION = 0.15
+const FADE_DURATION = 0.2
+const LINE_HIT_WIDTH = 10.0  # Perpendicular distance for line sweep (px)
 
-const COLOR_CORE := Color("#FFF0A0")
-const COLOR_GLOW := Color("#E06020")
-const COLOR_GLOW_EDGE := Color("#C04010")
-const COLOR_SHIMMER := Color("#F0A040", 0.5)
-const COLOR_EMBER := Color("#F08030")
+const COLOR_CORE = Color("#FFF0A0")
+const COLOR_GLOW = Color("#E06020")
+const COLOR_GLOW_EDGE = Color("#C04010")
+const COLOR_SHIMMER = Color("#F0A040", 0.5)
+const COLOR_EMBER = Color("#F08030")
 
 var _start_pos: Vector2
 var _end_pos: Vector2
@@ -129,7 +129,9 @@ func _deal_line_damage() -> void:
 		return
 	var line_norm := line_dir / line_len
 
-	var enemies := get_tree().get_nodes_in_group("enemies")
+	var query_center := (_start_pos + _end_pos) * 0.5
+	var query_radius := line_len * 0.5 + LINE_HIT_WIDTH
+	var enemies := SpatialGrid.get_enemies_in_radius(query_center, query_radius)
 	for enemy in enemies:
 		if not enemy is Node2D:
 			continue
@@ -145,7 +147,7 @@ func _deal_line_damage() -> void:
 
 func _spawn_ember_burst() -> void:
 	for i in randi_range(4, 6):
-		var ember := ColorRect.new()
+		var ember := VFXPool.acquire_rect()
 		ember.size = Vector2(2, 2)
 		ember.color = COLOR_EMBER
 		ember.global_position = _end_pos + Vector2(-1, -1)
@@ -157,4 +159,4 @@ func _spawn_ember_burst() -> void:
 		tween.set_parallel(true)
 		tween.tween_property(ember, "global_position", end_pos, 0.2).set_ease(Tween.EASE_OUT)
 		tween.tween_property(ember, "modulate:a", 0.0, 0.2)
-		tween.chain().tween_callback(ember.queue_free)
+		tween.chain().tween_callback(VFXPool.release_rect.bind(ember))

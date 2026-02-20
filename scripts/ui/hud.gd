@@ -30,8 +30,11 @@ var _wave_progress_ring: Control  # custom draw arc
 var _wave_total: int = 0
 var _wave_gone: int = 0
 
-# Speed toggle (single button, cycles 1x→2x→3x)
-var _speed_btn: Button
+# Options button + panel (top-right, below wave circle)
+var _options_btn: Button
+var _options_panel: PanelContainer
+var _options_backdrop: ColorRect
+var _speed_btns: Array[Button] = []
 var _current_speed_idx: int = 0
 
 # Approval bar custom draw
@@ -65,25 +68,25 @@ var _blackletter_font: Font
 var _current_manifestation_leader: String = ""
 
 # Colors
-const COL_PANEL_BG := Color("#1A1A1E")
-const COL_PANEL_BORDER := Color("#121216")
-const COL_CARD_BORDER := Color("#28282C")
-const COL_MUTED := Color("#808898")
-const COL_GOLD := Color("#F2D864")
-const COL_AMBER := Color("#F0F0F0")
-const COL_GREEN := Color("#A0D8A0")
-const COL_RED := Color("#D04040")
-const COL_PILL_BG := Color("#08080A")
-const COL_CIRCLE_BG := Color("#D8CFC0")  # light beige
+const COL_PANEL_BG = Color("#1A1A1E")
+const COL_PANEL_BORDER = Color("#121216")
+const COL_CARD_BORDER = Color("#28282C")
+const COL_MUTED = Color("#808898")
+const COL_GOLD = Color("#F2D864")
+const COL_AMBER = Color("#F0F0F0")
+const COL_GREEN = Color("#A0D8A0")
+const COL_RED = Color("#D04040")
+const COL_PILL_BG = Color("#08080A")
+const COL_CIRCLE_BG = Color("#D8CFC0")  # light beige
 
 # Approval bar colors
-const COL_APPROVAL_FULL := Color("#A0D8A0")
-const COL_APPROVAL_LOW := Color("#D04040")
-const COL_BAR_BG := Color("#1E1E22")
+const COL_APPROVAL_FULL = Color("#A0D8A0")
+const COL_APPROVAL_LOW = Color("#D04040")
+const COL_BAR_BG = Color("#1E1E22")
 
-const APPROVAL_BAR_W := 180.0
-const APPROVAL_BAR_H := 16.0
-const HUD_MARGIN := 36.0  # inner margin from viewport edges
+const APPROVAL_BAR_W = 96.0
+const APPROVAL_BAR_H = 10.0
+const HUD_MARGIN = 36.0  # inner margin from viewport edges
 
 
 func _ready() -> void:
@@ -110,12 +113,13 @@ func _ready() -> void:
 	_create_budget_display()
 	_create_approval_bar()
 	_create_wave_circle()
-	_create_speed_controls()
+	_create_options_button()
 	_create_center_banners()
 	_create_send_wave_btn()
 	_create_game_over_overlay()
 	_create_kill_counter()
 	_create_cancel_build_btn()
+	_create_ability_panel()
 
 
 # ---------------------------------------------------------------------------
@@ -131,7 +135,7 @@ func _create_budget_display() -> void:
 
 	var header := Label.new()
 	header.text = "TAXPAYER BUDGET"
-	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_font_size_override("font_size", 8)
 	header.add_theme_color_override("font_color", Color.WHITE)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_budget_container.add_child(header)
@@ -186,10 +190,10 @@ func _create_approval_bar() -> void:
 # ---------------------------------------------------------------------------
 
 func _create_wave_circle() -> void:
-	const CIRCLE_SIZE := 100
-	const BOX_PAD := 10
-	const BOX_W := CIRCLE_SIZE + BOX_PAD * 2
-	const HEADER_H := 24  # height of the wave name header line
+	const CIRCLE_SIZE = 100
+	const BOX_PAD = 10
+	const BOX_W = CIRCLE_SIZE + BOX_PAD * 2
+	const HEADER_H = 24  # height of the wave name header line
 
 	# Wave title flash — center screen, appears briefly on wave start
 	_wave_title_flash = Label.new()
@@ -212,8 +216,8 @@ func _create_wave_circle() -> void:
 	_wave_title_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_wave_title_flash)
 
-	# Dark semi-transparent box — below the wave name header
-	var box_top := HUD_MARGIN + HEADER_H + 4
+	# Dark semi-transparent box — flush with top margin
+	var box_top := HUD_MARGIN
 	var box_h := CIRCLE_SIZE + BOX_PAD * 2  # circle + padding
 
 	_wave_circle_container = Control.new()
@@ -276,36 +280,132 @@ func _create_wave_circle() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Speed toggle (discreet grey button, bottom-center)
+# Options button + panel (top-right, below wave circle)
 # ---------------------------------------------------------------------------
 
-const _SPEED_LABELS := ["1x", "2x", "3x"]
+const _SPEED_LABELS = ["1x", "2x", "3x"]
 
-func _create_speed_controls() -> void:
-	_speed_btn = Button.new()
-	_speed_btn.text = "1x"
-	_speed_btn.custom_minimum_size = Vector2(46, 24)
-	_speed_btn.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	_speed_btn.grow_horizontal = Control.GROW_DIRECTION_END
-	_speed_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_speed_btn.offset_left = HUD_MARGIN
-	_speed_btn.offset_right = HUD_MARGIN + 46.0
-	_speed_btn.offset_bottom = -HUD_MARGIN
-	_speed_btn.offset_top = -(HUD_MARGIN + 24.0)
-	_speed_btn.pressed.connect(_on_speed_toggle_pressed)
+func _create_options_button() -> void:
+	const CIRCLE_SIZE = 100
+	const BOX_PAD = 10
+	var box_bottom := HUD_MARGIN + CIRCLE_SIZE + BOX_PAD * 2  # bottom of wave circle
 
-	ButtonStyles.apply_utility(_speed_btn)
-	_speed_btn.add_theme_font_size_override("font_size", 12)
-	add_child(_speed_btn)
+	# Gear button — above approval bar, right-aligned with it
+	_options_btn = Button.new()
+	_options_btn.text = "\u2699"
+	_options_btn.custom_minimum_size = Vector2(28, 28)
+	_options_btn.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_options_btn.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_options_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_options_btn.offset_right = -HUD_MARGIN
+	_options_btn.offset_left = -HUD_MARGIN - 28.0
+	_options_btn.offset_bottom = -HUD_MARGIN - (APPROVAL_BAR_H + 4.0) - 4.0
+	_options_btn.offset_top = -HUD_MARGIN - (APPROVAL_BAR_H + 4.0) - 4.0 - 28.0
+	_options_btn.pressed.connect(_toggle_options_panel)
+	_options_btn.process_mode = Node.PROCESS_MODE_ALWAYS
+	_options_btn.add_theme_font_size_override("font_size", 16)
+	_options_btn.add_theme_color_override("font_color", Color.WHITE)
+	add_child(_options_btn)
+
+	# Backdrop — invisible full-screen click catcher to close panel
+	_options_backdrop = ColorRect.new()
+	_options_backdrop.color = Color(0, 0, 0, 0)
+	_options_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_options_backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
+	_options_backdrop.visible = false
+	_options_backdrop.process_mode = Node.PROCESS_MODE_ALWAYS
+	_options_backdrop.gui_input.connect(_on_options_backdrop_input)
+	add_child(_options_backdrop)
+
+	# Options panel — above gear button, bottom-right
+	var gear_top := -HUD_MARGIN - (APPROVAL_BAR_H + 4.0) - 4.0 - 28.0
+	_options_panel = PanelContainer.new()
+	_options_panel.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_options_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_options_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_options_panel.offset_right = -HUD_MARGIN
+	_options_panel.offset_left = -HUD_MARGIN - 150.0
+	_options_panel.offset_bottom = gear_top - 4.0
+	_options_panel.offset_top = gear_top - 4.0 - 90.0
+	_options_panel.visible = false
+	_options_panel.process_mode = Node.PROCESS_MODE_ALWAYS
+
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = COL_PANEL_BG
+	panel_style.border_color = COL_PANEL_BORDER
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(4)
+	panel_style.set_content_margin_all(8)
+	_options_panel.add_theme_stylebox_override("panel", panel_style)
+	add_child(_options_panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	_options_panel.add_child(vbox)
+
+	# Speed row
+	var speed_row := HBoxContainer.new()
+	speed_row.add_theme_constant_override("separation", 4)
+	vbox.add_child(speed_row)
+
+	var speed_label := Label.new()
+	speed_label.text = "SPEED"
+	speed_label.add_theme_font_size_override("font_size", 11)
+	speed_label.add_theme_color_override("font_color", COL_MUTED)
+	speed_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	speed_row.add_child(speed_label)
+
+	for i in 3:
+		var btn := Button.new()
+		btn.text = _SPEED_LABELS[i]
+		btn.custom_minimum_size = Vector2(34, 26)
+		btn.pressed.connect(_on_speed_option_pressed.bind(i))
+		btn.process_mode = Node.PROCESS_MODE_ALWAYS
+		btn.add_theme_font_size_override("font_size", 11)
+		speed_row.add_child(btn)
+		_speed_btns.append(btn)
+
+	_sync_speed_button_styles()
+
+	# Restart button
+	var restart_btn := Button.new()
+	restart_btn.text = "RESTART"
+	restart_btn.custom_minimum_size = Vector2(0, 28)
+	restart_btn.pressed.connect(_on_restart_pressed)
+	restart_btn.process_mode = Node.PROCESS_MODE_ALWAYS
+	ButtonStyles.apply_accent(restart_btn)
+	restart_btn.add_theme_font_size_override("font_size", 11)
+	vbox.add_child(restart_btn)
 
 
-func _on_speed_toggle_pressed() -> void:
-	_current_speed_idx = (_current_speed_idx + 1) % 3
-	_speed_btn.text = _SPEED_LABELS[_current_speed_idx]
-	match _current_speed_idx:
+func _toggle_options_panel() -> void:
+	var show := not _options_panel.visible
+	_options_panel.visible = show
+	_options_backdrop.visible = show
+
+
+func _on_options_backdrop_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		_options_panel.visible = false
+		_options_backdrop.visible = false
+
+
+func _on_speed_option_pressed(idx: int) -> void:
+	_current_speed_idx = idx
+	match idx:
 		0: GameManager.set_speed(Enums.GameSpeed.NORMAL)
 		1: GameManager.set_speed(Enums.GameSpeed.FAST)
 		2: GameManager.set_speed(Enums.GameSpeed.ULTRA)
+	_sync_speed_button_styles()
+
+
+func _sync_speed_button_styles() -> void:
+	for i in _speed_btns.size():
+		if i == _current_speed_idx:
+			ButtonStyles.apply_primary(_speed_btns[i])
+		else:
+			ButtonStyles.apply_utility(_speed_btns[i])
+		_speed_btns[i].add_theme_font_size_override("font_size", 11)
 
 
 # ---------------------------------------------------------------------------
@@ -398,6 +498,30 @@ func _create_cancel_build_btn() -> void:
 
 
 # ---------------------------------------------------------------------------
+# Ability panel (Executive Decrees)
+# ---------------------------------------------------------------------------
+
+func _create_ability_panel() -> void:
+	var panel := AbilityPanel.new()
+	# Position: bottom-center, to the LEFT of the tower cards
+	# 3 buttons * 52px + 2 gaps * 8px = 172px wide, 72px tall (header + buttons)
+	var panel_w := 172.0
+	var panel_h := 72.0
+	# Tower cards: 8 towers at 72px pitch = ~576px wide, centered.
+	# Left edge of tower cards is ~288px left of center.
+	var tower_half_w := 288.0
+	var gap := 10.0
+	panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	panel.offset_right = -(tower_half_w + gap)
+	panel.offset_left = panel.offset_right - panel_w
+	panel.offset_bottom = -8.0
+	panel.offset_top = -8.0 - panel_h
+	add_child(panel)
+
+
+# ---------------------------------------------------------------------------
 # Kill counter
 # ---------------------------------------------------------------------------
 
@@ -464,8 +588,8 @@ func _create_game_over_overlay() -> void:
 	_restart_btn.set_anchors_preset(Control.PRESET_CENTER)
 	_restart_btn.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_restart_btn.grow_vertical = Control.GROW_DIRECTION_BOTH
-	_restart_btn.offset_top = 10.0
-	_restart_btn.offset_bottom = 48.0
+	_restart_btn.offset_top = 130.0
+	_restart_btn.offset_bottom = 168.0
 	_restart_btn.offset_left = -70.0
 	_restart_btn.offset_right = 70.0
 	_restart_btn.pressed.connect(_on_restart_pressed)
@@ -602,8 +726,8 @@ func _rounded_rect_points(x: float, y: float, w: float, h: float, r: float) -> P
 
 
 func _make_fallback_circle() -> ImageTexture:
-	const SIZE := 100
-	const HALF := SIZE / 2
+	const SIZE = 100
+	const HALF = SIZE / 2
 	var img := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
 	var center := Vector2(HALF, HALF)
 	var radius := HALF - 5.0
@@ -619,8 +743,8 @@ func _make_fallback_circle() -> ImageTexture:
 
 
 func _make_circle_portrait(portrait_tex: Texture2D) -> ImageTexture:
-	const SIZE := 100
-	const HALF := SIZE / 2
+	const SIZE = 100
+	const HALF = SIZE / 2
 	var radius := HALF - 5.0
 	var center := Vector2(HALF, HALF)
 
@@ -775,7 +899,7 @@ func _on_enemies_remaining(count: int) -> void:
 
 
 func _on_speed_changed(speed: Enums.GameSpeed) -> void:
-	# Sync toggle label with external speed changes
+	# Sync option buttons with external speed changes
 	match speed:
 		Enums.GameSpeed.NORMAL:
 			_current_speed_idx = 0
@@ -783,12 +907,15 @@ func _on_speed_changed(speed: Enums.GameSpeed) -> void:
 			_current_speed_idx = 1
 		Enums.GameSpeed.ULTRA:
 			_current_speed_idx = 2
-	_speed_btn.text = _SPEED_LABELS[_current_speed_idx]
+	_sync_speed_button_styles()
 
 
 func _on_game_over(victory: bool) -> void:
 	_send_wave_btn.visible = false
 	_kill_counter_label.visible = false
+	_options_btn.visible = false
+	_options_panel.visible = false
+	_options_backdrop.visible = false
 
 	if victory:
 		_game_over_label.text = "ORDER RESTORED"

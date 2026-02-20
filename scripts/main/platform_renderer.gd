@@ -3,21 +3,21 @@ extends Node2D
 ## Draws the visible side faces of the raised platform, giving the isometric
 ## playing field physical depth — a chunk of city floating in dark void.
 
-const TILE_W := 64
-const TILE_H := 32
-const DEPTH := 56  # pixels of visible side-face height
+const TILE_W = 64
+const TILE_H = 32
+const DEPTH = 56  # pixels of visible side-face height
 
 # Layer colors for the cross-section (top to bottom)
-const ASPHALT := Color("#3A3A3E")
-const CONCRETE := Color("#2E2E32")
-const REBAR := Color("#242428")
-const DIRT := Color("#1A1A1E")
-const DEEP := Color("#121216")
-const VOID := Color("#0E0E12")
+const ASPHALT = Color("#3A3A3E")
+const CONCRETE = Color("#2E2E32")
+const REBAR = Color("#242428")
+const DIRT = Color("#1A1A1E")
+const DEEP = Color("#121216")
+const VOID = Color("#0E0E12")
 
 # Detail line colors
-const PIPE_COLOR := Color("#1E1E22")
-const ROCK_COLOR := Color("#28282C")
+const PIPE_COLOR = Color("#1E1E22")
+const ROCK_COLOR = Color("#28282C")
 
 var _tile_map: TileMapLayer
 var _map_w: int
