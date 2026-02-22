@@ -30,7 +30,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Chilled Water"
 description = "Hypothermia is just aggressive cooling"
-cost = 1
+cost = 2
 unlocks_ability = SubResource("slow_c1")
 
 [sub_resource type="Resource" id="freeze_c2"]
@@ -45,7 +45,7 @@ apply_chance = 0.25
 script = ExtResource("5_utd")
 tier_name = "Cryo Jet"
 description = "Flash-freeze for flash mobs"
-cost = 3
+cost = 4
 unlocks_ability = SubResource("freeze_c2")
 
 [sub_resource type="Resource" id="freeze_c3"]
@@ -60,7 +60,7 @@ apply_chance = 0.35
 script = ExtResource("5_utd")
 tier_name = "Sub-Zero Mix"
 description = "Antifreeze? No, this is pro-freeze."
-cost = 4
+cost = 6
 unlocks_ability = SubResource("freeze_c3")
 
 [sub_resource type="Resource" id="freeze_c4"]
@@ -75,7 +75,7 @@ apply_chance = 0.5
 script = ExtResource("5_utd")
 tier_name = "Permafrost Compound"
 description = "Winter came. It's not leaving."
-cost = 7
+cost = 10
 unlocks_ability = SubResource("freeze_c4")
 
 [sub_resource type="Resource" id="freeze_c5"]
@@ -96,7 +96,7 @@ value = 1.5
 script = ExtResource("5_utd")
 tier_name = "Absolute Zero"
 description = "Thermodynamics called. We told them to shut up and comply."
-cost = 12
+cost = 20
 stat_modifiers = [SubResource("mod_c5_aoe")]
 unlocks_ability = SubResource("freeze_c5")
 
@@ -112,8 +112,9 @@ tower_id = "water_cannon"
 tower_name = "Water Cannon"
 description = "Mandatory hydration services."
 scene = ExtResource("2_scene")
-build_cost = 5
+build_cost = 6
 sell_ratio = 0.65
+unlock_wave = 1
 base_damage = 4.0
 damage_type = 2
 base_range = 3.0
@@ -124,6 +125,6 @@ area_of_effect = 0.0
 pierce_count = 1
 crit_chance = 0.0
 crit_multiplier = 2.0
-can_target_flying = false
+can_target_flying = true
 on_hit_effects = [SubResource("slow_effect")]
 upgrade_paths = [SubResource("path_c")]

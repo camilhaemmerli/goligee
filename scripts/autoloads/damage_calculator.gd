@@ -56,3 +56,19 @@ func calculate_damage(
 	)
 
 	return {"damage": max(final_damage, 0.0), "is_crit": is_crit}
+
+
+## Status-reactive damage bonuses — rewards combining tower types.
+func get_status_synergy_mult(damage_type: Enums.DamageType, status_mgr) -> float:
+	var mult := 1.0
+	if status_mgr.has_effect(Enums.StatusEffectType.SLOW) and damage_type == Enums.DamageType.ELECTRIC:
+		mult *= 1.30  # Wet + Electric
+	if status_mgr.has_effect(Enums.StatusEffectType.MARK) and damage_type == Enums.DamageType.SONIC:
+		mult *= 1.25  # Marked + Sonic
+	if status_mgr.has_effect(Enums.StatusEffectType.BURN) and damage_type == Enums.DamageType.CHEMICAL:
+		mult *= 1.20  # Burning + Chemical
+	if status_mgr.has_effect(Enums.StatusEffectType.ARMOR_SHRED) and damage_type == Enums.DamageType.KINETIC:
+		mult *= 1.25  # Shredded + Kinetic
+	if status_mgr.has_effect(Enums.StatusEffectType.POISON) and damage_type == Enums.DamageType.DIRECTED_ENERGY:
+		mult *= 1.20  # Poisoned + Energy
+	return mult

@@ -11,6 +11,9 @@ extends Resource
 @export var build_cost: int = 100
 @export var sell_ratio: float = 0.65
 
+@export_group("Progression")
+@export var unlock_wave: int = 1
+
 @export_group("Combat")
 @export var base_damage: float = 10.0
 @export var damage_type: Enums.DamageType = Enums.DamageType.KINETIC

@@ -47,7 +47,7 @@ value = 0.06
 script = ExtResource("5_utd")
 tier_name = "Cavity Resonator"
 description = "Tuned to the resonant frequency of dissent"
-cost = 10
+cost = 9
 stat_modifiers = [SubResource("mod_a2_dmg"), SubResource("mod_a2_crit")]
 
 [sub_resource type="Resource" id="mod_a3_dmg"]
@@ -66,7 +66,7 @@ value = 0.06
 script = ExtResource("5_utd")
 tier_name = "Klystron Amplifier"
 description = "Military surplus. Originally designed for something worse."
-cost = 16
+cost = 15
 stat_modifiers = [SubResource("mod_a3_dmg"), SubResource("mod_a3_crit")]
 
 [sub_resource type="Resource" id="mod_a4_dmg"]
@@ -106,7 +106,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Solar Flare"
 description = "Brings the surface temperature of the sun to street level. SPF infinity recommended."
-cost = 42
+cost = 46
 stat_modifiers = [SubResource("mod_a5_dmg")]
 unlocks_ability = SubResource("burn_a5")
 
@@ -152,7 +152,7 @@ value = 0.06
 script = ExtResource("5_utd")
 tier_name = "Adaptive Targeting"
 description = "Heat-seeking heat beam. Redundantly effective."
-cost = 10
+cost = 9
 stat_modifiers = [SubResource("mod_b2_range"), SubResource("mod_b2_crit")]
 
 [sub_resource type="Resource" id="mod_b3_range"]
@@ -171,7 +171,7 @@ value = 0.06
 script = ExtResource("5_utd")
 tier_name = "Waveguide Lens"
 description = "Focuses the beam to a point. The point is pain."
-cost = 16
+cost = 15
 stat_modifiers = [SubResource("mod_b3_range"), SubResource("mod_b3_crit")]
 
 [sub_resource type="Resource" id="mod_b4_range"]
@@ -215,7 +215,7 @@ value = 0.06
 script = ExtResource("5_utd")
 tier_name = "Death Ray"
 description = "Not its official name. Its official name is classified. But yes, it's a death ray."
-cost = 42
+cost = 46
 stat_modifiers = [SubResource("mod_b5_range"), SubResource("mod_b5_critmult"), SubResource("mod_b5_crit")]
 
 [sub_resource type="Resource" id="path_b"]
@@ -254,7 +254,7 @@ value = 1.3
 script = ExtResource("5_utd")
 tier_name = "Radiant Emitter"
 description = "Mandatory sunburn dispenser"
-cost = 10
+cost = 9
 stat_modifiers = [SubResource("mod_c2_aoe"), SubResource("mod_c2_rate")]
 
 [sub_resource type="Resource" id="mod_c3_aoe"]
@@ -273,7 +273,7 @@ value = 1.25
 script = ExtResource("5_utd")
 tier_name = "Scatter Emitter"
 description = "Wide-angle warmth distribution for crowd-sized comfort"
-cost = 16
+cost = 15
 stat_modifiers = [SubResource("mod_c3_aoe"), SubResource("mod_c3_rate")]
 
 [sub_resource type="Resource" id="mod_c4_aoe"]
@@ -313,7 +313,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Meltdown Protocol"
 description = "Melts armor, morale, and any remaining faith in protective equipment"
-cost = 42
+cost = 46
 stat_modifiers = [SubResource("mod_c5_aoe")]
 unlocks_ability = SubResource("shred_c5")
 
@@ -331,7 +331,8 @@ description = "Active Denial System. Makes you feel warm inside. And outside. Mo
 scene = ExtResource("2_scene")
 build_cost = 16
 sell_ratio = 0.65
-base_damage = 18.0
+unlock_wave = 16
+base_damage = 15.0
 damage_type = 5
 base_range = 4.5
 fire_rate = 0.5

@@ -18,7 +18,7 @@ value = 1.6
 script = ExtResource("5_utd")
 tier_name = "Hardened Tips"
 description = "Upgraded polymer rounds"
-cost = 1
+cost = 2
 stat_modifiers = [SubResource("mod_a1_dmg")]
 
 [sub_resource type="Resource" id="mod_a2_dmg"]
@@ -50,7 +50,7 @@ value = 0.06
 script = ExtResource("5_utd")
 tier_name = "Depleted Core"
 description = "Ballistic research says ouch"
-cost = 4
+cost = 5
 stat_modifiers = [SubResource("mod_a3_dmg"), SubResource("mod_a3_crit")]
 
 [sub_resource type="Resource" id="mod_a4_dmg"]
@@ -69,7 +69,7 @@ value = 0.06
 script = ExtResource("5_utd")
 tier_name = "Tungsten Sabot"
 description = "Penetrates body armor and civil liberties"
-cost = 7
+cost = 9
 stat_modifiers = [SubResource("mod_a4_dmg"), SubResource("mod_a4_crit")]
 
 [sub_resource type="Resource" id="mod_a5_dmg"]
@@ -88,7 +88,7 @@ value = 3.5
 script = ExtResource("5_utd")
 tier_name = "Liquidator Round"
 description = "Named after the cleanup crews. How fitting."
-cost = 12
+cost = 18
 stat_modifiers = [SubResource("mod_a5_dmg"), SubResource("mod_a5_critmult")]
 
 [sub_resource type="Resource" id="path_a"]
@@ -103,9 +103,10 @@ tower_id = "rubber_bullet"
 tower_name = "Rubber Bullet Turret"
 description = "Standard-issue crowd dispersal. Totally non-lethal."
 scene = ExtResource("2_scene")
-build_cost = 4
+build_cost = 5
 sell_ratio = 0.65
-base_damage = 6.0
+unlock_wave = 1
+base_damage = 5.0
 damage_type = 0
 base_range = 4.0
 fire_rate = 1.5
@@ -116,5 +117,5 @@ pierce_count = 1
 crit_chance = 0.0
 crit_multiplier = 2.0
 crossfire_bonus = 0.3
-can_target_flying = false
+can_target_flying = true
 upgrade_paths = [SubResource("path_a")]

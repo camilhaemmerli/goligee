@@ -252,12 +252,15 @@ func _ready() -> void:
 
 	# Intro comic → briefing → spawn indicator → waves
 	GameManager.start_game()
-	var intro := IntroComic.new()
-	add_child(intro)
-	intro.finished.connect(func():
-		_intro_cover.queue_free()
-		_show_manifestation_briefing(1)
-	)
+	# TESTING: skip intro comic + briefing, go straight to gameplay
+	_intro_cover.queue_free()
+	_on_briefing_dismissed_show_indicator()
+	#var intro := IntroComic.new()
+	#add_child(intro)
+	#intro.finished.connect(func():
+	#	_intro_cover.queue_free()
+	#	_show_manifestation_briefing(1)
+	#)
 
 
 func _process(delta: float) -> void:
@@ -335,6 +338,10 @@ func _on_restart() -> void:
 	Engine.time_scale = 1.0
 	SpatialGrid.clear()
 	VFXPool.reset_pool()
+	SynergyManager.clear()
+	AbilityManager.reset()
+	# Null out autoload refs to scene nodes before reload to prevent stale access
+	PathfindingManager._tile_map = null
 	get_tree().reload_current_scene()
 
 

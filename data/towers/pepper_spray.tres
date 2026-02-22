@@ -79,7 +79,7 @@ value = 0.06
 script = ExtResource("5_utd")
 tier_name = "Weaponized Extract"
 description = "Pure capsaicin. One drop and they'll confess to anything."
-cost = 13
+cost = 14
 stat_modifiers = [SubResource("mod_a4_dmg"), SubResource("mod_a4_crit")]
 
 [sub_resource type="Resource" id="mod_a5_dmg"]
@@ -98,7 +98,7 @@ value = 1.3
 script = ExtResource("5_utd")
 tier_name = "Obliterator Stream"
 description = "Fast, concentrated, and absolutely not up for debate at the ethics committee"
-cost = 22
+cost = 25
 stat_modifiers = [SubResource("mod_a5_dmg"), SubResource("mod_a5_rate")]
 
 [sub_resource type="Resource" id="path_a"]
@@ -165,7 +165,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Exothermic Compound"
 description = "Self-heating formula. No external ignition required."
-cost = 13
+cost = 14
 unlocks_ability = SubResource("burn_c4")
 
 [sub_resource type="Resource" id="burn_c5"]
@@ -180,7 +180,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Hellfire Formula"
 description = "The fire department refuses to respond. The chaplain has been notified."
-cost = 22
+cost = 25
 unlocks_ability = SubResource("burn_c5")
 
 [sub_resource type="Resource" id="path_c"]
@@ -197,6 +197,7 @@ description = "Continuous-stream seasoning applicator. Burns guaranteed."
 scene = ExtResource("2_scene")
 build_cost = 8
 sell_ratio = 0.65
+unlock_wave = 6
 base_damage = 3.0
 damage_type = 1
 base_range = 2.5

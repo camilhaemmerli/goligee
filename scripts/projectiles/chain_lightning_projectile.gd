@@ -4,7 +4,7 @@ extends BaseProjectile
 ## Hits primary target immediately, then arcs to nearby enemies.
 ## Each hop draws a jagged Line2D bolt that fades out.
 
-const CHAIN_RADIUS = 48.0  # px — enemy-to-enemy jump range
+const CHAIN_RADIUS = 60.0  # px — enemy-to-enemy jump range
 const BOLT_FADE_TIME = 0.35
 const BOLT_SEGMENTS = 5  # midpoints per bolt
 const BOLT_JITTER = 6.0  # perpendicular pixel offset for zigzag
@@ -73,6 +73,8 @@ func _execute_chain() -> void:
 					e.last_hit_by = source_tower
 				var resists: Dictionary = e.resistances.get_all() if e.resistances else {}
 				var vuln_mod := e.get_vulnerability_modifier()
+				if e.status_effects:
+					vuln_mod *= DamageCalculator.get_status_synergy_mult(damage_type, e.status_effects)
 				var armor_shred := e.get_armor_shred()
 				e.health.take_damage(current_damage, damage_type, resists, vuln_mod, crit_chance, crit_multiplier, armor_shred)
 

@@ -148,14 +148,19 @@ class PixelLabClient:
 
     def _post(self, endpoint: str, payload: dict, timeout: int = 480) -> dict:
         url = f"{API_BASE}/{endpoint}"
-        resp = self.session.post(url, json=payload, timeout=timeout)
-        if resp.status_code == 429:
-            print("  Rate limited, waiting 30s...")
-            time.sleep(30)
+        for attempt in range(5):
             resp = self.session.post(url, json=payload, timeout=timeout)
-        if not resp.ok:
-            print(f"  API error {resp.status_code}: {resp.text[:500]}")
-            resp.raise_for_status()
+            if resp.status_code == 429:
+                wait = 30 * (attempt + 1)
+                print(f"  Rate limited (attempt {attempt+1}/5), waiting {wait}s...")
+                time.sleep(wait)
+                continue
+            if not resp.ok:
+                print(f"  API error {resp.status_code}: {resp.text[:500]}")
+                resp.raise_for_status()
+            return resp.json()
+        # Final attempt after all retries
+        resp.raise_for_status()
         return resp.json()
 
     def _get(self, endpoint: str) -> dict:
@@ -739,8 +744,8 @@ def remove_background(img_bytes: bytes, tolerance: int = 30) -> bytes:
 
     # Dark backgrounds need tight tolerance to preserve dark sprite content
     bg_brightness = sum(bg_color)
-    if bg_brightness < 90:
-        tolerance = 10
+    if bg_brightness < 120:
+        tolerance = 8
 
     def color_dist(c1, c2):
         return sum((a - b) ** 2 for a, b in zip(c1, c2)) ** 0.5
@@ -804,6 +809,56 @@ def remove_ground_stain(img_bytes: bytes) -> bytes:
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
+
+
+def _autofix_rotation_swaps(sprite_dir: Path, prefix: str) -> None:
+    """Auto-fix E/W, SE/SW, NE/NW direction swaps via center-of-mass X.
+
+    The PixelLab rotation API inconsistently flips east/west pairs across
+    different input images.  East-side directions should have higher center-X
+    than their west-side counterparts.  If not, swap the files.
+    """
+    import shutil
+    import numpy as np
+
+    PAIRS = [("e", "w"), ("se", "sw"), ("ne", "nw")]
+    for east_dir, west_dir in PAIRS:
+        east_path = sprite_dir / f"{prefix}_{east_dir}.png"
+        west_path = sprite_dir / f"{prefix}_{west_dir}.png"
+        if not east_path.exists() or not west_path.exists():
+            continue
+        east_data = np.array(Image.open(east_path).convert("RGBA"))
+        west_data = np.array(Image.open(west_path).convert("RGBA"))
+        east_vis = np.where(east_data[:, :, 3] > 0)
+        west_vis = np.where(west_data[:, :, 3] > 0)
+        if len(east_vis[0]) == 0 or len(west_vis[0]) == 0:
+            continue
+        if np.mean(east_vis[1]) < np.mean(west_vis[1]):
+            tmp = east_path.with_suffix(".tmp")
+            shutil.move(str(east_path), str(tmp))
+            shutil.move(str(west_path), str(east_path))
+            shutil.move(str(tmp), str(west_path))
+            print(f"    Autofix: swapped {east_dir}<->{west_dir}")
+
+
+def _mirror_west_from_east(sprite_dir: Path, prefix: str) -> None:
+    """Generate W-side rotations by horizontally flipping E-side sprites.
+
+    PixelLab's rotation API often returns nearly identical or inconsistent
+    sprites for west-side directions. Mirroring from east-side guarantees
+    consistent paired rotations: SW=flip(SE), W=flip(E), NW=flip(NE).
+    S and N are kept as-is (symmetrical front/back views).
+    """
+    PAIRS = [("se", "sw"), ("e", "w"), ("ne", "nw")]
+    for east_dir, west_dir in PAIRS:
+        east_path = sprite_dir / f"{prefix}_{east_dir}.png"
+        west_path = sprite_dir / f"{prefix}_{west_dir}.png"
+        if not east_path.exists():
+            continue
+        east_img = Image.open(east_path).convert("RGBA")
+        west_img = east_img.transpose(Image.FLIP_LEFT_RIGHT)
+        west_img.save(west_path)
+        print(f"    Mirror: {west_dir} = flip({east_dir})")
 
 
 def img_to_b64(img_bytes: bytes) -> str:
@@ -951,7 +1006,8 @@ BASE_NEGATIVE = (
 
 TURRET_NEGATIVE = (
     "base, platform, ground, floor, body, tower, building, pedestal, "
-    "architecture, structure below, character, person, sky, landscape"
+    "architecture, structure below, diamond tile, square diamond base, "
+    "isometric tile, ground diamond, character, person, sky, landscape"
 )
 
 # Body height / weapon size → proportion text
@@ -990,11 +1046,18 @@ def build_turret_prompt(tower: dict) -> str:
 
 
 EVO_SIZE_SCALE = {
-    "a": "oversized bulky weapon occupying 70% of artboard, large and heavy",
-    "b": "very large weapon occupying 80% of artboard, heavy reinforced chunky",
-    "c": "massive dominant weapon filling 90% of artboard, enormous imposing hulking",
+    "a": "large imposing weapon filling 60% of artboard, noticeably bigger than standard, extra detail and bulk",
+    "b": "very large heavy weapon filling 75% of artboard, significantly bigger and more complex, reinforced chunky menacing",
+    "c": "massive dominant weapon filling 90% of artboard, enormous imposing hulking, dwarfs the standard version, bristling with extra hardware",
 }
 
+
+EVO_TURRET_STRUCTURE = (
+    f"isolated floating turret weapon head {CHROMA_BG}, "
+    "weapon centered in artboard, floating in air, "
+    "barrel or emitter may extend past center, "
+    "no body, no base, no platform, no ground, no diamond tile"
+)
 
 def build_evo_turret_prompt(variant: dict, parent: dict, path_letter: str = "a") -> str:
     """Assemble a turret prompt for a tier 5 evo variant.
@@ -1002,12 +1065,13 @@ def build_evo_turret_prompt(variant: dict, parent: dict, path_letter: str = "a")
     Inherits material/accent/grit from parent tower but uses the variant's
     own weapon_desc/shape/size with evolved flavor.  Progressive size
     increase per path (a < b < c).
+    Uses EVO_TURRET_STRUCTURE (no 'small' restriction) instead of base TOWER_TURRET_STRUCTURE.
     """
     wsize = WEAPON_SIZE_MAP[variant["weapon_size"]]
     size_mod = EVO_SIZE_SCALE.get(path_letter, EVO_SIZE_SCALE["a"])
     return (
         f"{STYLE}, {LIGHTING}, "
-        f"{TOWER_TURRET_STRUCTURE}, "
+        f"{EVO_TURRET_STRUCTURE}, "
         f"{parent['material']}, "
         f"{TOWER_GRIT}, "
         f"{parent['accent_name']} {parent['accent_hex']} accent highlights, "
@@ -1181,26 +1245,26 @@ TIER5_VARIANTS = {
     "tear_gas_a5": {
         "parent": "tear_gas",
         "name": "NERVE AGENT DEPLOYER",
-        "weapon_desc": "massive chemical mortar array, bio-hazard housing, dripping toxic residue, sealed launch tubes",
-        "weapon_shape": "triple mortar tube cluster angled upward, hazmat sealed housing, drip stains on sides",
+        "weapon_desc": "triple-barreled chemical mortar array, three thick launch tubes side by side angled upward, bio-hazard tank underneath, dripping green toxic residue, sealed hazmat housing with warning labels",
+        "weapon_shape": "three fat mortar tubes clustered together angled 45 degrees upward, large green chemical tank below, hazmat sealed housing with drip stains, wider than base turret",
         "weapon_size": "large",
-        "fire_desc": "green toxic smoke billowing from tubes, canister launching upward with smoke trail, chemical splash drips",
+        "fire_desc": "green toxic smoke billowing from all three tubes, canister launching upward with smoke trail, chemical splash drips",
     },
     "tear_gas_b5": {
         "parent": "tear_gas",
         "name": "CARPET GASSER",
-        "weapon_desc": "wide carpet-bomb launcher rack, dozens of small launch tubes in grid pattern, area saturation system",
-        "weapon_shape": "wide flat rectangular rack with rows of small tubes, grid formation, side-loading mechanism",
+        "weapon_desc": "massive wide carpet-bomb launcher rack, rectangular grid of dozens of small launch tubes in rows, huge area saturation system, heavy industrial frame, ammo feed belt on side",
+        "weapon_shape": "very wide flat rectangular rack much wider than tall, rows and columns of small launch tubes in grid pattern, heavy industrial frame supports, ammo belt feeding from side drum",
         "weapon_size": "large",
-        "fire_desc": "multiple canisters launching simultaneously from grid, smoke trails fanning out, launch flash from each tube",
+        "fire_desc": "multiple canisters launching simultaneously from grid, smoke trails fanning out in all directions, launch flash from each tube",
     },
     "tear_gas_c5": {
         "parent": "tear_gas",
         "name": "PANIC INDUCER",
-        "weapon_desc": "gas emitter with pulsing red fear strobe light, skull warning markers, psychological warfare device",
-        "weapon_shape": "compact emitter with rotating red strobe on top, skull decals, gas vent nozzle forward",
-        "weapon_size": "medium",
-        "fire_desc": "intense red strobe flashing, thick yellow-green gas cloud pouring from nozzle, fear aura glow",
+        "weapon_desc": "enormous psychological warfare device, huge rotating red strobe light on top, massive gas emitter dome below, skull and crossbones warning markers, antenna array, speaker horns on sides",
+        "weapon_shape": "tall dome-shaped device with huge rotating red strobe beacon on top, gas vent nozzles ringing the base, skull decals, side-mounted speaker horns, antenna mast, much taller than base turret",
+        "weapon_size": "large",
+        "fire_desc": "intense red strobe flashing brightly, thick yellow-green gas cloud pouring from all nozzles, fear aura glow, speaker horns blasting",
     },
     # --- Taser Grid ---
     "taser_grid_a5": {
@@ -1819,8 +1883,8 @@ def _gen_turret_rotations(client: PixelLabClient, name: str, turret_ref: bytes,
     prefix: file prefix — "turret" for idle, "turret_fire" for firing pose.
     clean_stains: if True, run remove_ground_stain on each rotation output.
     """
-    # API returns [s, sw, w, nw, n, ne, e, se] but E/W axis is flipped.
-    # Corrected labels for indices 0-7:
+    # API returns [s, sw, w, nw, n, ne, e, se] but E/W axis is often flipped.
+    # Apply initial correction, then auto-fix any remaining swaps via center-of-mass.
     CORRECTED_DIRS = ["s", "se", "e", "ne", "n", "nw", "w", "sw"]
 
     print(f"  Generating 8 rotations for {name} ({prefix})...")
@@ -1835,7 +1899,11 @@ def _gen_turret_rotations(client: PixelLabClient, name: str, turret_ref: bytes,
             if clean_stains:
                 img_data = remove_ground_stain(img_data)
             save_image(img_data, f"towers/{name}/{prefix}_{corrected_dir}.png", open_viewer=False)
-        print(f"  Got {len(rotations)} rotations for {name}/{prefix} (direction-corrected)")
+        # Auto-fix E/W, SE/SW, NE/NW swaps via center-of-mass detection
+        _autofix_rotation_swaps(SPRITES_DIR / "towers" / name, prefix)
+        # Mirror W-side from E-side for guaranteed consistent paired rotations
+        _mirror_west_from_east(SPRITES_DIR / "towers" / name, prefix)
+        print(f"  Got {len(rotations)} rotations for {name}/{prefix} (direction-corrected + mirrored)")
     except Exception as e:
         print(f"  ERROR generating rotations for {name}/{prefix}: {e}")
         print(f"  Saving SE reference as fallback for all directions")
@@ -1958,13 +2026,18 @@ def _gen_evo_turret_ref(client: PixelLabClient, variant_key: str,
             init_b64 = base64.b64encode(f.read()).decode()
         print(f"    Using parent turret ref as init_image (strength 300)")
 
+    # Lower strength for evo variants: palette guidance only, weapon design must differ
+    # Progressive: path a=150, b=100, c=50 (c is most different from parent)
+    strength_map = {"a": 150.0, "b": 100.0, "c": 50.0}
+    strength = strength_map.get(path_letter, 150.0)
+
     img = client.generate_image(
         prompt,
         64, 64,
         isometric=True,
         negative_description=TURRET_NEGATIVE,
         init_image_b64=init_b64,
-        init_image_strength=300.0,  # light guidance — keep palette, allow new weapon
+        init_image_strength=strength,
     )
     if img:
         img = remove_background(img)

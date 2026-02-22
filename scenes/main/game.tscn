@@ -31,7 +31,6 @@
 [ext_resource type="Texture2D" uid="uid://bra5whac7ugu6" path="res://assets/sprites/buildings/building_monument_lenin.png" id="41_rd15"]
 [ext_resource type="Texture2D" uid="uid://bu81x2efwwqju" path="res://assets/sprites/buildings/building_water_tower.png" id="42_rd16"]
 [ext_resource type="Texture2D" uid="uid://dbxaetubyu3lx" path="res://assets/sprites/buildings/building_billboard_propaganda.png" id="44_rd18"]
-[ext_resource type="Texture2D" uid="uid://ddc1f0eog405e" path="res://assets/sprites/buildings/building_state_bank.png" id="47_n03"]
 [ext_resource type="Texture2D" uid="uid://curgnhc6tpx58" path="res://assets/sprites/buildings/building_church_orthodox.png" id="50_n06"]
 [ext_resource type="Texture2D" uid="uid://cjli0iw4iry5n" path="res://assets/sprites/buildings/building_bus_shelter.png" id="52_n08"]
 [ext_resource type="Texture2D" uid="uid://vbqdwigivb0r" path="res://assets/sprites/buildings/building_panelka_corner.png" id="54_n10"]
@@ -61,7 +60,6 @@ texture = ExtResource("19_7544d")
 offset = Vector2(0, -80)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_smokestack.png"
-foreground = null
 
 [node name="ChurchSpire" type="Sprite2D" parent="CityBackground/Buildings" unique_id=660437127]
 texture_filter = 1
@@ -71,7 +69,6 @@ texture = ExtResource("8_shvc3")
 offset = Vector2(0, -80)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_church_spire.png"
-foreground = null
 
 [node name="Barricade" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1499854518]
 texture_filter = 1
@@ -81,7 +78,6 @@ texture = ExtResource("11_fvlvi")
 offset = Vector2(0, -24)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_barricade.png"
-foreground = null
 
 [node name="MinistryBuilding" type="Sprite2D" parent="CityBackground/Buildings" unique_id=587734674]
 texture_filter = 1
@@ -91,7 +87,6 @@ texture = ExtResource("32_rd06")
 offset = Vector2(0, -128)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_ministry_building.png"
-foreground = null
 
 [node name="WaterTowerRD" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1594018939]
 texture_filter = 1
@@ -101,7 +96,18 @@ texture = ExtResource("42_rd16")
 offset = Vector2(0, -112)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_water_tower.png"
-foreground = null
+
+[node name="PanelkaCorner" type="Sprite2D" parent="CityBackground/Buildings" unique_id=708301717]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(-419, 507.00003)
+scale = Vector2(1.3632814, 1.3632814)
+texture = ExtResource("54_n10")
+offset = Vector2(0, -128)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_panelka_corner.png"
+foreground = true
 
 [node name="MonumentLenin" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1861439345]
 texture_filter = 1
@@ -111,7 +117,6 @@ texture = ExtResource("41_rd15")
 offset = Vector2(0, -112)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_monument_lenin.png"
-foreground = null
 
 [node name="PanelkaWideA" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1732670930]
 texture_filter = 1
@@ -122,7 +127,6 @@ texture = ExtResource("29_rd03")
 offset = Vector2(0, -80)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_panelka_wide_a.png"
-foreground = null
 
 [node name="GraffitiWall" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1608387813]
 texture_filter = 1
@@ -132,7 +136,6 @@ texture = ExtResource("15_8stsq")
 offset = Vector2(0, -40)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_graffiti_wall.png"
-foreground = null
 
 [node name="PoliceVan" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1596272038]
 texture_filter = 1
@@ -142,7 +145,6 @@ texture = ExtResource("39_rd13")
 offset = Vector2(0, -64)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_police_van.png"
-foreground = null
 
 [node name="RooftopFgA" type="Sprite2D" parent="CityBackground/Buildings" unique_id=442689469]
 texture_filter = 1
@@ -152,7 +154,6 @@ texture = ExtResource("7_vdk8p")
 offset = Vector2(0, -32)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_rooftop_fg_a.png"
-foreground = null
 
 [node name="PanelkaTallA_Back3" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1859223435]
 texture_filter = 1
@@ -162,7 +163,6 @@ texture = ExtResource("3_tpf3c")
 offset = Vector2(0, -80)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_panelka_tall_a.png"
-foreground = null
 
 [node name="PanelkaTallA_Back1" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1802674609]
 texture_filter = 1
@@ -172,7 +172,6 @@ texture = ExtResource("3_tpf3c")
 offset = Vector2(0, -80)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_panelka_tall_a.png"
-foreground = null
 
 [node name="PlaygroundSoviet" type="Sprite2D" parent="CityBackground/Buildings" unique_id=703592117]
 texture_filter = 1
@@ -182,7 +181,6 @@ texture = ExtResource("10_6yb0f")
 offset = Vector2(0, -48)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_playground_soviet.png"
-foreground = null
 
 [node name="PanelkaWide_Back1" type="Sprite2D" parent="CityBackground/Buildings" unique_id=487134197]
 texture_filter = 1
@@ -192,7 +190,6 @@ texture = ExtResource("5_icp8a")
 offset = Vector2(0, -48)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_panelka_wide.png"
-foreground = null
 
 [node name="PanelkaTallA_Back2" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1218628094]
 texture_filter = 1
@@ -202,7 +199,6 @@ texture = ExtResource("3_tpf3c")
 offset = Vector2(0, -80)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_panelka_tall_a.png"
-foreground = null
 
 [node name="PanelkaWide_Back2" type="Sprite2D" parent="CityBackground/Buildings" unique_id=657839938]
 z_index = 2
@@ -224,7 +220,6 @@ texture = ExtResource("11_fvlvi")
 offset = Vector2(0, -24)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_barricade.png"
-foreground = null
 
 [node name="PanelkaTallA_Left2" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1014181106]
 texture_filter = 1
@@ -234,7 +229,6 @@ texture = ExtResource("3_tpf3c")
 offset = Vector2(0, -80)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_panelka_tall_a.png"
-foreground = null
 
 [node name="GuardBooth" type="Sprite2D" parent="CityBackground/Buildings" unique_id=694010988]
 texture_filter = 1
@@ -244,17 +238,15 @@ texture = ExtResource("9_nknkc")
 offset = Vector2(0, -32)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_guard_booth.png"
-foreground = null
 
 [node name="ElectricPoleBroken" type="Sprite2D" parent="CityBackground/Buildings" unique_id=17030121]
 texture_filter = 1
-position = Vector2(-62, 587)
+position = Vector2(7, 72)
 scale = Vector2(2, 2)
 texture = ExtResource("12_xh3kx")
 offset = Vector2(0, -64)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_electric_pole_broken.png"
-foreground = null
 
 [node name="PanelkaWide_Left3" type="Sprite2D" parent="CityBackground/Buildings" unique_id=770117922]
 texture_filter = 1
@@ -264,7 +256,6 @@ texture = ExtResource("5_icp8a")
 offset = Vector2(0, -48)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_panelka_wide.png"
-foreground = null
 
 [node name="PanelkaWide_Left3" type="Sprite2D" parent="CityBackground/Buildings/PanelkaWide_Left3" unique_id=1677497734]
 texture_filter = 1
@@ -274,17 +265,15 @@ texture = ExtResource("5_icp8a")
 offset = Vector2(0, -48)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_panelka_wide.png"
-foreground = null
 
 [node name="BusStop" type="Sprite2D" parent="CityBackground/Buildings" unique_id=325105398]
 texture_filter = 1
-position = Vector2(306, 635)
+position = Vector2(-636, 560)
 scale = Vector2(1.8, 1.8)
 texture = ExtResource("20_ix5f2")
 offset = Vector2(0, -32)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_bus_stop.png"
-foreground = null
 
 [node name="BurnedBus" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1645012709]
 z_index = 2
@@ -318,7 +307,6 @@ texture = ExtResource("25_tn61g")
 offset = Vector2(0, -24)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_taxi_abandoned.png"
-foreground = null
 
 [node name="CinemaPalace" type="Sprite2D" parent="CityBackground/Buildings" unique_id=857034198]
 z_index = 2
@@ -336,7 +324,7 @@ foreground = true
 z_index = 2
 z_as_relative = false
 texture_filter = 1
-position = Vector2(-258, 666)
+position = Vector2(-268, 677)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("63_n19")
 offset = Vector2(0, -128)
@@ -348,7 +336,7 @@ foreground = true
 z_index = 2
 z_as_relative = false
 texture_filter = 1
-position = Vector2(-83, 714)
+position = Vector2(-136, 695)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("27_rd01")
 offset = Vector2(0, -128)
@@ -376,7 +364,6 @@ texture = ExtResource("40_rd14")
 offset = Vector2(0, -64)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_burned_car.png"
-foreground = null
 
 [node name="BillboardPropaganda" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1893143968]
 z_index = 2
@@ -390,16 +377,6 @@ script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_billboard_propaganda.png"
 foreground = true
 
-[node name="StateBankRD" type="Sprite2D" parent="CityBackground/Buildings" unique_id=909493966]
-texture_filter = 1
-position = Vector2(1203, 527)
-scale = Vector2(1.5, 1.5)
-texture = ExtResource("47_n03")
-offset = Vector2(0, -96)
-script = ExtResource("6_scenery")
-sprite_file = "res://assets/sprites/buildings/building_state_bank.png"
-foreground = null
-
 [node name="ChurchOrthodox" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1943690955]
 z_index = 2
 z_as_relative = false
@@ -412,18 +389,6 @@ script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_church_orthodox.png"
 foreground = true
 
-[node name="PanelkaCorner" type="Sprite2D" parent="CityBackground/Buildings" unique_id=708301717]
-z_index = 2
-z_as_relative = false
-texture_filter = 1
-position = Vector2(-823, 737)
-scale = Vector2(1.5, 1.5)
-texture = ExtResource("54_n10")
-offset = Vector2(0, -128)
-script = ExtResource("6_scenery")
-sprite_file = "res://assets/sprites/buildings/building_panelka_corner.png"
-foreground = true
-
 [node name="BusShelterRD" type="Sprite2D" parent="CityBackground/Buildings" unique_id=924493567]
 texture_filter = 1
 position = Vector2(-425, 971)
@@ -432,7 +397,6 @@ texture = ExtResource("52_n08")
 offset = Vector2(0, -64)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_bus_shelter.png"
-foreground = null
 
 [node name="SchoolSoviet" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1618115321]
 z_index = 2
@@ -454,17 +418,6 @@ texture = ExtResource("55_n11")
 offset = Vector2(0, -128)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_apartment_brutalist.png"
-foreground = null
-
-[node name="HospitalBlock" type="Sprite2D" parent="CityBackground/Buildings" unique_id=364495853]
-texture_filter = 1
-position = Vector2(-650, 400)
-scale = Vector2(1.5, 1.5)
-texture = ExtResource("56_n12")
-offset = Vector2(0, -96)
-script = ExtResource("6_scenery")
-sprite_file = "res://assets/sprites/buildings/building_hospital_block.png"
-foreground = null
 
 [node name="ResidentialTower" type="Sprite2D" parent="CityBackground/Buildings" unique_id=1152369722]
 z_index = 2
@@ -477,6 +430,15 @@ offset = Vector2(0, -128)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_residential_tower.png"
 foreground = true
+
+[node name="HospitalBlock" type="Sprite2D" parent="CityBackground/Buildings" unique_id=364495853]
+texture_filter = 1
+position = Vector2(800, 593)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("56_n12")
+offset = Vector2(0, -96)
+script = ExtResource("6_scenery")
+sprite_file = "res://assets/sprites/buildings/building_hospital_block.png"
 
 [node name="GovernmentBuilding" type="Node2D" parent="CityBackground" unique_id=1225383662]
 z_index = 1
@@ -491,7 +453,6 @@ texture = ExtResource("26_x56qs")
 offset = Vector2(0, -96)
 script = ExtResource("6_scenery")
 sprite_file = "res://assets/sprites/buildings/building_government_dome.png"
-foreground = null
 
 [node name="AnimatedDetails" type="Node2D" parent="CityBackground" unique_id=2082889522]
 
@@ -542,23 +503,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -110.0
-offset_top = -80.0
-offset_right = 110.0
-offset_bottom = 80.0
+offset_left = -150.0
+offset_top = -140.0
+offset_right = 150.0
+offset_bottom = 140.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("5_upgrade_panel")
-
-[node name="VBox" type="VBoxContainer" parent="HUD/UpgradePanel" unique_id=121673308]
-layout_mode = 2
-
-[node name="TowerNameLabel" type="Label" parent="HUD/UpgradePanel/VBox" unique_id=1417789301]
-layout_mode = 2
-
-[node name="PathContainer" type="VBoxContainer" parent="HUD/UpgradePanel/VBox" unique_id=1482773746]
-layout_mode = 2
-
-[node name="SellButton" type="Button" parent="HUD/UpgradePanel/VBox" unique_id=912853772]
-layout_mode = 2
-text = "Sell"

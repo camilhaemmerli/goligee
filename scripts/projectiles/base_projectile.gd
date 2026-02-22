@@ -138,6 +138,8 @@ func _apply_damage_to(enemy: Node2D) -> void:
 			e.last_hit_by = source_tower
 		var resists: Dictionary = e.resistances.get_all() if e.resistances else {}
 		var vuln_mod := e.get_vulnerability_modifier()
+		if e.status_effects:
+			vuln_mod *= DamageCalculator.get_status_synergy_mult(damage_type, e.status_effects)
 		var armor_shred := e.get_armor_shred()
 		e.health.take_damage(damage, damage_type, resists, vuln_mod, crit_chance, crit_multiplier, armor_shred)
 		if e.status_effects:

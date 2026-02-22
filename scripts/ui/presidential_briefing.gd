@@ -21,6 +21,14 @@ const CONCRETE_INNER  := Color("#5A5A60")
 const PRESIDENTIAL_SIZE = Vector2(640, 480)
 const DEMONSTRATOR_SIZE = Vector2(600, 420)
 
+# Tower unlock announcements per manifestation boundary (keyed by wave_number)
+const UNLOCK_ANNOUNCEMENTS = {
+	6: "CHEMICAL WEAPONS DIVISION activated.",
+	11: "ADVANCED DETERRENCE SYSTEMS online.",
+	16: "DIRECTED ENERGY PROTOTYPE delivered.",
+	21: "TOTAL INFORMATION AWARENESS achieved.",
+}
+
 var _blackletter_font: Font
 var _panel: PanelContainer
 var _wave_number_stored: int
@@ -272,6 +280,36 @@ func _build_demonstrator_briefing() -> void:
 		title.add_theme_font_override("font", _blackletter_font)
 	vbox.add_child(title)
 
+	# -- Unlock announcement (if this wave unlocks new towers) --
+	var announce_wave := _wave_number_stored if not _is_second_briefing else 1
+	if UNLOCK_ANNOUNCEMENTS.has(announce_wave):
+		var unlock_box := HBoxContainer.new()
+		unlock_box.add_theme_constant_override("separation", 6)
+		unlock_box.alignment = BoxContainer.ALIGNMENT_CENTER
+
+		var lock_icon := Label.new()
+		lock_icon.text = ">> "
+		lock_icon.add_theme_font_size_override("font_size", 12)
+		lock_icon.add_theme_color_override("font_color", Color("#D04040"))
+		unlock_box.add_child(lock_icon)
+
+		var unlock_label := Label.new()
+		unlock_label.text = "NEW AUTHORIZATION: " + UNLOCK_ANNOUNCEMENTS[announce_wave]
+		unlock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		unlock_label.add_theme_font_size_override("font_size", 13)
+		unlock_label.add_theme_color_override("font_color", Color("#D04040"))
+		if _blackletter_font:
+			unlock_label.add_theme_font_override("font", _blackletter_font)
+		unlock_box.add_child(unlock_label)
+
+		var lock_icon2 := Label.new()
+		lock_icon2.text = " <<"
+		lock_icon2.add_theme_font_size_override("font_size", 12)
+		lock_icon2.add_theme_color_override("font_color", Color("#D04040"))
+		unlock_box.add_child(lock_icon2)
+
+		vbox.add_child(unlock_box)
+
 	# Content row: portrait + message
 	var content := HBoxContainer.new()
 	content.add_theme_constant_override("separation", 16)
@@ -327,7 +365,7 @@ func _on_first_dismiss() -> void:
 	# Remove all panel children (letter content) but keep scaffold
 	for child in _panel.get_children():
 		_panel.remove_child(child)
-		child.free()
+		child.queue_free()
 
 	_is_second_briefing = true
 	_build_demonstrator_briefing()

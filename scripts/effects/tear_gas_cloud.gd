@@ -83,6 +83,8 @@ func _apply_cloud_damage() -> void:
 
 		var resists: Dictionary = enemy.resistances.get_all() if enemy.resistances else {}
 		var vuln_mod := enemy.get_vulnerability_modifier()
+		if enemy.status_effects:
+			vuln_mod *= DamageCalculator.get_status_synergy_mult(damage_type, enemy.status_effects)
 		var armor_shred := enemy.get_armor_shred()
 		enemy.health.take_damage(damage_per_tick, damage_type, resists, vuln_mod, 0.0, 1.0, armor_shred)
 

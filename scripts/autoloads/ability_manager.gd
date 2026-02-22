@@ -31,9 +31,23 @@ func initialize(abilities: Array[SpecialAbilityData], tile_map: TileMapLayer, ef
 		_cooldown_timers[ability.ability_id] = 0.0
 		_unlocked[ability.ability_id] = ability.unlock_wave <= 1
 
-	SignalBus.wave_started.connect(_on_wave_started)
-	SignalBus.build_mode_entered.connect(_on_build_mode_entered)
-	SignalBus.ability_completed.connect(_on_ability_completed)
+	# Guard against duplicate connections on scene reload
+	if not SignalBus.wave_started.is_connected(_on_wave_started):
+		SignalBus.wave_started.connect(_on_wave_started)
+	if not SignalBus.build_mode_entered.is_connected(_on_build_mode_entered):
+		SignalBus.build_mode_entered.connect(_on_build_mode_entered)
+	if not SignalBus.ability_completed.is_connected(_on_ability_completed):
+		SignalBus.ability_completed.connect(_on_ability_completed)
+
+
+func reset() -> void:
+	_current_state = Enums.AbilityState.IDLE
+	_placing_data = null
+	_destroy_ghost()
+	_tile_map = null
+	_effects_container = null
+	_cooldown_timers.clear()
+	_unlocked.clear()
 
 
 func _process(delta: float) -> void:

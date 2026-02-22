@@ -1,25 +1,27 @@
 class_name AgentProvocateur
 extends Node2D
 ## Executive Decree #1: An undercover agent walks backward along the path.
-## When he reaches enemies, he detonates a shockwave that stuns some
-## and pushes others backward along the path.
+## When he reaches enemies, he incites a riot — creating a persistent red
+## blockade zone that freezes all protestors who walk into it.
 
 const WALK_SPEED = 48.0
 const BLEND_DURATION = 0.8
-const STUN_DURATION = 4.5
-const STUN_RADIUS = 100.0
+const ZONE_RADIUS = 80.0
+const ZONE_DURATION = 8.0
 const DETECT_RADIUS = 36.0
-const STUN_DAMAGE = 15.0
-const PUSHBACK_DISTANCE = 100.0  ## Pixels pushed backward along path
-const PUSHBACK_CHANCE = 0.45     ## 45% of enemies get pushed back, rest get stunned
+const STUN_REAPPLY = 1.5  ## Duration of each stun tick (re-applied while in zone)
 
-enum Phase { WALKING, BLENDING, STUNNING, DONE }
+enum Phase { WALKING, BLENDING, ZONE_ACTIVE, DONE }
 
 var _phase: Phase = Phase.WALKING
 var _path: PackedVector2Array
 var _path_index: int = 0
 var _agent_sprite: Sprite2D
 var _blend_timer: float = 0.0
+var _zone_timer: float = 0.0
+var _zone_pos: Vector2
+var _zone_draw: _ZoneDraw
+var _stunned_enemies: Dictionary = {}  ## instance_id -> true (track who's inside)
 
 
 func init(world_pos: Vector2, _tile_map: TileMapLayer) -> void:
@@ -42,9 +44,7 @@ func init(world_pos: Vector2, _tile_map: TileMapLayer) -> void:
 	global_position = _path[0]
 	_path_index = 1
 
-	# Spawn indicator at HQ (path exit = start position)
 	_spawn_hq_indicator(_path[0])
-
 	_create_agent_sprite()
 
 
@@ -75,14 +75,12 @@ func _create_agent_sprite() -> void:
 
 
 func _spawn_hq_indicator(hq_pos: Vector2) -> void:
-	## Brief pulsing ring at HQ showing where the agent deploys from.
 	var indicator := Node2D.new()
 	indicator.global_position = hq_pos
 	indicator.z_index = 20
 	indicator.z_as_relative = false
 	get_parent().add_child(indicator)
 
-	# Expanding ring
 	var ring := _SpawnRingDraw.new()
 	indicator.add_child(ring)
 
@@ -92,7 +90,6 @@ func _spawn_hq_indicator(hq_pos: Vector2) -> void:
 	tw.parallel().tween_property(ring, "ring_alpha", 0.0, 0.5) \
 		.set_ease(Tween.EASE_IN)
 
-	# "DEPLOYING" flash label
 	var label := Label.new()
 	label.text = "DEPLOYING"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -104,7 +101,6 @@ func _spawn_hq_indicator(hq_pos: Vector2) -> void:
 	var label_tw := label.create_tween()
 	label_tw.tween_property(label, "modulate:a", 0.0, 0.8)
 
-	# Cleanup
 	var cleanup := indicator.create_tween()
 	cleanup.tween_interval(1.0)
 	cleanup.tween_callback(indicator.queue_free)
@@ -116,8 +112,8 @@ func _process(delta: float) -> void:
 			_process_walking(delta)
 		Phase.BLENDING:
 			_process_blending(delta)
-		Phase.STUNNING:
-			_process_stunning()
+		Phase.ZONE_ACTIVE:
+			_process_zone(delta)
 		Phase.DONE:
 			pass
 
@@ -160,97 +156,125 @@ func _start_blend_visual() -> void:
 func _process_blending(delta: float) -> void:
 	_blend_timer += delta
 	if _blend_timer >= BLEND_DURATION:
-		_phase = Phase.STUNNING
-		_do_stun()
+		_phase = Phase.ZONE_ACTIVE
+		_activate_zone()
 
 
-func _do_stun() -> void:
-	var enemies := SpatialGrid.get_enemies_in_radius(global_position, STUN_RADIUS)
+func _activate_zone() -> void:
+	_zone_pos = global_position
+	_zone_timer = ZONE_DURATION
+
+	# Fade out the agent sprite
+	if _agent_sprite:
+		var fade := create_tween()
+		fade.tween_property(_agent_sprite, "modulate:a", 0.0, 0.4)
+		fade.tween_callback(_agent_sprite.queue_free)
+		_agent_sprite = null
+
+	# Create the persistent red zone visual
+	_zone_draw = _ZoneDraw.new()
+	_zone_draw.zone_radius = ZONE_RADIUS
+	_zone_draw.z_index = 5
+	_zone_draw.global_position = _zone_pos
+	get_parent().add_child(_zone_draw)
+
+	# Expanding deploy ring
+	var deploy_ring := _DeployRingDraw.new()
+	deploy_ring.global_position = _zone_pos
+	deploy_ring.z_index = 6
+	get_parent().add_child(deploy_ring)
+
+	var ring_tw := deploy_ring.create_tween()
+	ring_tw.tween_property(deploy_ring, "ring_radius", ZONE_RADIUS * 1.3, 0.4) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	ring_tw.parallel().tween_property(deploy_ring, "ring_alpha", 0.0, 0.4)
+	ring_tw.tween_callback(deploy_ring.queue_free)
+
+	# Small screen shake on deploy
+	SignalBus.screen_shake.emit(4.0, 0.2)
+
+	# Immediately stun anyone already in the zone
+	_apply_zone_stun()
+
+
+func _process_zone(delta: float) -> void:
+	_zone_timer -= delta
+
+	if _zone_timer <= 0.0:
+		_end_zone()
+		return
+
+	# Update zone alpha for fade-out in the last 1.5s
+	if _zone_draw and is_instance_valid(_zone_draw):
+		var fade_start := 1.5
+		if _zone_timer < fade_start:
+			_zone_draw.zone_alpha = _zone_timer / fade_start
+		# Pulse the glow
+		_zone_draw.pulse_time += delta
+
+	_apply_zone_stun()
+
+
+func _apply_zone_stun() -> void:
+	var enemies := SpatialGrid.get_enemies_in_radius(_zone_pos, ZONE_RADIUS)
+	var in_zone_now: Dictionary = {}
+
 	for node in enemies:
 		if not node is BaseEnemy:
 			continue
 		var enemy: BaseEnemy = node as BaseEnemy
-		if enemy.health.is_dead:
+		if enemy.health.is_dead or enemy.is_flying():
 			continue
 
-		var resists: Dictionary = enemy.resistances.get_all() if enemy.resistances else {}
-		var vuln_mod := enemy.get_vulnerability_modifier()
-		var armor_shred := enemy.get_armor_shred()
-		enemy.health.take_damage(STUN_DAMAGE, Enums.DamageType.PSYCHOLOGICAL, resists, vuln_mod, 0.0, 1.0, armor_shred)
+		var eid := enemy.get_instance_id()
+		in_zone_now[eid] = true
 
-		if randf() < PUSHBACK_CHANCE and not enemy.is_flying():
-			# Push back: enemy retreats along path
-			var push_dist := randf_range(PUSHBACK_DISTANCE * 0.7, PUSHBACK_DISTANCE * 1.3)
-			enemy.push_back_on_path(push_dist)
-			# Red flash on pushed enemies
-			enemy.modulate = Color(1.5, 0.6, 0.6)
-			var flash_tw := enemy.create_tween()
-			flash_tw.tween_property(enemy, "modulate", Color.WHITE, 0.6)
-		else:
-			# Stun: freeze in place
-			if enemy.status_effects:
+		# Apply/refresh stun
+		if enemy.status_effects:
+			# Only re-apply if not already stunned or stun is about to expire
+			if not enemy.status_effects.has_effect(Enums.StatusEffectType.STUN):
 				var stun := StatusEffectData.new()
 				stun.effect_type = Enums.StatusEffectType.STUN
-				stun.duration = STUN_DURATION
+				stun.duration = STUN_REAPPLY
 				stun.potency = 1.0
 				stun.apply_chance = 1.0
 				enemy.status_effects.apply_effect(stun)
-			# Yellow flash on stunned enemies
-			enemy.modulate = Color(1.5, 1.4, 0.6)
-			var flash_tw := enemy.create_tween()
-			flash_tw.tween_property(enemy, "modulate", Color.WHITE, 0.6)
 
-	# Screen shake
-	SignalBus.screen_shake.emit(7.0, 0.3)
+		# Red tint on enemies inside zone
+		if eid not in _stunned_enemies:
+			enemy.modulate = Color(1.4, 0.5, 0.5)
 
-	# Visual: multi-ring shockwave + flash
-	_spawn_shockwave()
+	# Enemies that left the zone — restore tint (stun will expire naturally)
+	for eid in _stunned_enemies:
+		if eid not in in_zone_now:
+			# Find the enemy and reset modulate
+			var enemies_all := SpatialGrid.get_enemies_in_radius(_zone_pos, ZONE_RADIUS * 2.0)
+			for node in enemies_all:
+				if is_instance_valid(node) and node.get_instance_id() == eid:
+					var tw := node.create_tween()
+					tw.tween_property(node, "modulate", Color.WHITE, 0.3)
+					break
 
-
-func _spawn_shockwave() -> void:
-	var container := Node2D.new()
-	container.z_index = 20
-	container.global_position = global_position
-	get_parent().add_child(container)
-
-	# Full-area white flash
-	var flash := _FlashDraw.new()
-	flash.flash_radius = STUN_RADIUS * 1.3
-	container.add_child(flash)
-	var flash_tw := flash.create_tween()
-	flash_tw.tween_property(flash, "flash_alpha", 0.0, 0.35)
-
-	# 4 concentric expanding rings with stagger
-	for i in 4:
-		var ring := _StunRingDraw.new()
-		ring.ring_thickness = 3.5 - float(i) * 0.5
-		container.add_child(ring)
-
-		var delay := float(i) * 0.07
-		var duration := 0.5 + float(i) * 0.12
-		var target_radius := STUN_RADIUS * (0.7 + float(i) * 0.15)
-
-		var tw := ring.create_tween()
-		if delay > 0.0:
-			tw.tween_interval(delay)
-		tw.tween_property(ring, "ring_radius", target_radius, duration) \
-			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-		tw.parallel().tween_property(ring, "ring_alpha", 0.0, duration) \
-			.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-
-	# White flash on agent
-	if _agent_sprite:
-		_agent_sprite.modulate = Color(4.0, 4.0, 4.0)
-		var agent_tw := create_tween()
-		agent_tw.tween_property(_agent_sprite, "modulate", Color.WHITE, 0.4)
-
-	# Clean up container
-	var cleanup_tw := container.create_tween()
-	cleanup_tw.tween_interval(1.2)
-	cleanup_tw.tween_callback(container.queue_free)
+	_stunned_enemies = in_zone_now
 
 
-func _process_stunning() -> void:
+func _end_zone() -> void:
+	# Clean up zone visual
+	if _zone_draw and is_instance_valid(_zone_draw):
+		_zone_draw.queue_free()
+		_zone_draw = null
+
+	# Restore modulate on any remaining stunned enemies
+	var enemies := SpatialGrid.get_enemies_in_radius(_zone_pos, ZONE_RADIUS * 1.5)
+	for node in enemies:
+		if not is_instance_valid(node):
+			continue
+		var eid := node.get_instance_id()
+		if eid in _stunned_enemies:
+			var tw := node.create_tween()
+			tw.tween_property(node, "modulate", Color.WHITE, 0.3)
+
+	_stunned_enemies.clear()
 	_finish()
 
 
@@ -258,16 +282,48 @@ func _finish() -> void:
 	_phase = Phase.DONE
 	SignalBus.ability_completed.emit("agent_provocateur")
 	var tween := create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, 0.5)
+	tween.tween_property(self, "modulate:a", 0.0, 0.3)
 	tween.tween_callback(queue_free)
 
 
 # -- Visual helpers --
 
-class _StunRingDraw extends Node2D:
+class _ZoneDraw extends Node2D:
+	## Persistent red glowing circle on the ground.
+	var zone_radius: float = 0.0
+	var zone_alpha: float = 1.0
+	var pulse_time: float = 0.0
+
+	func _process(_delta: float) -> void:
+		queue_redraw()
+
+	func _draw() -> void:
+		if zone_radius <= 0.0 or zone_alpha <= 0.0:
+			return
+		# Pulsing glow factor
+		var pulse := 0.8 + sin(pulse_time * 3.0) * 0.2
+
+		# Filled red circle (translucent)
+		var fill_alpha := 0.12 * zone_alpha * pulse
+		draw_circle(Vector2.ZERO, zone_radius, Color(0.9, 0.15, 0.1, fill_alpha))
+
+		# Inner glow ring
+		var inner_col := Color(1.0, 0.2, 0.15, 0.5 * zone_alpha * pulse)
+		draw_arc(Vector2.ZERO, zone_radius * 0.7, 0.0, TAU, 64, inner_col, 1.5, true)
+
+		# Outer border ring
+		var outer_col := Color(1.0, 0.25, 0.2, 0.7 * zone_alpha * pulse)
+		draw_arc(Vector2.ZERO, zone_radius, 0.0, TAU, 64, outer_col, 2.5, true)
+
+		# Faint outer halo
+		var halo_col := Color(1.0, 0.1, 0.05, 0.08 * zone_alpha * pulse)
+		draw_circle(Vector2.ZERO, zone_radius * 1.15, halo_col)
+
+
+class _DeployRingDraw extends Node2D:
+	## Expanding ring on zone activation.
 	var ring_radius: float = 0.0
-	var ring_alpha: float = 0.9
-	var ring_thickness: float = 3.0
+	var ring_alpha: float = 0.8
 
 	func _process(_delta: float) -> void:
 		queue_redraw()
@@ -275,23 +331,8 @@ class _StunRingDraw extends Node2D:
 	func _draw() -> void:
 		if ring_radius <= 0.0 or ring_alpha <= 0.0:
 			return
-		var col := Color(1.0, 0.95, 0.7, ring_alpha)
-		draw_arc(Vector2.ZERO, ring_radius, 0.0, TAU, 64, col, ring_thickness, true)
-		var fill_col := Color(1.0, 0.95, 0.7, ring_alpha * 0.12)
-		draw_circle(Vector2.ZERO, ring_radius, fill_col)
-
-
-class _FlashDraw extends Node2D:
-	var flash_radius: float = 0.0
-	var flash_alpha: float = 0.45
-
-	func _process(_delta: float) -> void:
-		queue_redraw()
-
-	func _draw() -> void:
-		if flash_radius <= 0.0 or flash_alpha <= 0.0:
-			return
-		draw_circle(Vector2.ZERO, flash_radius, Color(1.0, 1.0, 0.9, flash_alpha))
+		var col := Color(1.0, 0.3, 0.2, ring_alpha)
+		draw_arc(Vector2.ZERO, ring_radius, 0.0, TAU, 64, col, 2.5, true)
 
 
 class _SpawnRingDraw extends Node2D:

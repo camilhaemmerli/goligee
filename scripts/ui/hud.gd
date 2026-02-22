@@ -256,15 +256,19 @@ func _create_wave_circle() -> void:
 	_wave_progress_ring.draw.connect(_draw_progress_ring)
 	circle_holder.add_child(_wave_progress_ring)
 
-	# Circle background
+	# Circle background — show president portrait before first wave
 	_wave_circle_tex = TextureRect.new()
-	_wave_circle_tex.texture = _make_fallback_circle()
+	var president_tex := load("res://assets/ui/president_portrait.png") as Texture2D
+	if president_tex:
+		_wave_circle_tex.texture = _make_circle_portrait(president_tex)
+	else:
+		_wave_circle_tex.texture = _make_fallback_circle()
 	_wave_circle_tex.position = Vector2.ZERO
 	_wave_circle_tex.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_wave_circle_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	circle_holder.add_child(_wave_circle_tex)
 
-	# Wave number centered in circle
+	# Wave number centered in circle — hidden until first wave starts
 	_wave_number_label = Label.new()
 	_wave_number_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_wave_number_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -275,6 +279,7 @@ func _create_wave_circle() -> void:
 	if _blackletter_font:
 		_wave_number_label.add_theme_font_override("font", _blackletter_font)
 	_wave_number_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wave_number_label.visible = false
 	circle_holder.add_child(_wave_number_label)
 
 
@@ -291,20 +296,27 @@ func _create_options_button() -> void:
 	var box_bottom := HUD_MARGIN + CIRCLE_SIZE + BOX_PAD * 2  # bottom of wave circle
 
 	# Gear button — above approval bar, right-aligned with it
+	const GEAR_SIZE = 48.0  # Mobile-friendly touch target (>=44px)
 	_options_btn = Button.new()
 	_options_btn.text = "\u2699"
-	_options_btn.custom_minimum_size = Vector2(28, 28)
+	_options_btn.custom_minimum_size = Vector2(GEAR_SIZE, GEAR_SIZE)
 	_options_btn.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_options_btn.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_options_btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_options_btn.offset_right = -HUD_MARGIN
-	_options_btn.offset_left = -HUD_MARGIN - 28.0
+	_options_btn.offset_left = -HUD_MARGIN - GEAR_SIZE
 	_options_btn.offset_bottom = -HUD_MARGIN - (APPROVAL_BAR_H + 4.0) - 4.0
-	_options_btn.offset_top = -HUD_MARGIN - (APPROVAL_BAR_H + 4.0) - 4.0 - 28.0
+	_options_btn.offset_top = -HUD_MARGIN - (APPROVAL_BAR_H + 4.0) - 4.0 - GEAR_SIZE
 	_options_btn.pressed.connect(_toggle_options_panel)
 	_options_btn.process_mode = Node.PROCESS_MODE_ALWAYS
-	_options_btn.add_theme_font_size_override("font_size", 16)
+	_options_btn.add_theme_font_size_override("font_size", 24)
 	_options_btn.add_theme_color_override("font_color", Color.WHITE)
+	# Flat / transparent — no dark box behind the icon
+	var gear_empty := StyleBoxEmpty.new()
+	_options_btn.add_theme_stylebox_override("normal", gear_empty)
+	_options_btn.add_theme_stylebox_override("hover", gear_empty)
+	_options_btn.add_theme_stylebox_override("pressed", gear_empty)
+	_options_btn.add_theme_stylebox_override("focus", gear_empty)
 	add_child(_options_btn)
 
 	# Backdrop — invisible full-screen click catcher to close panel
@@ -318,7 +330,7 @@ func _create_options_button() -> void:
 	add_child(_options_backdrop)
 
 	# Options panel — above gear button, bottom-right
-	var gear_top := -HUD_MARGIN - (APPROVAL_BAR_H + 4.0) - 4.0 - 28.0
+	var gear_top := -HUD_MARGIN - (APPROVAL_BAR_H + 4.0) - 4.0 - GEAR_SIZE
 	_options_panel = PanelContainer.new()
 	_options_panel.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_options_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
@@ -605,7 +617,7 @@ func _create_game_over_overlay() -> void:
 # ---------------------------------------------------------------------------
 
 func _update_budget_display(old_amount: int, new_amount: int) -> void:
-	_budget_value_label.text = "$" + str(new_amount)
+	_budget_value_label.text = EconomyManager.format_gold_full(new_amount)
 
 	# Pulse scale
 	if _budget_tween:
@@ -618,7 +630,7 @@ func _update_budget_display(old_amount: int, new_amount: int) -> void:
 	# Float change text
 	var diff := new_amount - old_amount
 	if diff != 0:
-		_budget_change_label.text = ("+" if diff > 0 else "") + str(diff)
+		_budget_change_label.text = ("+" if diff > 0 else "") + EconomyManager.format_gold_plain(diff)
 		_budget_change_label.add_theme_color_override("font_color", COL_GREEN if diff > 0 else COL_RED)
 		_budget_change_label.modulate.a = 1.0
 		_budget_change_label.position.y = HUD_MARGIN + 66.0
@@ -790,6 +802,7 @@ func _make_circle_portrait(portrait_tex: Texture2D) -> ImageTexture:
 
 
 func _update_wave_circle(wave_number: int) -> void:
+	_wave_number_label.visible = true
 	_wave_number_label.text = str(wave_number)
 
 	# Flash wave title briefly at center screen
@@ -827,29 +840,33 @@ func _update_wave_circle(wave_number: int) -> void:
 
 
 func _draw_progress_ring() -> void:
-	# Draw a circular arc showing wave progress (enemies gone / total)
-	var center := Vector2(50, 50)  # half of 100px circle
+	# Red ring with 3D bevel — full at wave start, drains as enemies are cleared
+	var center := Vector2(50, 50)
 	var outer_r := 49.0
-	var ring_width := 4.0
+	var ring_width := 3.0
 	var point_count := 64
 
-	# Background track (dark ring)
-	_wave_progress_ring.draw_arc(center, outer_r, 0.0, TAU, point_count, Color("#2A2A30"), ring_width, true)
+	# Background track (dark inset ring)
+	_wave_progress_ring.draw_arc(center, outer_r, 0.0, TAU, point_count, Color("#0E0E12"), ring_width + 1.0, true)
 
 	if _wave_total <= 0:
 		return
 
-	var ratio := clampf(float(_wave_gone) / float(_wave_total), 0.0, 1.0)
-	if ratio <= 0.0:
+	# Remaining ratio: 1.0 at wave start → 0.0 when all enemies gone
+	var remaining := clampf(1.0 - float(_wave_gone) / float(_wave_total), 0.0, 1.0)
+	if remaining <= 0.0:
 		return
 
-	# Progress arc — starts at top (-PI/2), sweeps clockwise
 	var start_angle := -PI / 2.0
-	var end_angle := start_angle + TAU * ratio
+	var end_angle := start_angle + TAU * remaining
 
-	# Color: lerp from amber to green as wave clears
-	var arc_color := COL_AMBER.lerp(COL_GREEN, ratio)
-	_wave_progress_ring.draw_arc(center, outer_r, start_angle, end_angle, point_count, arc_color, ring_width, true)
+	# 3D bevel: draw 3 concentric arcs — highlight on outer edge, base mid, shadow inner
+	var highlight := Color(0.95, 0.3, 0.3)  # bright red top edge
+	var base_col := Color(0.75, 0.12, 0.12)  # core red
+	var shadow := Color(0.35, 0.06, 0.06)    # dark red inner edge
+	_wave_progress_ring.draw_arc(center, outer_r + 0.5, start_angle, end_angle, point_count, highlight, 1.0, true)
+	_wave_progress_ring.draw_arc(center, outer_r, start_angle, end_angle, point_count, base_col, ring_width - 1.0, true)
+	_wave_progress_ring.draw_arc(center, outer_r - 1.0, start_angle, end_angle, point_count, shadow, 1.0, true)
 
 
 # ---------------------------------------------------------------------------
@@ -861,7 +878,7 @@ func _process(delta: float) -> void:
 	if timer > 0.0:
 		_send_wave_btn.visible = true
 		var bonus := WaveManager.get_call_wave_bonus()
-		_send_wave_btn.text = "SEND WAVE" + (" +$" + str(bonus) if bonus > 0 else "")
+		_send_wave_btn.text = "SEND WAVE" + (" +" + EconomyManager.format_gold(bonus) if bonus > 0 else "")
 	else:
 		_send_wave_btn.visible = false
 

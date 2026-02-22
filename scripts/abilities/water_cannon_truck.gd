@@ -193,6 +193,8 @@ func _apply_spray() -> void:
 		# Apply damage
 		var resists: Dictionary = enemy.resistances.get_all() if enemy.resistances else {}
 		var vuln_mod := enemy.get_vulnerability_modifier()
+		if enemy.status_effects:
+			vuln_mod *= DamageCalculator.get_status_synergy_mult(Enums.DamageType.HYDRAULIC, enemy.status_effects)
 		var armor_shred := enemy.get_armor_shred()
 		enemy.health.take_damage(DAMAGE_PER_HIT, Enums.DamageType.HYDRAULIC, resists, vuln_mod, 0.0, 1.0, armor_shred)
 

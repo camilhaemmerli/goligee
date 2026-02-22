@@ -31,11 +31,14 @@ const KILL_MILESTONES = [25, 50, 100, 250, 500, 1000]
 const TOWER_SCALE = 0.75
 
 # Rank badge constants
-const BADGE_COLORS = [Color("#B08040"), Color("#A0A8B8"), Color("#FFD060")]  # bronze, silver, gold
+const BADGE_BRONZE = Color("#B08040")
+const BADGE_SILVER = Color("#A0A8B8")
+const BADGE_GOLD = Color("#FFD060")
+const BADGE_SHIMMER_HI = Color("#FFF0A0")
 const BADGE_OUTLINE = Color("#1A1A1E")
-const CHEVRON_W = 6.0   # half-width of chevron V
-const CHEVRON_H = 3.0   # depth of V
-const CHEVRON_SPACING = 4.0
+const CHEVRON_W = 8.0   # half-width of chevron V
+const CHEVRON_H = 5.0   # depth of V
+const CHEVRON_SPACING = 6.0
 var _badge_node: Node2D
 var _total_upgrades: int = 0
 
@@ -97,7 +100,7 @@ func _ready() -> void:
 	_badge_node.draw.connect(_draw_rank_badge)
 
 	_synergy_node = Node2D.new()
-	_synergy_node.z_index = -1  # Behind tower sprites, visible on tiles
+	_synergy_node.z_index = 2  # Above tower sprites so diamond is visible
 	add_child(_synergy_node)
 	_synergy_node.draw.connect(_draw_synergy_glow)
 
@@ -109,6 +112,10 @@ func _ready() -> void:
 	SignalBus.tower_selected.connect(_on_tower_selected)
 	SignalBus.tower_deselected.connect(_on_tower_deselected)
 	SynergyManager.synergy_changed.connect(_on_synergy_changed)
+
+	# Surveillance Hub: +1 bonus gold per enemy killed within range
+	if tower_data and tower_data.tower_id == "surveillance_hub":
+		SignalBus.enemy_killed.connect(_on_surveillance_kill_bonus)
 
 	# Taser tower-to-tower electric links
 	_is_taser = tower_data and tower_data.tower_id == "taser_grid"
@@ -134,6 +141,7 @@ func _ready() -> void:
 	add_child(tower_body)
 
 	set_process(false)  # Only enable when synergy glow or taser links are active
+	print("[TOWER] _ready DONE")
 
 
 func _init_from_data() -> void:
@@ -288,6 +296,10 @@ func _on_upgraded(path_index: int, tier: int) -> void:
 		_total_upgrades += t
 	_badge_node.queue_redraw()
 
+	# Enable processing for shimmer animation when fully maxed
+	if _is_fully_upgraded():
+		set_process(true)
+
 	weapon.apply_stat_modifiers(upgrade.active_modifiers)
 
 	var combined_effects: Array[StatusEffectData] = []
@@ -308,6 +320,23 @@ func _on_upgraded(path_index: int, tier: int) -> void:
 				Enums.ModifierOp.SET:
 					final_range = mod.value
 	_update_range_shape(final_range)
+
+	# Tier 5 evo: swap turret sprites to evolved variant
+	if tier == 5:
+		_apply_tier5_skin(path_index)
+
+
+func _apply_tier5_skin(path_index: int) -> void:
+	if not tower_data or not tower_data.tower_id:
+		return
+	var skin := ThemeManager.get_tier5_skin(tower_data.tower_id, path_index)
+	if not skin:
+		return
+	if skin.turret_textures.size() == 8:
+		_turret_textures = skin.turret_textures
+		turret_sprite.texture = _turret_textures[_current_dir_idx]
+	if skin.fire_turret_textures.size() == 8:
+		_fire_turret_textures = skin.fire_turret_textures
 
 
 func get_sell_value() -> int:
@@ -349,15 +378,25 @@ func _on_enemy_killed(enemy: Node2D, _gold: int) -> void:
 				t2.tween_property(turret_sprite, "modulate", Color.WHITE, 0.3)
 
 
+func _on_surveillance_kill_bonus(enemy: Node2D, _gold: int) -> void:
+	if not tower_data or tower_data.tower_id != "surveillance_hub":
+		return
+	if not is_instance_valid(enemy):
+		return
+	var dist := global_position.distance_to(enemy.global_position) / 32.0
+	if dist <= get_current_range():
+		EconomyManager.add_gold_data(1)
+
+
 func _draw() -> void:
 	if not _show_range or not tower_data:
 		return
-	var radius := _get_current_range() * 32.0
+	var radius := get_current_range() * 32.0
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 64, Color("#A0F0F0F0"), 1.0)
 	draw_circle(Vector2.ZERO, radius, Color("#A0D8A010"))
 
 
-func _get_current_range() -> float:
+func get_current_range() -> float:
 	var final_range := tower_data.base_range
 	for mod in upgrade.active_modifiers:
 		if mod.stat_name == "base_range":
@@ -369,6 +408,21 @@ func _get_current_range() -> float:
 				Enums.ModifierOp.SET:
 					final_range = mod.value
 	return final_range
+
+
+func get_current_fire_rate() -> float:
+	var final_rate := tower_data.fire_rate
+	for mod in upgrade.active_modifiers:
+		if mod.stat_name == "fire_rate":
+			match mod.operation:
+				Enums.ModifierOp.ADD:
+					final_rate += mod.value
+				Enums.ModifierOp.MULTIPLY:
+					final_rate *= mod.value
+				Enums.ModifierOp.SET:
+					final_rate = mod.value
+	final_rate *= _synergy_rate_mult
+	return final_rate
 
 
 func _on_tower_selected(tower: Node2D) -> void:
@@ -434,12 +488,19 @@ func _spawn_muzzle_flash() -> void:
 func _draw_rank_badge() -> void:
 	if _total_upgrades <= 0:
 		return
-	var tier_idx := clampi((_total_upgrades - 1) / 2, 0, 2)
-	var count := ((_total_upgrades - 1) % 2) + 1
-	var color: Color = BADGE_COLORS[tier_idx]
 	var anchor := Vector2(12, -20)
-	for i in count:
-		_draw_chevron(anchor + Vector2(0, -i * CHEVRON_SPACING), color)
+	var is_maxed := _is_fully_upgraded()
+
+	if is_maxed:
+		_draw_shield_badge(anchor, _get_shimmer_gold(), true)
+	elif _total_upgrades >= 5:
+		_draw_shield_badge(anchor, BADGE_GOLD, false)
+	elif _total_upgrades >= 3:
+		_draw_star_badge(anchor, BADGE_SILVER)
+	else:
+		var count := _total_upgrades
+		for i in count:
+			_draw_chevron(anchor + Vector2(0, -i * CHEVRON_SPACING), BADGE_BRONZE)
 
 
 func _draw_chevron(center: Vector2, color: Color) -> void:
@@ -447,11 +508,61 @@ func _draw_chevron(center: Vector2, color: Color) -> void:
 	var tip := center
 	var right := center + Vector2(CHEVRON_W, -CHEVRON_H)
 	# Outline
-	_badge_node.draw_line(left, tip, BADGE_OUTLINE, 2.0)
-	_badge_node.draw_line(tip, right, BADGE_OUTLINE, 2.0)
+	_badge_node.draw_line(left, tip, BADGE_OUTLINE, 3.0)
+	_badge_node.draw_line(tip, right, BADGE_OUTLINE, 3.0)
 	# Fill
-	_badge_node.draw_line(left, tip, color, 1.0)
-	_badge_node.draw_line(tip, right, color, 1.0)
+	_badge_node.draw_line(left, tip, color, 2.0)
+	_badge_node.draw_line(tip, right, color, 2.0)
+
+
+func _draw_star_badge(center: Vector2, color: Color) -> void:
+	# 4-pointed star via 8-vertex polygon (alternating outer/inner radii)
+	var outer_r := 6.0
+	var inner_r := 2.5
+	var pts := PackedVector2Array()
+	for i in 8:
+		var angle := i * TAU / 8.0 - PI / 2.0  # Start from top
+		var r := outer_r if i % 2 == 0 else inner_r
+		pts.append(center + Vector2(cos(angle) * r, sin(angle) * r))
+	_badge_node.draw_colored_polygon(pts, color)
+
+
+func _draw_shield_badge(center: Vector2, color: Color, small: bool = false) -> void:
+	# Shield shape: flat top, tapered sides, pointed bottom
+	var s := 0.7 if small else 1.0
+	var pts := PackedVector2Array([
+		center + Vector2(-6, -7) * s,   # top-left
+		center + Vector2(6, -7) * s,    # top-right
+		center + Vector2(7, -4) * s,    # right shoulder
+		center + Vector2(5, 2) * s,     # right taper
+		center + Vector2(0, 7) * s,     # bottom point
+		center + Vector2(-5, 2) * s,    # left taper
+		center + Vector2(-7, -4) * s,   # left shoulder
+	])
+	_badge_node.draw_colored_polygon(pts, color)
+	if not small:
+		for i in pts.size():
+			_badge_node.draw_line(pts[i], pts[(i + 1) % pts.size()], BADGE_OUTLINE, 1.5)
+
+
+func _get_shimmer_gold() -> Color:
+	var t := sin(Time.get_ticks_msec() * 0.006 * TAU) * 0.5 + 0.5  # 0-1 oscillation ~3Hz
+	return BADGE_GOLD.lerp(BADGE_SHIMMER_HI, t)
+
+
+func _is_fully_upgraded() -> bool:
+	if not tower_data or tower_data.upgrade_paths.is_empty():
+		return false
+	if _total_upgrades <= 0:
+		return false
+	# Fully maxed = no path can be upgraded further (at max tier or crosspath-blocked)
+	for path_i in tower_data.upgrade_paths.size():
+		var path := tower_data.upgrade_paths[path_i]
+		# If path has room AND crosspath rules allow it, not fully maxed
+		if upgrade.path_tiers[path_i] < path.tiers.size():
+			if UpgradeRegistry.can_upgrade(upgrade.path_tiers, path_i, upgrade.max_paths_used, upgrade.max_deep_tier):
+				return false
+	return true
 
 
 func _on_synergy_changed(tower: Node2D) -> void:
@@ -486,6 +597,10 @@ func _process(delta: float) -> void:
 		_synergy_pulse += delta * 2.5
 		_synergy_node.queue_redraw()
 
+	# Shimmer redraw for max-upgraded badge
+	if _is_fully_upgraded():
+		_badge_node.queue_redraw()
+
 	if _is_taser and not _taser_links.is_empty():
 		_link_flicker_timer += delta
 		if _link_flicker_timer >= TASER_LINK_FLICKER_INTERVAL:
@@ -497,7 +612,7 @@ func _draw_synergy_glow() -> void:
 	if _synergy_color == Color.TRANSPARENT:
 		return
 	var pulse_alpha := 0.35 + 0.25 * sin(_synergy_pulse)
-	var glow_color := Color(_synergy_color, pulse_alpha * 0.4)
+	var glow_color := Color(_synergy_color, pulse_alpha * 0.6)
 	var outline_color := Color(_synergy_color, pulse_alpha)
 	# Pulsing diamond matching the isometric tile footprint
 	var hw := 32.0
@@ -560,6 +675,8 @@ func _remove_suppression_visuals() -> void:
 
 
 func _draw_rec_dot() -> void:
+	if not is_instance_valid(_rec_dot):
+		return
 	# Red circle + "REC" text above the tower
 	_rec_dot.draw_circle(Vector2(10, -28), 3.0, REC_DOT_COLOR)
 	_rec_dot.draw_string(ThemeDB.fallback_font, Vector2(15, -24), "REC",
@@ -571,7 +688,7 @@ func sell() -> void:
 	_remove_suppression_visuals()
 	_clear_taser_links()
 	var refund := get_sell_value()
-	EconomyManager.add_gold(refund)
+	EconomyManager.add_gold_data(refund)
 	PathfindingManager.remove_tower(_tile_pos)
 	SignalBus.tower_sold.emit(self, refund)
 	queue_free()

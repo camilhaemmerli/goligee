@@ -13,5 +13,5 @@ max_hp = 40.0
 base_speed = 1.2
 armor = 0.0
 armor_type = 0
-gold_reward = 0
+gold_reward = 1
 lives_cost = 1

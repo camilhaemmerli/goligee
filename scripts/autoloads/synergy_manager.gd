@@ -17,8 +17,8 @@ const SYNERGIES = [
 		"name": "POWER GRID",
 		"tower_a": "taser_grid",
 		"tower_b": "taser_grid",
-		"bonus_a": 1.20,
-		"bonus_b": 1.20,
+		"bonus_a": 1.15,
+		"bonus_b": 1.15,
 		"max_stacks": 2,
 	},
 	{
@@ -26,8 +26,8 @@ const SYNERGIES = [
 		"name": "REDUNDANT MONITORING",
 		"tower_a": "surveillance_hub",
 		"tower_b": "surveillance_hub",
-		"bonus_a": 0.90,
-		"bonus_b": 0.90,
+		"bonus_a": 0.85,
+		"bonus_b": 0.85,
 		"max_stacks": 2,
 	},
 	{
@@ -35,8 +35,8 @@ const SYNERGIES = [
 		"name": "CONDUCTIVITY PROTOCOL",
 		"tower_a": "water_cannon",
 		"tower_b": "taser_grid",
-		"bonus_a": 1.25,
-		"bonus_b": 1.25,
+		"bonus_a": 1.15,
+		"bonus_b": 1.30,
 		"max_stacks": 1,
 	},
 	{
@@ -56,7 +56,7 @@ const SYNERGIES = [
 		"bonus_a": 1.0,
 		"bonus_b": 1.0,
 		"rate_a": 1.0,
-		"rate_b": 1.40,
+		"rate_b": 1.35,
 		"max_stacks": 1,
 	},
 	{
@@ -64,8 +64,8 @@ const SYNERGIES = [
 		"name": "CHEMICAL COCKTAIL",
 		"tower_a": "tear_gas",
 		"tower_b": "pepper_spray",
-		"bonus_a": 1.15,
-		"bonus_b": 1.15,
+		"bonus_a": 1.20,
+		"bonus_b": 1.20,
 		"max_stacks": 1,
 	},
 	{
@@ -74,7 +74,36 @@ const SYNERGIES = [
 		"tower_a": "microwave_emitter",
 		"tower_b": "tear_gas",
 		"bonus_a": 1.15,
-		"bonus_b": 1.10,
+		"bonus_b": 1.15,
+		"max_stacks": 1,
+	},
+	{
+		"id": "crowd_analytics",
+		"name": "CROWD ANALYTICS",
+		"tower_a": "surveillance_hub",
+		"tower_b": "lrad_cannon",
+		"bonus_a": 1.0,
+		"bonus_b": 1.25,
+		"max_stacks": 1,
+	},
+	{
+		"id": "suppression_doctrine",
+		"name": "SUPPRESSION DOCTRINE",
+		"tower_a": "rubber_bullet",
+		"tower_b": "water_cannon",
+		"bonus_a": 1.15,
+		"bonus_b": 1.0,
+		"rate_a": 1.0,
+		"rate_b": 1.15,
+		"max_stacks": 1,
+	},
+	{
+		"id": "thermal_imaging",
+		"name": "THERMAL IMAGING",
+		"tower_a": "surveillance_hub",
+		"tower_b": "microwave_emitter",
+		"bonus_a": 1.0,
+		"bonus_b": 1.20,
 		"max_stacks": 1,
 	},
 ]
@@ -93,6 +122,12 @@ func _ready() -> void:
 	SignalBus.tower_placed.connect(_on_tower_placed)
 	SignalBus.tower_sold.connect(_on_tower_sold)
 	SignalBus.tower_upgraded.connect(_on_tower_upgraded)
+	SignalBus.restart_requested.connect(clear)
+
+
+func clear() -> void:
+	_tower_grid.clear()
+	_tower_synergies.clear()
 
 
 func _on_tower_placed(tower: Node2D, tile_pos: Vector2i) -> void:
@@ -126,8 +161,11 @@ func _recalculate_neighbors(center_tile: Vector2i) -> void:
 				continue
 			var neighbor_tile := center_tile + Vector2i(dx, dy)
 			if _tower_grid.has(neighbor_tile):
-				var neighbor: BaseTower = _tower_grid[neighbor_tile]
-				_recalculate_for_tower(neighbor, neighbor_tile)
+				var ref = _tower_grid[neighbor_tile]
+				if not is_instance_valid(ref):
+					_tower_grid.erase(neighbor_tile)
+					continue
+				_recalculate_for_tower(ref as BaseTower, neighbor_tile)
 
 
 func _recalculate_for_tower(tower: BaseTower, tile_pos: Vector2i) -> void:
@@ -171,7 +209,11 @@ func _recalculate_for_tower(tower: BaseTower, tile_pos: Vector2i) -> void:
 				var check_tile := tile_pos + Vector2i(dx, dy)
 				if not _tower_grid.has(check_tile):
 					continue
-				var neighbor: BaseTower = _tower_grid[check_tile]
+				var ref = _tower_grid[check_tile]
+				if not is_instance_valid(ref):
+					_tower_grid.erase(check_tile)
+					continue
+				var neighbor: BaseTower = ref as BaseTower
 				if neighbor == tower:
 					continue
 				var neighbor_id: String = neighbor.tower_data.tower_id if neighbor.tower_data else ""

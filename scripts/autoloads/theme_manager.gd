@@ -204,6 +204,74 @@ func get_tower_skin(tower_id: String) -> TowerSkinData:
 	return null
 
 
+# -- Tier 5 evo variant skins --
+
+const PATH_LETTERS = ["a", "b", "c"]
+var _tier5_cache: Dictionary = {}  # "tower_id_a" -> TowerSkinData (or null)
+
+
+func get_tier5_skin(tower_id: String, path_index: int) -> TowerSkinData:
+	"""Load tier5 evo variant skin for a tower+path. Cached after first load."""
+	if path_index < 0 or path_index >= PATH_LETTERS.size():
+		return null
+	var letter: String = PATH_LETTERS[path_index]
+	var cache_key := "%s_%s" % [tower_id, letter]
+	if _tier5_cache.has(cache_key):
+		return _tier5_cache[cache_key]
+
+	var skin := _load_tier5_skin(tower_id, letter)
+	_tier5_cache[cache_key] = skin
+	return skin
+
+
+func _load_tier5_skin(tower_id: String, letter: String) -> TowerSkinData:
+	var folder_id := tower_id
+	var alias: String = TOWER_ASSET_ALIASES.get(tower_id, "")
+	if alias != "":
+		folder_id = alias
+
+	var prefix := "tier5%s_turret" % letter
+	# Check that at least the SE direction exists
+	var test_path := "res://assets/sprites/towers/%s/%s_se.png" % [folder_id, prefix]
+	if not ResourceLoader.exists(test_path):
+		return null
+
+	var turret_textures: Array[Texture2D] = []
+	for dir in TOWER_TURRET_DIRS:
+		var path := "res://assets/sprites/towers/%s/%s_%s.png" % [folder_id, prefix, dir]
+		if not ResourceLoader.exists(path):
+			return null
+		var tex := load(path) as Texture2D
+		if not tex:
+			return null
+		turret_textures.append(tex)
+
+	# Load optional firing-pose turret textures
+	var fire_prefix := "tier5%s_turret_fire" % letter
+	var fire_turret_textures: Array[Texture2D] = []
+	var first_fire := "res://assets/sprites/towers/%s/%s_%s.png" % [folder_id, fire_prefix, TOWER_TURRET_DIRS[0]]
+	if ResourceLoader.exists(first_fire):
+		for dir in TOWER_TURRET_DIRS:
+			var fire_path := "res://assets/sprites/towers/%s/%s_%s.png" % [folder_id, fire_prefix, dir]
+			if ResourceLoader.exists(fire_path):
+				var fire_tex := load(fire_path) as Texture2D
+				if fire_tex:
+					fire_turret_textures.append(fire_tex)
+
+	var skin := TowerSkinData.new()
+	skin.turret_textures = turret_textures
+	if fire_turret_textures.size() == 8:
+		skin.fire_turret_textures = fire_turret_textures
+
+	# Inherit Y offset from base skin
+	if TURRET_Y_OFFSETS.has(folder_id):
+		skin.turret_y_offset = TURRET_Y_OFFSETS[folder_id]
+	elif TURRET_Y_OFFSETS.has(tower_id):
+		skin.turret_y_offset = TURRET_Y_OFFSETS[tower_id]
+
+	return skin
+
+
 func get_enemy_skin(enemy_id: String) -> EnemySkinData:
 	if current_theme and current_theme.enemy_skins.has(enemy_id):
 		return current_theme.enemy_skins[enemy_id]

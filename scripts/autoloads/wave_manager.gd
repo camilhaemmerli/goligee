@@ -116,10 +116,25 @@ func _spawn_wave(wave: WaveData) -> void:
 
 
 func _get_late_wave_hp_scale() -> float:
-	# After wave 3, add +18% HP per wave beyond 3
-	if current_wave_index >= 2:
-		return 1.0 + (current_wave_index - 2) * 0.18
-	return 1.0
+	var w := current_wave_index  # 0-based
+	if w <= 1:
+		return 1.0
+	var scale := 1.0
+	var p1 := clampi(w - 2 + 1, 0, 8)   # waves 3-10: +10%/wave
+	scale *= pow(1.10, p1)
+	if w <= 9:
+		return scale
+	var p2 := clampi(w - 10 + 1, 0, 15)  # waves 11-25: +14%/wave
+	scale *= pow(1.14, p2)
+	if w <= 24:
+		return scale
+	var p3 := clampi(w - 25 + 1, 0, 15)  # waves 26-40: +17%/wave
+	scale *= pow(1.17, p3)
+	if w <= 39:
+		return scale
+	var p4 := clampi(w - 40 + 1, 0, 10)  # waves 41-50: +20%/wave
+	scale *= pow(1.20, p4)
+	return scale
 
 
 func _on_enemy_died(_enemy: Node2D, _value: int = 0) -> void:
@@ -162,7 +177,7 @@ func _on_wave_cleared() -> void:
 		bonus += streak_bonus
 
 	if bonus > 0:
-		EconomyManager.add_gold(bonus)
+		EconomyManager.add_gold_data(bonus)
 
 	SignalBus.wave_completed.emit(wave.wave_number)
 
@@ -192,8 +207,8 @@ func call_next_wave() -> int:
 	var time_ratio := clampf(_between_wave_timer / 5.0, 0.0, 1.0)
 	var bonus := int(next_wave.gold_bonus * time_ratio * 0.25)
 	if bonus > 0:
-		EconomyManager.add_gold(bonus)
-		SignalBus.send_wave_bonus.emit(bonus)
+		EconomyManager.add_gold_data(bonus)
+		SignalBus.send_wave_bonus.emit(bonus * EconomyManager.BUDGET_SCALE)
 	_between_wave_timer = 0.0
 	return bonus
 
@@ -207,7 +222,7 @@ func get_call_wave_bonus() -> int:
 		return 0
 	var next_wave := waves[next_idx]
 	var time_ratio := clampf(_between_wave_timer / 5.0, 0.0, 1.0)
-	return int(next_wave.gold_bonus * time_ratio * 0.25)
+	return int(next_wave.gold_bonus * time_ratio * 0.25) * EconomyManager.BUDGET_SCALE
 
 
 func get_between_wave_timer() -> float:

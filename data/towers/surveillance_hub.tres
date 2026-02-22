@@ -41,7 +41,7 @@ value = 1.5
 script = ExtResource("5_utd")
 tier_name = "Patrol Drone"
 description = "Autonomous monitoring unit. It's for your protection."
-cost = 13
+cost = 11
 stat_modifiers = [SubResource("mod_a2_rate")]
 
 [sub_resource type="Resource" id="mod_a3_range"]
@@ -60,7 +60,7 @@ value = 1.3
 script = ExtResource("5_utd")
 tier_name = "Relay Network"
 description = "Drones talking to drones. They have more social life than you."
-cost = 20
+cost = 18
 stat_modifiers = [SubResource("mod_a3_range"), SubResource("mod_a3_rate")]
 
 [sub_resource type="Resource" id="mod_a4_range"]
@@ -79,7 +79,7 @@ value = 1.4
 script = ExtResource("5_utd")
 tier_name = "Drone Swarm"
 description = "The sky is full of tiny cameras. Isn't technology wonderful?"
-cost = 32
+cost = 30
 stat_modifiers = [SubResource("mod_a4_range"), SubResource("mod_a4_rate")]
 
 [sub_resource type="Resource" id="mod_a5_range"]
@@ -106,7 +106,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Panopticon"
 description = "We see everything. We know everything. Privacy was a failed experiment."
-cost = 52
+cost = 55
 stat_modifiers = [SubResource("mod_a5_range"), SubResource("mod_a5_rate")]
 unlocks_ability = SubResource("weaken_a5")
 
@@ -140,7 +140,7 @@ value = 1.4
 script = ExtResource("5_utd")
 tier_name = "Behavioral Analysis"
 description = "Predictive threat assessment via social media history"
-cost = 13
+cost = 11
 stat_modifiers = [SubResource("mod_b2_dmg")]
 
 [sub_resource type="Resource" id="mod_b3_dmg"]
@@ -159,7 +159,7 @@ value = 0.6
 script = ExtResource("5_utd")
 tier_name = "Metadata Harvester"
 description = "Your phone is our phone. Your contacts are our contacts."
-cost = 20
+cost = 18
 stat_modifiers = [SubResource("mod_b3_dmg"), SubResource("mod_b3_range")]
 
 [sub_resource type="Resource" id="mod_b4_dmg"]
@@ -178,7 +178,7 @@ value = 0.06
 script = ExtResource("5_utd")
 tier_name = "Deepfake Generator"
 description = "Your alibi has been overwritten. You were there. We have footage."
-cost = 32
+cost = 30
 stat_modifiers = [SubResource("mod_b4_dmg"), SubResource("mod_b4_crit")]
 
 [sub_resource type="Resource" id="mod_b5_dmg"]
@@ -199,7 +199,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Social Credit System"
 description = "Your score is -9000. All units converge. Your family's score has also been adjusted."
-cost = 52
+cost = 55
 stat_modifiers = [SubResource("mod_b5_dmg")]
 unlocks_ability = SubResource("mark_b5")
 
@@ -239,7 +239,7 @@ value = 0.6
 script = ExtResource("5_utd")
 tier_name = "Mandatory Re-education"
 description = "Please watch this 47-hour orientation video"
-cost = 13
+cost = 11
 stat_modifiers = [SubResource("mod_c2_dmg"), SubResource("mod_c2_aoe")]
 
 [sub_resource type="Resource" id="mod_c3_aoe"]
@@ -258,7 +258,7 @@ value = 1.3
 script = ExtResource("5_utd")
 tier_name = "State Media Broadcast"
 description = "All channels now show the same program. Compliance programming."
-cost = 20
+cost = 18
 stat_modifiers = [SubResource("mod_c3_aoe"), SubResource("mod_c3_dmg")]
 
 [sub_resource type="Resource" id="mod_c4_aoe"]
@@ -277,7 +277,7 @@ value = 1.5
 script = ExtResource("5_utd")
 tier_name = "Information Warfare"
 description = "Facts are whatever we say they are. We have the speakers to prove it."
-cost = 32
+cost = 30
 stat_modifiers = [SubResource("mod_c4_aoe"), SubResource("mod_c4_dmg")]
 
 [sub_resource type="Resource" id="mod_c5_aoe"]
@@ -298,7 +298,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Ministry of Truth"
 description = "The truth has been updated. Your memory is incorrect. Please stand still for recalibration."
-cost = 52
+cost = 55
 stat_modifiers = [SubResource("mod_c5_aoe")]
 unlocks_ability = SubResource("slow_c5")
 
@@ -316,10 +316,11 @@ description = "Big Brother is watching. And taking notes. And sharing them."
 scene = ExtResource("2_scene")
 build_cost = 20
 sell_ratio = 0.65
-base_damage = 4.0
+unlock_wave = 21
+base_damage = 3.0
 damage_type = 7
 base_range = 5.5
-fire_rate = 0.5
+fire_rate = 0.8
 projectile_type = 4
 projectile_scene = ExtResource("3_proj")
 area_of_effect = 5.5

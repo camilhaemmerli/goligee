@@ -41,7 +41,7 @@ value = 1.0
 script = ExtResource("5_utd")
 tier_name = "Dual Prongs"
 description = "Two electrodes, twice the attitude adjustment"
-cost = 8
+cost = 7
 stat_modifiers = [SubResource("mod_a2_pierce")]
 
 [sub_resource type="Resource" id="mod_a3_dmg"]
@@ -92,7 +92,7 @@ value = 3.0
 script = ExtResource("5_utd")
 tier_name = "Tesla Array"
 description = "Named after the inventor. He'd be horrified. We're delighted."
-cost = 32
+cost = 36
 stat_modifiers = [SubResource("mod_a5_dmg"), SubResource("mod_a5_chain")]
 
 [sub_resource type="Resource" id="path_a"]
@@ -131,7 +131,7 @@ value = 1.3
 script = ExtResource("5_utd")
 tier_name = "Overclocked"
 description = "Exceeding manufacturer safety guidelines"
-cost = 8
+cost = 7
 stat_modifiers = [SubResource("mod_b2_rate"), SubResource("mod_b2_dmg")]
 
 [sub_resource type="Resource" id="mod_b3_rate"]
@@ -184,7 +184,7 @@ apply_chance = 0.5
 script = ExtResource("5_utd")
 tier_name = "Seizure Inducer"
 description = "Medical professionals call it a seizure. We call it involuntary compliance dancing."
-cost = 32
+cost = 36
 stat_modifiers = [SubResource("mod_b5_rate")]
 unlocks_ability = SubResource("stun_b5")
 
@@ -218,7 +218,7 @@ value = 0.6
 script = ExtResource("5_utd")
 tier_name = "Conductive Gel"
 description = "Splash zone now an involuntary participation zone"
-cost = 8
+cost = 7
 stat_modifiers = [SubResource("mod_c2_aoe")]
 
 [sub_resource type="Resource" id="mod_c3_range"]
@@ -277,7 +277,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Detention Grid"
 description = "You have the right to remain electrocuted. Everything you step on will shock you."
-cost = 32
+cost = 36
 stat_modifiers = [SubResource("mod_c5_aoe"), SubResource("mod_c5_chain")]
 unlocks_ability = SubResource("slow_c5")
 
@@ -295,7 +295,8 @@ description = "Involuntary muscle relaxation therapy. Side effects include compl
 scene = ExtResource("2_scene")
 build_cost = 12
 sell_ratio = 0.65
-base_damage = 10.0
+unlock_wave = 11
+base_damage = 8.0
 damage_type = 3
 base_range = 3.5
 fire_rate = 0.7
@@ -305,8 +306,8 @@ area_of_effect = 0.0
 pierce_count = 1
 crit_chance = 0.0
 crit_multiplier = 2.0
-chain_targets = 3
-chain_damage_falloff = 0.5
+chain_targets = 5
+chain_damage_falloff = 0.65
 crossfire_bonus = 0.15
 can_target_flying = false
 on_hit_effects = [SubResource("stun_effect")]

@@ -8,7 +8,7 @@ const CHEMICAL_TOWERS = {
 	"tear_gas": 0.06,
 	"pepper_spray": 0.03,
 }
-const AMBIENT_DENSITY = 0.08  # Always-visible atmospheric haze
+const AMBIENT_DENSITY = 0.18  # Always-visible atmospheric haze
 const MAX_DENSITY = 0.25
 const DENSITY_TWEEN_DURATION = 0.8
 
@@ -39,11 +39,13 @@ var _wisps: Dictionary = {}  # tower instance_id -> CPUParticles2D
 var _light_texture: Texture2D
 var _noise_texture: NoiseTexture2D
 var _dust_particles: CPUParticles2D
+var _last_zoom: float = 0.0
 
 
 func setup(game_node: Node2D, camera: Camera2D, effects: Node2D) -> void:
 	_camera = camera
 	_effects_container = effects
+	_last_zoom = camera.zoom.x if camera else 1.0
 	_create_noise_texture()
 	_create_light_texture()
 	_create_fog_overlay(game_node)
@@ -108,8 +110,13 @@ func _create_fog_overlay(game_node: Node2D) -> void:
 
 func _update_fog_size() -> void:
 	var vp_size := get_viewport().get_visible_rect().size
-	# Slightly oversized to cover edges during camera movement
-	var padded := vp_size * 1.2
+	if vp_size.x <= 0.0 or vp_size.y <= 0.0:
+		return
+	# Account for camera zoom: visible world area = viewport / zoom
+	var zoom_factor := _camera.zoom.x if _camera else 1.0
+	if zoom_factor <= 0.0:
+		zoom_factor = 1.0
+	var padded := (vp_size * 1.3) / zoom_factor
 	var img := Image.create(int(padded.x), int(padded.y), false, Image.FORMAT_RGBA8)
 	img.fill(Color.WHITE)
 	_fog_overlay.texture = ImageTexture.create_from_image(img)
@@ -181,6 +188,13 @@ func _process(_delta: float) -> void:
 	# Feed camera position to shader for world-space noise
 	if _fog_material:
 		_fog_material.set_shader_parameter("camera_position", _camera.global_position)
+	# Resize fog overlay when zoom changes
+	if not is_equal_approx(_camera.zoom.x, _last_zoom):
+		_last_zoom = _camera.zoom.x
+		_update_fog_size()
+		if _dust_particles:
+			var vp := get_viewport().get_visible_rect().size
+			_dust_particles.emission_rect_extents = (vp * 0.6) / _last_zoom
 
 
 # ---------------------------------------------------------------------------

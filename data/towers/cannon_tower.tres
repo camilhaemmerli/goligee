@@ -82,7 +82,7 @@ value = 1.6
 script = ExtResource("5_utd")
 tier_name = "Weaponized Compound"
 description = "The lab report is redacted for your safety"
-cost = 13
+cost = 14
 stat_modifiers = [SubResource("mod_a4_aoe"), SubResource("mod_a4_dmg")]
 
 [sub_resource type="Resource" id="mod_a5_aoe"]
@@ -101,7 +101,7 @@ value = 1.8
 script = ExtResource("5_utd")
 tier_name = "Forbidden Protocol"
 description = "Banned by 194 countries. Approved by the one that matters."
-cost = 22
+cost = 25
 stat_modifiers = [SubResource("mod_a5_aoe"), SubResource("mod_a5_dmg")]
 
 [sub_resource type="Resource" id="path_a"]
@@ -168,7 +168,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Thermite Additive"
 description = "Now it burns AND poisons. Synergy!"
-cost = 13
+cost = 14
 unlocks_ability = SubResource("burn_c4")
 
 [sub_resource type="Resource" id="poison_c5"]
@@ -183,7 +183,7 @@ apply_chance = 1.0
 script = ExtResource("5_utd")
 tier_name = "Doomsday Agent"
 description = "The area will be habitable again in 50 years. Probably."
-cost = 22
+cost = 25
 unlocks_ability = SubResource("poison_c5")
 
 [sub_resource type="Resource" id="path_c"]
@@ -200,7 +200,8 @@ description = "Area denial for the greater good."
 scene = ExtResource("2_scene")
 build_cost = 8
 sell_ratio = 0.65
-base_damage = 18.0
+unlock_wave = 6
+base_damage = 15.0
 damage_type = 1
 base_range = 3.5
 fire_rate = 0.4

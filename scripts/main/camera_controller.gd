@@ -16,6 +16,9 @@ var _panning := false
 var _pan_start := Vector2.ZERO
 var _cam_start := Vector2.ZERO
 var _base_position := Vector2.ZERO  # logical position before shake
+var _left_pending := false  # left-click held, waiting for drag threshold
+var _left_start := Vector2.ZERO
+const PAN_DRAG_THRESHOLD = 6.0  # pixels of movement before left-click becomes a pan
 
 ## Zoom
 var _target_zoom := ZOOM_DEFAULT
@@ -119,11 +122,31 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
-	# --- Middle mouse drag pan ---
-	if event is InputEventMouseMotion and _panning:
-		_base_position = _cam_start + (_pan_start - get_viewport().get_mouse_position()) / zoom.x
-		get_viewport().set_input_as_handled()
-		return
+		# Left mouse button — start pending drag (don't consume yet so clicks pass through)
+		if event.button_index == MOUSE_BUTTON_LEFT and not build_mode:
+			if event.pressed:
+				_left_pending = true
+				_left_start = event.position
+			else:
+				_left_pending = false
+				if _panning:
+					_panning = false
+					get_viewport().set_input_as_handled()
+			return
+
+	# --- Mouse drag pan (middle mouse or left-click after threshold) ---
+	if event is InputEventMouseMotion:
+		# Promote left-click to pan once drag threshold is exceeded
+		if _left_pending and not _panning:
+			if event.position.distance_to(_left_start) >= PAN_DRAG_THRESHOLD:
+				_left_pending = false
+				_panning = true
+				_pan_start = _left_start
+				_cam_start = _base_position
+		if _panning:
+			_base_position = _cam_start + (_pan_start - get_viewport().get_mouse_position()) / zoom.x
+			get_viewport().set_input_as_handled()
+			return
 
 
 func _clamp_position(pos: Vector2) -> Vector2:
